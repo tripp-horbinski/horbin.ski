@@ -51,7 +51,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased max-w-xl mx-auto px-4 py-12">
+      <body className="antialiased max-w-xl mx-auto px-4 mt-14 md:mt-28 mb-28">
         <main>{children}</main>
         <ThemeToggle />
       </body>

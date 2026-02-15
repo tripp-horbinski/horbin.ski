@@ -28,9 +28,9 @@ export default function Home() {
         {' '}building the tools that connect people to the causes they care about.
       </p>
       <p className="my-5">
-        You can read my{' '}
+        You can{' '}
         <Link href="/writing" className="link">
-          writing
+          read my writing
         </Link>
         {' '}or{' '}
         <a
@@ -43,7 +43,7 @@ export default function Home() {
         </a>
         , or connect with me on{' '}
         <a
-          href="https://linkedin.com/in/tripphorbinski"
+          href="https://www.linkedin.com/in/tripp-horbinski/"
           target="_blank"
           rel="noopener noreferrer"
           className="link"

@@ -14,11 +14,11 @@ export default function BlogPage() {
       <h1 className="text-xl md:text-2xl mb-1 font-medium">Writing</h1>
       <p className="mb-6" style={{ color: 'var(--text-nav)' }}>
         By{' '}
-        <Link href="/" className="link" style={{ color: 'var(--text-nav)' }}>
+        <Link href="/" className="no-underline transition-colors" style={{ color: 'var(--text-nav)' }}>
           Tripp Horbinski
         </Link>
       </p>
-      <ul className="pl-0 space-y-1 list-none">
+      <ul className="pl-4 space-y-1 list-disc">
         {posts.map((post) => (
           <li key={post.slug} className="pl-1">
             <Link href={`/writing/${post.slug}`} className="link">
