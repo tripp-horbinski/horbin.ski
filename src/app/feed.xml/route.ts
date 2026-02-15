@@ -23,8 +23,8 @@ export async function GET() {
     <item>
       <title><![CDATA[${post.title}]]></title>
       <description><![CDATA[${post.excerpt}]]></description>
-      <link>${baseUrl}/blog/${post.slug}</link>
-      <guid isPermaLink="true">${baseUrl}/blog/${post.slug}</guid>
+      <link>${baseUrl}/writing/${post.slug}</link>
+      <guid isPermaLink="true">${baseUrl}/writing/${post.slug}</guid>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
       <category>${post.category === 'tech' ? 'Technology' : 'Running'}</category>
       ${post.tags.map(tag => `<category>${tag}</category>`).join('')}
