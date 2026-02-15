@@ -1,29 +1,28 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Layout from '@/components/Layout'
-import Footer from '@/components/Footer'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Horbin.ski - Tech & Running Blog',
-    template: '%s | Horbin.ski'
+    default: 'Tripp Horbinski — Developer & Runner',
+    template: '%s | Tripp Horbinski'
   },
-  description: 'A modern blog focused on technology insights and running adventures',
-  keywords: ['technology', 'running', 'blog', 'software development', 'fitness'],
+  description: 'Software developer and distance runner. Building things for the web and chasing finish lines.',
+  keywords: ['software developer', 'running', 'web development', 'technology', 'marathon'],
   authors: [{ name: 'Tripp Horbinski' }],
   creator: 'Tripp Horbinski',
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://horbin.ski',
-    title: 'Horbin.ski - Tech & Running Blog',
-    description: 'A modern blog focused on technology insights and running adventures',
-    siteName: 'Horbin.ski',
+    title: 'Tripp Horbinski — Developer & Runner',
+    description: 'Software developer and distance runner. Building things for the web and chasing finish lines.',
+    siteName: 'Tripp Horbinski',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Horbin.ski - Tech & Running Blog',
-    description: 'A modern blog focused on technology insights and running adventures',
+    title: 'Tripp Horbinski — Developer & Runner',
+    description: 'Software developer and distance runner. Building things for the web and chasing finish lines.',
   },
   robots: {
     index: true,
@@ -44,16 +43,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body>
-        <Layout>
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </Layout>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body className="antialiased max-w-xl mx-auto px-4 py-12">
+        <main>{children}</main>
+        <ThemeToggle />
       </body>
     </html>
   )
