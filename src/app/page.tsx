@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 export const metadata = {
   title: 'Tripp Horbinski — Developer & Backpacker',
   description:
@@ -13,7 +11,16 @@ export default function Home() {
         Tripp Horbinski
       </h1>
       <p className="my-5">
-        I&apos;m a runner, backpacker, and dog dad.
+        I&apos;m a dog dad to 2{' '}
+        <a
+          href="https://puppe.rs"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="link"
+        >
+          puppers
+        </a>
+        .
       </p>
       <p className="my-5">
         I work at{' '}
@@ -28,20 +35,16 @@ export default function Home() {
         {' '}building the tools that connect people to the causes they care about.
       </p>
       <p className="my-5">
-        You can{' '}
-        <Link href="/writing" className="link">
-          read my writing
-        </Link>
-        {' '}or{' '}
+        You can view my{' '}
         <a
           href="https://github.com/tripp-horbinski"
           target="_blank"
           rel="noopener noreferrer"
           className="link"
         >
-          code
+          AI slop
         </a>
-        , or connect with me on{' '}
+        {' '}or connect with me on{' '}
         <a
           href="https://www.linkedin.com/in/tripp-horbinski/"
           target="_blank"
