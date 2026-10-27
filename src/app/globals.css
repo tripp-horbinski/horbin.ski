@@ -382,6 +382,504 @@
     color: var(--text-nav);
     white-space: nowrap;
   }
+
+  /* Hero scene as the way into the meadow */
+  .meadow-portal {
+    position: relative;
+    display: block;
+  }
+
+  .meadow-portal-cue {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    padding: 0.45rem 1.5rem 0.35rem 0.85rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sign-text);
+    background: var(--sign-wood);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .meadow-portal:hover .meadow-portal-cue,
+  .meadow-portal:focus-visible .meadow-portal-cue {
+    background: var(--sign-post);
+    transform: translateX(3px);
+  }
+
+  /* The meadow: a full-screen scene with routed-wood park signs for controls */
+  .meadow {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    overflow: hidden;
+    background: #3C76C6;
+    color: #F3EAD6;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .meadow-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+
+  .meadow-sign,
+  .meadow-guide button,
+  .meadow-now,
+  .meadow-play {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #F3EAD6;
+  }
+
+  .meadow-sign {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.6rem 0.85rem 0.48rem;
+    font-size: 0.68rem;
+    line-height: 1;
+    background: #6B4D3A;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.16), 0 2px 0 #3F2C21, 0 8px 18px rgba(20, 14, 8, 0.22);
+    transition: background-color 0.2s;
+  }
+
+  .meadow-sign:hover {
+    background: #5A4031;
+  }
+
+  .meadow-sign[aria-pressed='true'],
+  .meadow-sign[aria-expanded='true'] {
+    background: #3F5B38;
+  }
+
+  .meadow-top {
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px;
+    pointer-events: none;
+  }
+
+  .meadow-top > * {
+    pointer-events: auto;
+  }
+
+  .meadow-tools {
+    display: flex;
+    gap: 8px;
+  }
+
+  .meadow-title {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(18, 22, 36, 0.4), 0 0 28px rgba(18, 22, 36, 0.3);
+  }
+
+  .meadow-title h1 {
+    color: #FBF6EA;
+    font-size: clamp(1.35rem, 3.4vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: 0.34em;
+    margin-right: -0.34em;
+  }
+
+  .meadow-title p {
+    margin-top: 0.6rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #F6EEDC;
+  }
+
+  .meadow-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 94px;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - 32px);
+    text-align: center;
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #FBF6EA;
+    text-shadow: 0 1px 3px rgba(30, 20, 10, 0.6), 0 0 18px rgba(30, 20, 10, 0.45);
+    pointer-events: none;
+    transition: opacity 0.8s, transform 0.8s;
+  }
+
+  .meadow-hint[data-hidden='true'] {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+
+  /* Wooden board along the bottom holding the time of day */
+  .meadow-clock {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    width: min(680px, calc(100% - 32px));
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 6.6rem auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px 10px 10px;
+    border-radius: 6px;
+    background:
+      repeating-linear-gradient(178deg, rgba(0, 0, 0, 0) 0 9px, rgba(40, 26, 18, 0.18) 9px 10px, rgba(0, 0, 0, 0) 10px 23px),
+      #5E4434;
+    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.14), 0 3px 0 #3A291F, 0 12px 28px rgba(20, 14, 8, 0.3);
+  }
+
+  .meadow-play,
+  .meadow-now {
+    display: grid;
+    place-items: center;
+    height: 34px;
+    border-radius: 4px;
+    background: #3F5B38;
+    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.16);
+    transition: background-color 0.2s;
+  }
+
+  .meadow-play {
+    width: 34px;
+  }
+
+  .meadow-now {
+    padding: 0.1rem 0.8rem 0;
+    font-size: 0.64rem;
+  }
+
+  .meadow-play:hover,
+  .meadow-now:hover {
+    background: #4D6B45;
+  }
+
+  .meadow-readout {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meadow-readout strong {
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+  }
+
+  .meadow-readout span {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #D9C9AC;
+  }
+
+  .meadow-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .meadow-range::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 5px;
+    background: var(--track);
+    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.3), 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .meadow-range::-moz-range-track {
+    height: 10px;
+    border-radius: 5px;
+    background: var(--track);
+    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.3);
+  }
+
+  .meadow-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #FFF8E6 0 45%, #F7D98A 70%);
+    border: 2px solid #F3EAD6;
+    box-shadow: 0 0 0 1px #3A291F, 0 0 14px rgba(255, 214, 140, 0.75);
+  }
+
+  .meadow-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #FFF8E6 0 45%, #F7D98A 70%);
+    border: 2px solid #F3EAD6;
+    box-shadow: 0 0 0 1px #3A291F, 0 0 14px rgba(255, 214, 140, 0.75);
+  }
+
+  .meadow-range:focus-visible {
+    outline: none;
+  }
+
+  .meadow-range:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid #F3EAD6;
+    outline-offset: 3px;
+  }
+
+  /* Name tag over whatever you're pointing at */
+  .meadow-label,
+  .meadow-pin {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .meadow-label span {
+    position: absolute;
+    left: 0;
+    bottom: 12px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem 0.4rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #F3EAD6;
+    background: #6B4D3A;
+    border-radius: 3px;
+    box-shadow: 0 6px 14px rgba(20, 14, 8, 0.3);
+  }
+
+  .meadow-label span::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    width: 10px;
+    height: 10px;
+    background: #6B4D3A;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .meadow-pin::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: -6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #FBF6EA;
+    background: #3F5B38;
+    box-shadow: 0 0 0 4px rgba(251, 246, 234, 0.25);
+    animation: meadow-pulse 2.2s ease-out infinite;
+  }
+
+  @keyframes meadow-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(251, 246, 234, 0.55); }
+    100% { box-shadow: 0 0 0 14px rgba(251, 246, 234, 0); }
+  }
+
+  /* Field note, like an interpretive sign at the trailhead */
+  .meadow-note {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: min(310px, calc(100vw - 32px));
+    visibility: hidden;
+    border-radius: 5px;
+    overflow: hidden;
+    color: #3B3A33;
+    background: #F3EAD6;
+    box-shadow: 0 3px 0 #C9B996, 0 18px 40px rgba(20, 14, 8, 0.35);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .meadow-note[hidden] {
+    display: none;
+  }
+
+  .meadow-note header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0.7rem 0.6rem 0.55rem 1rem;
+    background: #3F5B38;
+  }
+
+  .meadow-note h2 {
+    color: #F3EAD6;
+    font-size: 0.82rem;
+    letter-spacing: 0.18em;
+  }
+
+  .meadow-note header button {
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: #F3EAD6;
+  }
+
+  .meadow-note header button:hover {
+    background: rgba(243, 234, 214, 0.15);
+  }
+
+  .meadow-note p {
+    padding: 0 1rem;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .meadow-note p:last-child {
+    padding-bottom: 1rem;
+  }
+
+  .meadow-note .meadow-note-meta {
+    padding-top: 0.8rem;
+    padding-bottom: 0.35rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.64rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #8F5F4A;
+  }
+
+  .meadow-guide {
+    position: absolute;
+    top: 64px;
+    right: 16px;
+    width: min(280px, calc(100vw - 32px));
+    max-height: calc(100% - 190px);
+    overflow-y: auto;
+    padding: 0.9rem 0.6rem 0.6rem;
+    border-radius: 5px;
+    background: #F3EAD6;
+    color: #3B3A33;
+    box-shadow: 0 3px 0 #C9B996, 0 18px 40px rgba(20, 14, 8, 0.35);
+  }
+
+  .meadow-guide h2 {
+    padding: 0 0.6rem 0.5rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    color: #8F5F4A;
+  }
+
+  .meadow-guide ol {
+    list-style: none;
+    padding: 0;
+  }
+
+  .meadow-guide button {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.15rem;
+    padding: 0.5rem 0.6rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    text-align: left;
+    color: #3B3A33;
+  }
+
+  .meadow-guide button small {
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.78rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #8A8473;
+  }
+
+  .meadow-guide button:hover {
+    background: #E6DCC4;
+  }
+
+  @media (max-width: 640px) {
+    .meadow-title {
+      top: 70px;
+    }
+
+    .meadow-title p {
+      font-size: 0.56rem;
+      letter-spacing: 0.22em;
+    }
+
+    .meadow-clock {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas: 'play range now' 'read read read';
+      gap: 6px 10px;
+      bottom: 12px;
+    }
+
+    .meadow-play { grid-area: play; }
+    .meadow-range { grid-area: range; }
+    .meadow-now { grid-area: now; }
+
+    .meadow-readout {
+      grid-area: read;
+      flex-direction: row;
+      justify-content: center;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .meadow-hint {
+      bottom: 116px;
+      font-size: 0.82rem;
+    }
+
+    /* On small screens the note docks above the clock instead of floating */
+    .meadow-note {
+      left: 16px !important;
+      right: 16px;
+      width: auto;
+      top: auto !important;
+      bottom: 118px;
+      transform: none !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .meadow-pin::before {
+      animation: none;
+    }
+  }
 }
 
 :focus-visible {

@@ -1,0 +1,273 @@
+'use client'
+
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
+import { MeadowEngine } from '@/lib/meadow/engine'
+import { featureById, type FeatureId } from '@/lib/meadow/features'
+import { formatHour, paletteAt, phaseName, PHOTO_HOUR } from '@/lib/meadow/palette'
+
+const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'green', 'pines', 'meadow', 'trail']
+
+function boulderHour() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Denver',
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(new Date())
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0)
+  return get('hour') + get('minute') / 60
+}
+
+function placeLabel(el: HTMLElement | null, pos: [number, number] | null) {
+  if (!el) return
+  el.style.visibility = pos ? 'visible' : 'hidden'
+  if (pos) el.style.transform = `translate(${pos[0]}px, ${pos[1]}px)`
+}
+
+// Beside the anchor, flipped and clamped to stay on screen
+function placeNote(el: HTMLElement | null, pin: HTMLElement | null, pos: [number, number] | null) {
+  placeLabel(pin, pos)
+  if (!el) return
+  el.style.visibility = pos ? 'visible' : 'hidden'
+  if (!pos) return
+  const W = window.innerWidth
+  const H = window.innerHeight
+  const w = el.offsetWidth
+  const h = el.offsetHeight
+  let left = pos[0] + 26
+  if (left + w > W - 16) left = pos[0] - 26 - w
+  left = Math.max(16, Math.min(W - w - 16, left))
+  const top = Math.max(84, Math.min(H - h - 112, pos[1] - 34))
+  el.style.transform = `translate(${left}px, ${top}px)`
+}
+
+export default function Meadow() {
+  const router = useRouter()
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const engineRef = useRef<MeadowEngine | null>(null)
+  const labelRef = useRef<HTMLDivElement>(null)
+  const noteRef = useRef<HTMLDivElement>(null)
+  const pinRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const [hour, setHour] = useState(PHOTO_HOUR)
+  const [playing, setPlaying] = useState(false)
+  const [sound, setSound] = useState(false)
+  const [hover, setHover] = useState<FeatureId | null>(null)
+  const [pinned, setPinned] = useState<FeatureId | null>(null)
+  const [guide, setGuide] = useState(false)
+  const [explored, setExplored] = useState(false)
+  const [touch, setTouch] = useState(false)
+
+  const select = useRef<(id: FeatureId) => void>(() => {})
+  select.current = (id) => {
+    const f = featureById(id)
+    if (f.href) router.push(f.href)
+    else setPinned((p) => (p === id ? null : id))
+    setExplored(true)
+  }
+
+  useEffect(() => {
+    const start = document.documentElement.classList.contains('dark') ? 21.6 : PHOTO_HOUR
+    setHour(start)
+    setTouch(window.matchMedia('(hover: none)').matches)
+    const engine = new MeadowEngine(canvasRef.current!, start, {
+      onHover: (id) => {
+        setHover(id)
+        if (id) setExplored(true)
+      },
+      onSelect: (id) => select.current(id),
+      onHour: setHour,
+      onAnchors: (h, p) => {
+        placeLabel(labelRef.current, h)
+        placeNote(noteRef.current, pinRef.current, p)
+      },
+    })
+    engineRef.current = engine
+
+    const root = document.documentElement
+    const overflow = root.style.overflow
+    root.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setPinned(null)
+      setGuide(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      engine.destroy()
+      engineRef.current = null
+      root.style.overflow = overflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [])
+
+  useEffect(() => engineRef.current?.setPinned(pinned), [pinned])
+  useEffect(() => engineRef.current?.setPlaying(playing), [playing])
+
+  // A strip of the day's sky colors for the time slider
+  const track = useMemo(
+    () =>
+      `linear-gradient(90deg, ${Array.from({ length: 49 }, (_, i) => `${paletteAt(i / 2).sky1} ${((i / 48) * 100).toFixed(1)}%`).join(', ')})`,
+    [],
+  )
+
+  function changeHour(h: number) {
+    setHour(h)
+    engineRef.current?.setHour(h)
+  }
+
+  // Audio has to start inside the click, so this skips the effect round-trip
+  function toggleSound() {
+    const next = !sound
+    setSound(next)
+    engineRef.current?.setSound(next)
+  }
+
+  function openFromGuide(id: FeatureId) {
+    const href = featureById(id).href
+    if (href) return router.push(href)
+    setPinned(id)
+    setGuide(false)
+    setExplored(true)
+    requestAnimationFrame(() => closeRef.current?.focus())
+  }
+
+  const note = pinned ? featureById(pinned) : null
+
+  return (
+    <div className="meadow">
+      <canvas
+        ref={canvasRef}
+        className="meadow-canvas"
+        role="img"
+        aria-label="Illustration of the Flatirons above Chautauqua Meadow in Boulder, Colorado. Two hikers stand in golden late-summer grass beside a trail post, one pointing up at the slabs."
+        onPointerDown={() => setExplored(true)}
+      />
+
+      <header className="meadow-top">
+        <Link href="/" className="meadow-sign">
+          <span aria-hidden="true">&larr;</span>
+          <span className="hidden sm:inline">Tripp Horbinski</span>
+          <span className="sm:hidden">Home</span>
+        </Link>
+        <div className="meadow-tools">
+          <button type="button" className="meadow-sign" onClick={toggleSound} aria-pressed={sound} aria-label="Sound">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor" />
+              {sound ? <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" /> : <path d="M17 9l5 6M22 9l-5 6" />}
+            </svg>
+            <span className="hidden sm:inline">Sound</span>
+          </button>
+          <button
+            type="button"
+            className="meadow-sign"
+            onClick={() => setGuide((g) => !g)}
+            aria-expanded={guide}
+            aria-controls="meadow-guide"
+          >
+            <span className="hidden sm:inline">Field guide</span>
+            <span className="sm:hidden">Guide</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="meadow-title">
+        <h1>The Flatirons</h1>
+        <p>Chautauqua Meadow &middot; Boulder, Colorado</p>
+      </div>
+
+      {guide && (
+        <nav id="meadow-guide" className="meadow-guide" aria-label="Field guide">
+          <h2>Field guide</h2>
+          <ol>
+            {GUIDE.map((id) => {
+              const f = featureById(id)
+              return (
+                <li key={id}>
+                  <button type="button" onClick={() => openFromGuide(id)}>
+                    <span>{f.name}</span>
+                    <small>{f.meta}</small>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+        </nav>
+      )}
+
+      <div ref={labelRef} className="meadow-label" aria-hidden="true">
+        {hover && hover !== pinned && <span>{featureById(hover).name}</span>}
+      </div>
+      <div ref={pinRef} className="meadow-pin" aria-hidden="true" hidden={!note} />
+      <section
+        ref={noteRef}
+        className="meadow-note"
+        hidden={!note}
+        aria-labelledby="meadow-note-title"
+        aria-live="polite"
+      >
+        {note && (
+          <>
+            <header>
+              <h2 id="meadow-note-title">{note.name}</h2>
+              <button ref={closeRef} type="button" onClick={() => setPinned(null)} aria-label="Close note">
+                &times;
+              </button>
+            </header>
+            <p className="meadow-note-meta">{note.meta}</p>
+            <p>{note.note}</p>
+          </>
+        )}
+      </section>
+
+      <p className="meadow-hint" data-hidden={explored}>
+        {touch ? 'Drag to look around' : 'Move to look around'} &middot; Point at the rocks &middot; Tap the grass
+      </p>
+
+      <div className="meadow-clock">
+        <button
+          type="button"
+          className="meadow-play"
+          onClick={() => setPlaying((p) => !p)}
+          aria-label={playing ? 'Pause the day' : 'Let the day pass'}
+        >
+          {playing ? (
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+              <rect x="2.5" y="2" width="3" height="10" fill="currentColor" />
+              <rect x="8.5" y="2" width="3" height="10" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+              <path d="M3.5 2L12 7L3.5 12Z" fill="currentColor" />
+            </svg>
+          )}
+        </button>
+        <label htmlFor="meadow-time" className="sr-only">
+          Time of day
+        </label>
+        <input
+          id="meadow-time"
+          className="meadow-range"
+          type="range"
+          min={0}
+          max={24}
+          step={1 / 12}
+          value={hour}
+          onChange={(e) => changeHour(Number(e.target.value))}
+          aria-valuetext={`${formatHour(hour)}, ${phaseName(hour)}`}
+          style={{ '--track': track } as CSSProperties}
+        />
+        <output htmlFor="meadow-time" className="meadow-readout">
+          <strong>{formatHour(hour)}</strong>
+          <span>{phaseName(hour)}</span>
+        </output>
+        <button type="button" className="meadow-now" onClick={() => changeHour(boulderHour())}>
+          Now
+        </button>
+      </div>
+    </div>
+  )
+}

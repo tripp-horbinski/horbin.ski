@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import FlatironsScene from '@/components/FlatironsScene'
 
 export const metadata = {
@@ -10,7 +11,10 @@ export default function Home() {
   return (
     <div className="home">
       <figure className="mb-8">
-        <FlatironsScene className="block w-full h-auto" />
+        <Link href="/meadow/" className="meadow-portal">
+          <FlatironsScene className="block w-full h-auto" />
+          <span className="meadow-portal-cue">Step into the meadow</span>
+        </Link>
         <figcaption className="mt-5">
           <h1 className="text-2xl md:text-3xl leading-none">
             Tripp Horbinski
