@@ -9,7 +9,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["'STIX Two Text'", 'Georgia', 'serif'],
+        sans: ["'Lora'", 'Georgia', 'serif'],
+        display: ["'Josefin Sans'", "'Futura'", "'Century Gothic'", 'sans-serif'],
         mono: ["'JetBrains Mono'", 'Menlo', 'Monaco', 'monospace'],
       },
     },

@@ -1,27 +1,90 @@
-@import url('https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Sun-faded park poster palette; scene colors match src/lib/flatirons.ts */
 :root {
-  --bg: #ffffff;
-  --text-primary: #171717;
-  --text-secondary: #525252;
-  --text-muted: #a3a3a3;
-  --text-nav: #737373;
-  --border: #e5e5e5;
-  --code-bg: #f5f5f5;
+  --bg: #EDE7D8;
+  --text-primary: #3B3A33;
+  --text-secondary: #5E5B50;
+  --text-muted: #8A8473;
+  --text-nav: #6E6A5C;
+  --border: #D2C8B0;
+  --code-bg: #E3DBC6;
+  --accent: #8F5F4A;
+  --pre-bg: #3B3A33;
+  --pre-text: #EAE3D2;
+
+  --fi-sky1: #B5C7CD;
+  --fi-sky2: #C7D4D4;
+  --fi-sky3: #D8DFD5;
+  --fi-cloud: #F4F1E8;
+  --fi-sun: #F6F1E1;
+  --fi-star: #F6F1E1;
+  --fi-far: #A9B4A6;
+  --fi-mid: #8C9A88;
+  --fi-rock-lit: #C08A6B;
+  --fi-rock-shade: #8F5F4A;
+  --fi-rock-line: #7A5040;
+  --fi-forest-back: #6F7F63;
+  --fi-forest-front: #4E5C47;
+  --fi-meadow-back: #CDB57E;
+  --fi-meadow-front: #B59B62;
+  --fi-trail: #EDE4C8;
+  --fi-sun-show: 1;
+  --fi-moon-show: 0;
+  --fi-grain: 0.1;
+
+  --sign-wood: #7A5A45;
+  --sign-post: #5A4031;
+  --sign-text: #F3EAD6;
+  --mark-running: #C08A6B;
+  --mark-tech: #6F7F63;
+  --paper-grain: 0.22;
+  --paper-blend: multiply;
 }
 
 .dark {
-  --bg: #111111;
-  --text-primary: #ededed;
-  --text-secondary: #a3a3a3;
-  --text-muted: #525252;
-  --text-nav: #737373;
-  --border: #2a2a2a;
-  --code-bg: #1e1e1e;
+  --bg: #272B30;
+  --text-primary: #E6DDC4;
+  --text-secondary: #B8B09C;
+  --text-muted: #7D7A70;
+  --text-nav: #9A9483;
+  --border: #3B4047;
+  --code-bg: #30353B;
+  --accent: #C9A08A;
+  --pre-bg: #1E2125;
+  --pre-text: #E6DDC4;
+
+  --fi-sky1: #2B3038;
+  --fi-sky2: #363C45;
+  --fi-sky3: #474A50;
+  --fi-cloud: #3C424B;
+  --fi-sun: #E6DDC4;
+  --fi-star: #E6DDC4;
+  --fi-far: #4D5750;
+  --fi-mid: #3B443F;
+  --fi-rock-lit: #7A5E54;
+  --fi-rock-shade: #54413D;
+  --fi-rock-line: #46363A;
+  --fi-forest-back: #323C35;
+  --fi-forest-front: #242C27;
+  --fi-meadow-back: #4E4A3E;
+  --fi-meadow-front: #3D3A31;
+  --fi-trail: #9A927E;
+  --fi-sun-show: 0;
+  --fi-moon-show: 1;
+  --fi-grain: 0.12;
+
+  --sign-wood: #5C4538;
+  --sign-post: #3F3029;
+  --sign-text: #E6DDC4;
+  --mark-running: #C9A08A;
+  --mark-tech: #8FA39A;
+  --paper-grain: 0.12;
+  --paper-blend: overlay;
 }
 
 @layer base {
@@ -32,7 +95,7 @@
 
   body {
     color: var(--text-primary);
-    font-family: 'STIX Two Text', Georgia, serif;
+    font-family: 'Lora', Georgia, serif;
     font-weight: 400;
     background: var(--bg);
     min-height: 100vh;
@@ -41,20 +104,61 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'STIX Two Text', Georgia, serif;
-    font-weight: 500;
+    font-family: 'Josefin Sans', 'Futura', 'Century Gothic', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    text-wrap: balance;
     color: var(--text-primary);
+  }
+
+  /* Screen-print paper texture over every page */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    opacity: var(--paper-grain);
+    mix-blend-mode: var(--paper-blend);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  }
+
+  /* Slow drift for the clouds and a passing shooting star in the hero */
+  .fi-clouds {
+    animation: fi-drift 36s ease-in-out infinite alternate;
+  }
+
+  .fi-shooting-star {
+    stroke-dasharray: 70;
+    animation: fi-shoot 9s ease-out infinite;
+  }
+
+  @keyframes fi-drift {
+    from { transform: translateX(-14px); }
+    to { transform: translateX(14px); }
+  }
+
+  @keyframes fi-shoot {
+    0%, 80% { stroke-dashoffset: 70; opacity: 0; }
+    84% { opacity: 0.9; }
+    92%, 100% { stroke-dashoffset: -70; opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fi-clouds, .fi-shooting-star { animation: none; }
+  }
+
+  ::selection {
+    background: var(--fi-rock-lit);
+    color: var(--bg);
   }
 
   code {
     @apply font-mono text-sm px-1.5 py-0.5 rounded;
     background: var(--code-bg);
-    color: #d6336c;
+    color: var(--accent);
     border: 1px solid var(--border);
-  }
-
-  .dark code {
-    color: #f0a0bc;
   }
 
   pre code {
@@ -67,35 +171,26 @@
   .link {
     @apply underline underline-offset-[2.5px] transition-colors;
     text-decoration-thickness: 1px;
-    text-decoration-color: #737373;
+    text-decoration-color: var(--accent);
   }
 
   .link:hover {
-    text-decoration-color: #a3a3a3;
-  }
-
-  .dark .link {
-    text-decoration-color: #525252;
-  }
-
-  .dark .link:hover {
-    text-decoration-color: #737373;
+    color: var(--accent);
   }
 
   .prose {
-    font-family: 'STIX Two Text', Georgia, serif;
+    font-family: 'Lora', Georgia, serif;
     line-height: 1.75;
     color: var(--text-primary);
     font-weight: 400;
   }
 
   .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
-    font-weight: 500;
     color: var(--text-primary);
     margin-top: 3rem;
     margin-bottom: 0.5rem;
-    font-size: 1.25rem;
-    line-height: 1.3;
+    font-size: 1rem;
+    line-height: 1.4;
   }
 
   .prose p {
@@ -106,16 +201,12 @@
 
   .prose blockquote {
     margin-left: 0.075em;
-    border-left: 3px solid #d4d4d4;
+    border-left: 3px solid var(--fi-rock-lit);
     padding-left: 1rem;
     margin-top: 1.25rem;
     margin-bottom: 1.25rem;
     font-style: italic;
     color: var(--text-secondary);
-  }
-
-  .dark .prose blockquote {
-    border-left-color: #404040;
   }
 
   .prose ul, .prose ol {
@@ -148,10 +239,10 @@
   }
 
   .prose pre {
-    background: #1a1a2e;
-    color: #e4e4e7;
+    background: var(--pre-bg);
+    color: var(--pre-text);
     padding: 1.25rem;
-    border-radius: 8px;
+    border-radius: 4px;
     overflow-x: auto;
     margin: 1.25rem 0;
   }
@@ -167,21 +258,13 @@
   .prose a {
     @apply underline underline-offset-[2.5px] transition-colors;
     text-decoration-thickness: 1px;
-    text-decoration-color: #737373;
+    text-decoration-color: var(--accent);
     color: inherit;
     font-weight: inherit;
   }
 
   .prose a:hover {
-    text-decoration-color: #a3a3a3;
-  }
-
-  .dark .prose a {
-    text-decoration-color: #525252;
-  }
-
-  .dark .prose a:hover {
-    text-decoration-color: #737373;
+    color: var(--accent);
   }
 
   .prose strong {
@@ -189,17 +272,119 @@
     font-weight: 600;
   }
 
+  /* Three small slabs in place of a rule */
   .prose hr {
-    border-color: var(--border);
-    margin: 2em 0;
+    border: 0;
+    height: 16px;
+    margin: 2.5em 0;
+    background: var(--fi-rock-lit);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16'%3E%3Cpath d='M10 16L20 5L25 9L22 15ZM22 16L35 0L41 6L37 14ZM38 16L46 7L50 10L47 15Z'/%3E%3C/svg%3E") center / 60px 16px no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16'%3E%3Cpath d='M10 16L20 5L25 9L22 15ZM22 16L35 0L41 6L37 14ZM38 16L46 7L50 10L47 15Z'/%3E%3C/svg%3E") center / 60px 16px no-repeat;
   }
 
   .prose img {
-    border-radius: 8px;
+    border-radius: 4px;
+  }
+
+  /* Wooden arrow marker, like a junction sign on the trail */
+  .trail-arrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.95rem 0.4rem 1.6rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sign-text);
+    background: var(--sign-wood);
+    clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+    transition: background-color 0.2s;
+  }
+
+  .trail-arrow:hover {
+    background: var(--sign-post);
+  }
+
+  /* Bio lines as a park-map legend, each with a routed-sign symbol */
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .legend li {
+    display: grid;
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .legend-symbol {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 5px;
+    background: var(--sign-wood);
+    color: var(--sign-text);
+    display: grid;
+    place-items: center;
+  }
+
+  .legend-symbol svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .trail-eyebrow,
+  .trail-list-meta {
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .trail-eyebrow {
+    color: var(--accent);
+  }
+
+  .trail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .trail-list li {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+
+  .trail-list li::before {
+    content: '';
+    width: 14px;
+    height: 12px;
+    background: var(--mark-running);
+    clip-path: polygon(0 100%, 55% 0, 100% 26%, 68% 86%);
+  }
+
+  .trail-list li[data-category='tech']::before {
+    background: var(--mark-tech);
+  }
+
+  .trail-list-meta {
+    color: var(--text-nav);
+    white-space: nowrap;
   }
 }
 
 :focus-visible {
-  outline: 2px solid var(--text-muted);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

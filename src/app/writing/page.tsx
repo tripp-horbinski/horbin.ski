@@ -1,5 +1,7 @@
 import Link from 'next/link'
+import { format } from 'date-fns'
 import { getAllPosts } from '@/lib/posts'
+import TrailSign from '@/components/TrailSign'
 
 export const metadata = {
   title: 'Writing',
@@ -11,19 +13,23 @@ export default function BlogPage() {
 
   return (
     <div>
-      <h1 className="text-xl md:text-2xl mb-1 font-medium">Writing</h1>
-      <p className="mb-6" style={{ color: 'var(--text-nav)' }}>
+      <h1 className="sr-only">Writing</h1>
+      <TrailSign title="Writing" subtitle="Tech · Trails · Boulder" />
+      <p className="mt-6 mb-8 text-center" style={{ color: 'var(--text-nav)' }}>
         By{' '}
         <Link href="/" className="no-underline transition-colors" style={{ color: 'var(--text-nav)' }}>
           Tripp Horbinski
         </Link>
       </p>
-      <ul className="pl-4 space-y-1 list-disc">
+      <ul className="trail-list">
         {posts.map((post) => (
-          <li key={post.slug} className="pl-1">
+          <li key={post.slug} data-category={post.category}>
             <Link href={`/writing/${post.slug}`} className="link">
               {post.title}
             </Link>
+            <span className="trail-list-meta">
+              {post.category} &middot; {format(new Date(post.date), 'MMM yyyy')}
+            </span>
           </li>
         ))}
       </ul>

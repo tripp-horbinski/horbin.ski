@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import ThemeToggle from '@/components/ThemeToggle'
+import Ridgeline from '@/components/Ridgeline'
 
 export const metadata: Metadata = {
   title: {
@@ -51,8 +52,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased max-w-xl mx-auto px-4 mt-14 md:mt-28 overflow-hidden">
-        <main>{children}</main>
+      <body className="antialiased min-h-screen flex flex-col">
+        <main className="w-full max-w-xl mx-auto px-4 mt-10 md:mt-16 mb-10 flex-1">{children}</main>
+        <Ridgeline />
         <ThemeToggle />
       </body>
     </html>

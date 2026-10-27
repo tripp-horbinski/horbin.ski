@@ -63,7 +63,11 @@ export default async function BlogPost({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <article>
-        <h1 className="text-xl md:text-2xl mb-1 font-medium">
+        <Link href="/writing" className="trail-arrow">
+          Writing
+        </Link>
+        <p className="trail-eyebrow mt-8 mb-3">{post.category}</p>
+        <h1 className="text-xl md:text-2xl mb-1">
           {post.title}
         </h1>
         <p className="mb-6" style={{ color: 'var(--text-nav)' }}>
