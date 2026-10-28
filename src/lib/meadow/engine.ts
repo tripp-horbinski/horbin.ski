@@ -18,6 +18,8 @@ const DAY_SECONDS = 96
 const K = 0.65 / 300
 const GROUND_DEPTH = 0.35
 const POST_DEPTH = GROUND_DEPTH + (POST_Y - HORIZON) * K
+// Across the middle of the trail post, where post.ts draws it
+const POST_X = 103
 const RUNNER_DEPTH = GROUND_DEPTH + (RUNNER_SPOT[1] - HORIZON) * K
 // Photo pixels to meadow units for Tripp, which puts his eyes on the horizon
 const TRIPP_K = (RUNNER_SPOT[1] - HORIZON) / (RUNNER.footY - RUNNER.eyeY)
@@ -115,6 +117,7 @@ export class MeadowEngine {
   private hy = 0.56
   private P = 40
   private Py = 16
+  private postX = POST_X
 
   private hour: number
   private playing = false
@@ -254,12 +257,16 @@ export class MeadowEngine {
     this.canvas.height = Math.round(this.H * dpr)
 
     const portrait = Math.min(1, Math.max(0, (1.3 - this.W / this.H) / 0.7))
-    this.s = Math.max(this.W / 1250, Math.min(this.H / 850, this.W / 700))
-    // Tall screens center on the slabs
-    this.ax = 600 - 110 * portrait
+    // Tall screens pull back a little and look past the slabs to the right,
+    // so Tripp on the trail stays in the picture
+    this.s = Math.max(this.W / 1250, Math.min(this.H / 850, this.W / (700 + 80 * portrait)))
+    this.ax = 600 + 100 * portrait
     this.hy = 0.56 - 0.12 * portrait
     this.P = this.reduced ? 0 : Math.min(60, this.W * 0.035)
     this.Py = this.reduced ? 0 : Math.min(24, this.H * 0.025)
+    // The trail post keeps its spot unless that's off the left edge; then it
+    // stands just inside it
+    this.postX = Math.max(POST_X, this.ax - (this.W / 2 - 24 - this.P) / this.s + 16)
 
     const half = (this.W / 2 + this.P) / this.s + 60
     const y1 = HORIZON + (this.H * (1 - this.hy) + this.Py) / this.s + 30
@@ -610,6 +617,7 @@ export class MeadowEngine {
     this.grass.draw(ctx, pal, this.groundPt, this.s, at, this.reduced ? 0 : 1, this.pointer, [
       [POST_Y, () => {
         this.layer(POST_DEPTH)
+        ctx.translate(this.postX - POST_X, 0)
         drawPost(ctx, pal.light)
         this.screen()
       }],
