@@ -9,7 +9,7 @@ import { blend, lightAt, lit, paletteAt, rgba, smooth, type Palette } from './pa
 import { drawPost } from './post'
 import { drawRunner, RUNNER, STANCE } from './runner'
 import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Pt, type Scene } from './scene'
-import { depth, facing, FOCAL, pointAt, project, sideways, sunDirection } from './sun'
+import { depth, facing, FOCAL, moonAt, pointAt, project, sideways, sunDirection } from './sun'
 import { TERRAIN } from './terrain'
 
 // One full day when playing, in seconds
@@ -86,12 +86,6 @@ function makeCloud(r: () => number, x: number, y: number, w: number, tall = 1): 
   return { x, y, w, h, puffs }
 }
 
-function moonAt(hour: number): Pt | null {
-  const v = (((hour - 20.3 + 24) % 24) / 10)
-  if (v > 1) return null
-  return [80 + 1040 * v, 300 - 250 * Math.sin(v * Math.PI)]
-}
-
 export class MeadowEngine {
   private ctx: CanvasRenderingContext2D
   private scene: Scene
@@ -120,6 +114,8 @@ export class MeadowEngine {
   // Real sun for the hour, where it falls in the frame, and the mountain colors it gives
   private sunDir: [number, number, number] = [0, 0, 1]
   private sunPos: Pt | null = null
+  // Where the moon is in the frame when it's up, how much is lit, and its bright side
+  private moon: { at: Pt; lit: number; limb: number } | null = null
   private facetColors: string[] = []
   private treeColors: [string, string][] = []
   // Tree shadows on the meadow hills, and how much of each crown half is in sun
@@ -527,6 +523,7 @@ export class MeadowEngine {
     ctx.fillRect(0, 0, this.W, this.H)
 
     if (light.stars > 0.01) this.drawNight(at)
+    this.drawMoon()
 
     // Sun and its haze, wherever the real sun is; from here it mostly stays off to the right
     if (sun) {
@@ -710,31 +707,40 @@ export class MeadowEngine {
       ctx.lineTo(m.x - m.vx * 0.18, m.y - m.vy * 0.18)
       ctx.stroke()
     }
+  }
 
-    // A crescent moon, its dark side faintly lit by earthshine
-    const moon = moonAt(this.hour)
-    if (moon) {
-      this.layer(DEPTH.sky)
-      const [mx, my] = moon
-      const glow = ctx.createRadialGradient(mx, my, 0, mx, my, 90)
-      glow.addColorStop(0, `rgba(230,226,205,${0.22 * light.stars})`)
-      glow.addColorStop(1, 'rgba(230,226,205,0)')
-      ctx.fillStyle = glow
-      ctx.fillRect(mx - 90, my - 90, 180, 180)
-      ctx.globalAlpha = light.stars
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(mx, my, 13, 0, Math.PI * 2)
-      ctx.fillStyle = '#F2ECD8'
-      ctx.fill()
-      ctx.clip()
-      ctx.fillStyle = '#2A3146'
-      ctx.beginPath()
-      ctx.arc(mx + 6, my - 4, 12.5, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
-      ctx.globalAlpha = 1
+  // The real moon, only its lit part, with its bright side toward the sun:
+  // pale by day, glowing at night. It's drawn larger than life so it reads.
+  private drawMoon() {
+    if (!this.moon) return
+    const { ctx, light } = this
+    const { at: [mx, my], lit, limb } = this.moon
+    const R = 13
+    this.layer(DEPTH.sky)
+    const glow = ctx.createRadialGradient(mx, my, 0, mx, my, 90)
+    glow.addColorStop(0, `rgba(230,226,205,${0.22 * light.stars})`)
+    glow.addColorStop(1, 'rgba(230,226,205,0)')
+    ctx.fillStyle = glow
+    ctx.fillRect(mx - 90, my - 90, 180, 180)
+    ctx.save()
+    ctx.translate(mx, my)
+    // Turn so +x points at the bright limb
+    ctx.rotate(Math.atan2(-Math.cos(limb), -Math.sin(limb)))
+    // The lit part: from the bright limb round to the terminator, an ellipse
+    // that bulges toward the bright side for a crescent and away for a gibbous
+    ctx.globalAlpha = 0.5 + 0.5 * light.stars
+    ctx.fillStyle = '#F2ECD8'
+    ctx.beginPath()
+    for (let k = 0; k <= 24; k++) {
+      const a = -Math.PI / 2 + (Math.PI * k) / 24
+      ctx.lineTo(R * Math.cos(a), R * Math.sin(a))
     }
+    for (let k = 0; k <= 24; k++) {
+      const a = Math.PI / 2 - (Math.PI * k) / 24
+      ctx.lineTo((1 - 2 * lit) * R * Math.cos(a), R * Math.sin(a))
+    }
+    ctx.fill()
+    ctx.restore()
   }
 
   private cloudX(c: Cloud, at: number) {
@@ -848,6 +854,9 @@ export class MeadowEngine {
     const { pal, light } = this
     const s = (this.sunDir = sunDirection(this.hour))
     this.sunPos = s[2] > -0.02 ? project(s) : null
+    const m = moonAt(this.hour)
+    const at = m.dir[2] > -0.01 ? project(m.dir) : null
+    this.moon = at && { at, lit: m.lit, limb: m.limb }
     const lighting = (n?: number[], tone?: number) => {
       if (tone !== undefined) return tone
       const lambert = Math.max(0, n![0] * s[0] + n![1] * s[1] + n![2] * s[2])

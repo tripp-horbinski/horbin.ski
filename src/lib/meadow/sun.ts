@@ -1,7 +1,8 @@
-// The real sun over Chautauqua Meadow on a late-summer day, and where it lands
-// in the reference frame through the camera calibrated against the lidar.
+// The real sun and moon over Chautauqua Meadow on a late-summer day, and where
+// they land in the reference frame through the camera calibrated against the
+// lidar.
 
-import { getPosition } from 'suncalc'
+import { getMoonIllumination, getMoonPosition, getPosition } from 'suncalc'
 import { TERRAIN } from './terrain'
 
 // Standing at the north end of the meadow, facing southwest (see scripts/meadow/config.mjs)
@@ -21,6 +22,21 @@ export function sunDirection(hour: number): Vec {
   const alt = p.altitude * deg
   const c = Math.cos(alt)
   return [Math.sin(bearing) * c, Math.cos(bearing) * c, Math.sin(alt)]
+}
+
+// The moon that night: which way it is (east/north/up), how much of it is lit,
+// and which way its bright limb points as seen, in radians from straight up,
+// positive toward the left. That evening it's a waxing crescent setting behind
+// the Flatirons, its bright side down toward the sun that just set.
+export function moonAt(hour: number) {
+  const date = new Date(DAY + (hour - MDT) * 3600e3)
+  const p = getMoonPosition(date, CAMERA.lat, CAMERA.lon)
+  const { fraction, angle } = getMoonIllumination(date)
+  const bearing = p.azimuth * deg
+  const alt = p.altitude * deg
+  const c = Math.cos(alt)
+  const dir: Vec = [Math.sin(bearing) * c, Math.cos(bearing) * c, Math.sin(alt)]
+  return { dir, lit: fraction, limb: (angle - p.parallacticAngle) * deg }
 }
 
 const deg = Math.PI / 180
