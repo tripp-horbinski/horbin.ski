@@ -82,7 +82,7 @@ export class Ambience {
       this.crickets.push({ osc, amp, period, next: ctx.currentTime + Math.random() })
     }
 
-    // A single dry click, reused for wing crackle and the camera shutter
+    // A single dry click, repeated for the crackle of grasshopper wings
     this.click = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.006), ctx.sampleRate)
     const cd = this.click.getChannelData(0)
     for (let i = 0; i < cd.length; i++) cd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / cd.length, 3)
@@ -141,12 +141,6 @@ export class Ambience {
       this.tick(t, 0.18 + Math.random() * 0.2, 2400)
       t += 0.012 + Math.random() * 0.03
     }
-  }
-
-  shutter() {
-    const t = this.ctx.currentTime
-    this.tick(t, 0.5, 900)
-    this.tick(t + 0.07, 0.35, 1400)
   }
 
   destroy() {

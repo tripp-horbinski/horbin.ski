@@ -8,7 +8,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build"
+    "export": "next build",
+    "meadow:fetch": "node scripts/meadow/fetch.mjs",
+    "meadow:render": "node scripts/meadow/render.mjs",
+    "meadow:trace": "node scripts/meadow/trace-photo.mjs",
+    "meadow:calibrate": "node scripts/meadow/calibrate.mjs",
+    "meadow:runner": "node scripts/meadow/runner.mjs"
   },
   "repository": {
     "type": "git",
@@ -37,7 +42,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "remark": "^15.0.1",
-    "remark-html": "^16.0.1"
+    "remark-html": "^16.0.1",
+    "suncalc": "^2.1.1"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
@@ -47,7 +53,11 @@
     "autoprefixer": "^10.4.22",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.5",
+    "geotiff": "^3.0.5",
     "postcss": "^8.5.6",
+    "potrace": "^2.1.8",
+    "proj4": "^2.22.0",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.18",
     "typescript": "^5.9.3"
   }

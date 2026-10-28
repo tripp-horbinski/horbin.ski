@@ -411,6 +411,24 @@
     transform: translateX(3px);
   }
 
+  /* Figure plate for the meadow's people, with light presets underneath */
+  .portrait-canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: 6px;
+    box-shadow: 0 3px 0 var(--border);
+  }
+
+  .portrait-lights {
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1.25rem;
+  }
+
   /* The meadow: a full-screen scene with routed-wood park signs for controls */
   .meadow {
     position: fixed;

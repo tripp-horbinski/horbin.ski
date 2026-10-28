@@ -86,3 +86,6 @@ jspm_packages/
 
 # Local development
 .vercel
+
+# Downloaded USGS rasters and local photo traces for the meadow pipeline
+scripts/meadow/.cache/

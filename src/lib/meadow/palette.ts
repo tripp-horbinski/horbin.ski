@@ -1,5 +1,11 @@
 // Time-of-day palettes for the meadow. Stops are keyed by hour and blended in
-// OKLab so the light passes through dawn and dusk without going muddy.
+// OKLab so the light passes through dawn and dusk without going muddy. The
+// golden hour and sunset stops follow when the sun really reaches and leaves
+// the meadow, as measured from the lidar horizon.
+
+import { TERRAIN } from './terrain'
+
+const [RISE, SHADE] = TERRAIN.sunlit ?? [6.35, 18.6]
 
 type Stop = {
   sky0: string; sky1: string; sky2: string; glow: string
@@ -10,7 +16,7 @@ type Stop = {
   meadowFar: string; meadowMid: string; meadowNear: string
   grassDark: string; grassMid: string; grassLit: string; seed: string
   trail: string; verge: string; bush: string
-  // Color of the light itself; small figures are multiplied by it
+  // Color of the light itself; the trail post, birds and insects are multiplied by it
   light: string
 }
 
@@ -120,8 +126,8 @@ const DUSK: Stop = {
 }
 
 const STOPS: [number, Stop][] = [
-  [0, NIGHT], [4.6, NIGHT], [5.5, PREDAWN], [6.4, ALPENGLOW], [8, MORNING], [12.5, MIDDAY],
-  [16, AFTERNOON], [18, GOLDEN], [19.1, SUNSET], [20.2, DUSK], [21.3, NIGHT], [24, NIGHT],
+  [0, NIGHT], [4.6, NIGHT], [5.5, PREDAWN], [RISE + 0.05, ALPENGLOW], [8, MORNING], [12.5, MIDDAY],
+  [16, AFTERNOON], [SHADE - 0.6, GOLDEN], [SHADE + 0.25, SUNSET], [20.2, DUSK], [21.3, NIGHT], [24, NIGHT],
 ]
 
 export const PHOTO_HOUR = 12.5
@@ -186,7 +192,7 @@ export function lightAt(hour: number) {
   const h = ((hour % 24) + 24) % 24
   return {
     stars: h < 12 ? 1 - smooth(4.4, 5.8, h) : smooth(19.9, 21.3, h),
-    sun: smooth(6.0, 7.0, h) * (1 - smooth(18.4, 19.0, h)),
+    sun: smooth(RISE - 0.1, RISE + 0.4, h) * (1 - smooth(SHADE - 0.15, SHADE + 0.1, h)),
     day: smooth(6.5, 7.5, h) * (1 - smooth(19.0, 19.8, h)),
     crickets: h < 12 ? 1 - smooth(4.8, 6.2, h) : smooth(19.4, 20.6, h),
   }
@@ -195,6 +201,13 @@ export function lightAt(hour: number) {
 export function rgba(hex: string, a: number) {
   const n = parseInt(hex.slice(1), 16)
   return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`
+}
+
+// Straight RGB blend, cheap enough to run for every mountain facet as the hour changes
+export function blend(a: string, b: string, t: number) {
+  const x = parseInt(a.slice(1), 16)
+  const y = parseInt(b.slice(1), 16)
+  return toHex([16, 8, 0].map((sh) => ((x >> sh) & 255) + (((y >> sh) & 255) - ((x >> sh) & 255)) * t))
 }
 
 // Multiply a surface color by the light falling on it. Colors also drain toward
@@ -225,12 +238,12 @@ export function formatHour(hour: number) {
 export function phaseName(hour: number) {
   const h = ((hour % 24) + 24) % 24
   if (h < 4.8 || h >= 21.2) return 'Night'
-  if (h < 5.9) return 'First light'
-  if (h < 7.0) return 'Alpenglow'
+  if (h < RISE - 0.4) return 'First light'
+  if (h < RISE + 0.6) return 'Alpenglow'
   if (h < 10.5) return 'Morning'
   if (h < 14.5) return 'Midday'
-  if (h < 17.3) return 'Afternoon'
-  if (h < 18.7) return 'Golden hour'
+  if (h < SHADE - 1.2) return 'Afternoon'
+  if (h < SHADE) return 'Golden hour'
   if (h < 19.8) return 'Sunset'
   return 'Dusk'
 }

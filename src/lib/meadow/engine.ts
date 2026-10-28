@@ -4,20 +4,26 @@
 
 import { Ambience } from './audio'
 import { featureById, type FeatureId } from './features'
-import { drawFigures, SHOULDER, type FigureState } from './figures'
-import { Grass, gustiness, noise, type Pointer } from './grass'
-import { lightAt, lit, paletteAt, rgba, smooth, type Palette } from './palette'
-import { buildScene, FIGURES_Y, HEADLAMP_ROUTES, HORIZON, rng, X0, X1, type Pt, type Scene } from './scene'
+import { Grass, gustiness, type Pointer } from './grass'
+import { blend, lightAt, lit, paletteAt, rgba, smooth, type Palette } from './palette'
+import { drawPost } from './post'
+import { drawRunner, RUNNER, STANCE } from './runner'
+import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Foliage, type Pt, type Scene, type ShrubKind } from './scene'
+import { depth, facing, FOCAL, pointAt, project, sideways, sunDirection } from './sun'
+import { TERRAIN } from './terrain'
 
 // One full day when playing, in seconds
 const DAY_SECONDS = 96
 // Ground depth gained per photo pixel below the horizon
 const K = 0.65 / 300
 const GROUND_DEPTH = 0.35
-const FIG_DEPTH = GROUND_DEPTH + (FIGURES_Y - HORIZON) * K
-const DEPTH = { sky: 0.02, clouds: 0.06, far: 0.1, mountain: 0.18, forest: 0.28 }
+const POST_DEPTH = GROUND_DEPTH + (POST_Y - HORIZON) * K
+const RUNNER_DEPTH = GROUND_DEPTH + (RUNNER_SPOT[1] - HORIZON) * K
+const DEPTH = { sky: 0.02, clouds: 0.06, mountain: 0.18, forest: 0.28 }
+// Climbers' headlamps: which slab, and where each route starts relative to its tip
+const HEADLAMPS: [FeatureId, number, number][] = [['third', -70, 80], ['third', -52, 72], ['first', -42, 100]]
 
-type Hit = FeatureId | 'hikers' | 'sky'
+type Hit = FeatureId | 'sky'
 
 interface Cloud {
   x: number
@@ -80,13 +86,6 @@ function makeCloud(r: () => number, x: number, y: number, w: number, tall = 1): 
   return { x, y, w, h, puffs }
 }
 
-function sunAt(hour: number): Pt | null {
-  const u = (hour - 11) / (18.9 - 11)
-  if (u < -0.05 || u > 1.3) return null
-  const y = u <= 1 ? 290 - 440 * Math.pow(Math.sin(((1 - u) * Math.PI) / 2), 0.8) : 290 + (u - 1) * 300
-  return [200 + 860 * u, y]
-}
-
 function moonAt(hour: number): Pt | null {
   const v = (((hour - 20.3 + 24) % 24) / 10)
   if (v > 1) return null
@@ -118,18 +117,25 @@ export class MeadowEngine {
   private palHour = -99
   private light = lightAt(12)
   private hourTick = -1
+  // Real sun for the hour, where it falls in the frame, and the mountain colors it gives
+  private sunDir: [number, number, number] = [0, 0, 1]
+  private sunPos: Pt | null = null
+  private facetColors: string[] = []
+  private treeColors: [string, string][] = []
+  private leafColors: string[] = []
+  private shrubColors = {} as Record<ShrubKind, string[]>
+  // Tree shadows on the meadow hills, and how much of each crown half is in sun
+  private shadows = new Path2D()
+  private litLeft = 0.5
 
   private cam = { x: 0, y: 0 }
   private pointer: Pointer = { x: 0, y: 0, vx: 0, active: false }
-  private aim: Pt | null = null
-  private aimAt = -99
+  private movedAt = -99
   private down: { x: number; y: number; at: number } | null = null
   private brush = 0
   private hover: Hit = 'sky'
   private pinned: FeatureId | null = null
 
-  private fig: FigureState = { armAngle: -0.55, armRaise: 1, look: 0.6, snap: 0, flash: 0, sway: 0, breath: 0 }
-  private snapClock = -1
 
   private clouds: Cloud[]
   private wisps: Path2D
@@ -224,7 +230,6 @@ export class MeadowEngine {
   }
 
   setPinned(id: FeatureId | null) {
-    if (id && id !== this.pinned && featureById(id).layer !== 'ground') this.snapClock = 0
     this.pinned = id
   }
 
@@ -242,8 +247,8 @@ export class MeadowEngine {
 
     const portrait = Math.min(1, Math.max(0, (1.3 - this.W / this.H) / 0.7))
     this.s = Math.max(this.W / 1250, Math.min(this.H / 850, this.W / 700))
-    // Tall screens slide left to keep the hikers in frame with the slabs
-    this.ax = 600 - 170 * portrait
+    // Tall screens center on the slabs
+    this.ax = 600 - 110 * portrait
     this.hy = 0.56 - 0.12 * portrait
     this.P = this.reduced ? 0 : Math.min(60, this.W * 0.035)
     this.Py = this.reduced ? 0 : Math.min(24, this.H * 0.025)
@@ -290,9 +295,10 @@ export class MeadowEngine {
 
   private anchorOf(id: FeatureId): Pt {
     const f = featureById(id)
-    const [x, y] = f.anchor
+    const slab = this.scene.slabs.find((sl) => sl.id === id)
+    const [x, y] = slab ? slab.top : f.anchor
     if (f.layer === 'ground') return this.groundPt(x, y)
-    if (f.layer === 'figures') return this.toScreen(x, y, FIG_DEPTH)
+    if (f.layer === 'post') return this.toScreen(x, y, POST_DEPTH)
     return this.toScreen(x, y, f.layer === 'forest' ? DEPTH.forest : DEPTH.mountain)
   }
 
@@ -307,15 +313,14 @@ export class MeadowEngine {
     this.pointer.x = x
     this.pointer.y = y
     this.pointer.active = true
-    this.aim = [x, y]
-    this.aimAt = this.t
+    this.movedAt = this.t
     const hit = this.hitTest(x, y)
     if (hit === 'meadow' && Math.abs(dx) > 0) this.brush = Math.min(1, this.brush + Math.abs(dx) / 60)
     if (hit !== this.hover) {
       this.hover = hit
-      const named = hit === 'sky' || hit === 'hikers' || hit === 'meadow' ? null : hit
+      const named = hit === 'sky' || hit === 'meadow' ? null : hit
       this.cb.onHover(named)
-      this.canvas.style.cursor = named || hit === 'hikers' ? 'pointer' : 'default'
+      this.canvas.style.cursor = named ? 'pointer' : 'default'
     }
   }
 
@@ -348,16 +353,16 @@ export class MeadowEngine {
     const X = x * this.dpr
     const Y = y * this.dpr
     let hit: Hit = 'sky'
-    this.layer(FIG_DEPTH)
+    this.layer(POST_DEPTH)
     if (ctx.isPointInPath(scene.postHit, X, Y)) hit = 'post'
-    else if (ctx.isPointInPath(this.hikersHit, X, Y)) hit = 'hikers'
     else {
       this.ground()
       if (ctx.isPointInPath(scene.trailHit, X, Y)) hit = 'trail'
       else if (ctx.isPointInPath(scene.meadowFar, X, Y)) hit = 'meadow'
       else {
         this.layer(DEPTH.forest)
-        if (ctx.isPointInPath(scene.forestHit, X, Y)) hit = 'pines'
+        if (ctx.isPointInPath(scene.woodHit, X, Y)) hit = 'pines'
+        else if (ctx.isPointInPath(scene.hillHit, X, Y)) hit = 'meadow'
         else {
           this.layer(DEPTH.mountain)
           const slab = scene.slabs.find((sl) => sl.id && ctx.isPointInPath(sl.path, X, Y))
@@ -370,16 +375,9 @@ export class MeadowEngine {
     return hit
   }
 
-  private hikersHit = (() => {
-    const p = new Path2D()
-    p.rect(110, 432, 176, 214)
-    return p
-  })()
-
   private click(x: number, y: number) {
     const hit = this.hitTest(x, y)
     if (hit === 'meadow') this.flush(x, y)
-    else if (hit === 'hikers') this.snapClock = 0
     else if (hit === 'sky') {
       if (this.light.stars > 0.5) this.launchMeteor(x, y)
       else if (this.light.day > 0.5) this.launchFlock(x, y)
@@ -454,19 +452,20 @@ export class MeadowEngine {
       this.pal = paletteAt(this.hour)
       this.light = lightAt(this.hour)
       this.palHour = this.hour
+      this.relight()
     }
 
     this.update(dt)
     this.draw()
 
-    const hovered = this.hover !== 'sky' && this.hover !== 'hikers' && this.hover !== 'meadow' ? this.anchorOf(this.hover) : null
+    const hovered = this.hover !== 'sky' && this.hover !== 'meadow' ? this.anchorOf(this.hover) : null
     this.cb.onAnchors(hovered, this.pinned ? this.anchorOf(this.pinned) : null)
   }
 
   private update(dt: number) {
     const { t } = this
     // Drift the camera toward the pointer; idle, it sways a little on its own
-    const idle = t - this.aimAt > 5
+    const idle = t - this.movedAt > 5
     const tx = this.reduced ? 0 : idle ? 0.35 * Math.sin(t * 0.11) : (this.pointer.x / this.W - 0.5) * 2
     const ty = this.reduced ? 0 : idle ? 0.25 * Math.sin(t * 0.07) : (this.pointer.y / this.H - 0.5) * 2
     this.cam.x += (tx - this.cam.x) * Math.min(1, dt * 2.2)
@@ -474,29 +473,7 @@ export class MeadowEngine {
     this.pointer.vx *= 0.9
     this.brush *= 0.92
 
-    // He points at what you point at, or at whatever note is open, or at the First
-    const target = this.aim && t - this.aimAt < 4 ? this.aim : this.anchorOf(this.pinned ?? 'first')
-    const fx = this.ax + (target[0] - this.W / 2 + this.cam.x * this.P * FIG_DEPTH) / this.s
-    const fy = HORIZON + (target[1] - this.H * this.hy + this.cam.y * this.Py * FIG_DEPTH) / this.s
-    const ang = Math.atan2(fy - SHOULDER[1], fx - SHOULDER[0])
-    const valid = ang > -2.5 && ang < 0.75
-    const k = Math.min(1, dt * 7)
-    this.fig.armRaise += ((valid ? 1 : 0) - this.fig.armRaise) * Math.min(1, dt * 5)
-    if (valid) this.fig.armAngle += (ang - this.fig.armAngle) * k
-    this.fig.look += (Math.max(-1, Math.min(1, (fx - 232) / 300)) - this.fig.look) * Math.min(1, dt * 3)
-    this.fig.breath = this.reduced ? 0.5 : (Math.sin(t * 1.5) + 1) / 2
-
     const gust = gustiness(t) * (this.reduced ? 0 : 1)
-    this.fig.sway = this.reduced ? 0 : (noise(t * 0.5 + 3) - 0.4) * gust * 1.5
-
-    // Her camera: up, flash, hold, down
-    if (this.snapClock >= 0) {
-      const c = (this.snapClock += dt)
-      if (c - dt < 0.55 && c >= 0.55 && this.soundOn) this.audio?.shutter()
-      this.fig.snap = smooth(0, 0.35, c) * (1 - smooth(1.15, 1.55, c))
-      this.fig.flash = c > 0.55 ? Math.max(0, 1 - (c - 0.55) / 0.22) : 0
-      if (c > 1.6) this.snapClock = -1
-    }
 
     this.hoppers = this.hoppers.filter((h) => (h.t += dt) < h.dur + 0.3)
     const breeze = 18 + 60 * gust
@@ -540,7 +517,7 @@ export class MeadowEngine {
   private draw() {
     const { ctx, pal, scene, light } = this
     const at = this.reduced ? 0 : this.t
-    const sun = sunAt(this.hour)
+    const sun = this.sunPos
 
     // Sky
     this.screen()
@@ -554,11 +531,11 @@ export class MeadowEngine {
 
     if (light.stars > 0.01) this.drawNight(at)
 
-    // Sun and its haze
+    // Sun and its haze, wherever the real sun is; from here it mostly stays off to the right
     if (sun) {
       this.layer(DEPTH.sky)
-      const u = (this.hour - 11) / 7.9
-      const disk = u < 0.7 ? '#FFFBEF' : u < 0.92 ? '#FFE7B8' : '#FFC488'
+      const alt = this.sunDir[2]
+      const disk = alt > 0.35 ? '#FFFBEF' : alt > 0.14 ? '#FFE7B8' : '#FFC488'
       const halo = ctx.createRadialGradient(sun[0], sun[1], 0, sun[0], sun[1], 300)
       halo.addColorStop(0, rgba(pal.glow, 0.75 * light.sun + 0.25))
       halo.addColorStop(0.12, rgba(pal.glow, 0.35))
@@ -574,30 +551,35 @@ export class MeadowEngine {
     this.drawClouds(sun, at)
     this.drawBirds(at)
 
-    // Hazy southern foothills
-    this.layer(DEPTH.far)
-    ctx.fillStyle = pal.far
-    ctx.fill(scene.far)
-
     this.drawMountain(sun, at)
 
-    // Lower forest down to the meadow
+    // The rolling meadow hills and woods in front of the mountain, then their trees
     this.layer(DEPTH.forest)
-    ctx.fillStyle = pal.pineDark
-    ctx.fill(scene.forestFill)
-    for (const band of scene.forest) {
+    scene.facets.forEach((f, i) => {
+      if (f.kind !== 'hill' && f.kind !== 'wood') return
+      ctx.fillStyle = this.facetColors[i]
+      ctx.fill(f.path)
+    })
+    if (light.sun > 0.01) {
+      ctx.fillStyle = rgba(pal.pineDark, 0.3 * light.sun)
+      ctx.fill(this.shadows)
+    }
+    for (const grove of scene.woods) {
       ctx.fillStyle = pal.pineDark
-      ctx.fill(band.dark)
+      ctx.fill(grove.dark)
       ctx.fillStyle = pal.pineLit
-      ctx.fill(band.lit)
+      ctx.globalAlpha = this.litLeft
+      ctx.fill(grove.left)
+      ctx.globalAlpha = 1 - this.litLeft
+      ctx.fill(grove.right)
+      ctx.globalAlpha = 1
+      this.fillFoliage(grove.leaves, this.leafColors)
     }
 
     // Meadow, trail, and what grows out in it
     this.ground()
     ctx.fillStyle = pal.meadowFar
     ctx.fill(scene.meadowFar)
-    ctx.fillStyle = rgba(pal.verge, 0.32)
-    ctx.fill(scene.swath)
     ctx.fillStyle = pal.meadowMid
     ctx.fill(scene.meadowMid)
     ctx.fillStyle = pal.meadowNear
@@ -612,28 +594,23 @@ export class MeadowEngine {
     }
     ctx.fillStyle = pal.talus
     ctx.fill(scene.stones)
-    ctx.fillStyle = pal.pineDark
-    ctx.fill(scene.lone.dark)
-    ctx.fillStyle = pal.pineLit
-    ctx.fill(scene.lone.lit)
-    ctx.fillStyle = pal.bush
-    ctx.fill(scene.bushes)
-    ctx.fillStyle = lit('#A6D84A', pal.light)
-    ctx.fill(scene.bushBright)
-    ctx.fillStyle = rgba(pal.pineDark, 0.45)
-    ctx.fill(scene.bushShade)
-    this.drawWalkers(at)
+    for (const kind of ['sumac', 'green', 'yellow'] as const) this.fillFoliage(scene.shrubs[kind], this.shrubColors[kind])
 
-    // Grass, with the hikers standing in it
+    // Grass, with the trail post and Tripp standing in it
     this.screen()
-    this.grass.draw(ctx, pal, this.groundPt, this.s, at, this.reduced ? 0 : 1, this.pointer, () => {
-      this.layer(FIG_DEPTH)
-      drawFigures(ctx, pal.light, this.fig)
-      this.screen()
-    })
+    this.grass.draw(ctx, pal, this.groundPt, this.s, at, this.reduced ? 0 : 1, this.pointer, [
+      [POST_Y, () => {
+        this.layer(POST_DEPTH)
+        drawPost(ctx, pal.light)
+        this.screen()
+      }],
+      [RUNNER_SPOT[1], () => {
+        this.drawTripp()
+        this.screen()
+      }],
+    ])
 
     this.drawCritters()
-    this.drawShadows(at)
 
     // Soft vignette, like the edge of a print
     this.screen()
@@ -642,6 +619,21 @@ export class MeadowEngine {
     v.addColorStop(1, `rgba(20,16,12,${0.22 + 0.15 * light.stars})`)
     ctx.fillStyle = v
     ctx.fillRect(0, 0, this.W, this.H)
+  }
+
+  // Tripp on the trail. The camera is at eye height, so anyone standing on
+  // the level meadow has their eyes on the horizon, however far off they are
+  private drawTripp() {
+    const { ctx, pal, light } = this
+    const [x, y] = RUNNER_SPOT
+    const k = (y - HORIZON) / (RUNNER.footY - RUNNER.eyeY)
+    this.layer(RUNNER_DEPTH)
+    ctx.transform(k, 0, 0, k, x - RUNNER.footX * k, y - RUNNER.footY * k)
+    ctx.fillStyle = rgba(pal.pineDark, 0.16 + 0.18 * light.sun)
+    ctx.beginPath()
+    ctx.ellipse(RUNNER.footX, RUNNER.footY, STANCE.length / 2 + 30, 16, STANCE.angle, 0, Math.PI * 2)
+    ctx.fill()
+    drawRunner(ctx, pal.light, 'white')
   }
 
   // Stars and the Milky Way, painted once per resize; late summer puts the core low in the south
@@ -856,51 +848,130 @@ export class MeadowEngine {
     }
   }
 
+  // Light each part of the mountain by which way it faces the real sun
+  private relight() {
+    const { pal, light } = this
+    const s = (this.sunDir = sunDirection(this.hour))
+    this.sunPos = s[2] > -0.02 ? project(s) : null
+    const lighting = (n?: number[], tone?: number) => {
+      if (tone !== undefined) return tone
+      const lambert = Math.max(0, n![0] * s[0] + n![1] * s[1] + n![2] * s[2])
+      return Math.min(1, 0.14 + 0.08 * n![2] + 0.85 * lambert * light.sun * smooth(-0.02, 0.06, s[2]))
+    }
+    const openShade = blend(pal.talus, pal.mtnDark, 0.55)
+    const openLit = blend(pal.talus, pal.meadowFar, 0.25)
+    // Meadow hills get more contrast than the mountain so their rolls read
+    const hillShade = blend(pal.meadowMid, pal.pineDark, 0.4)
+    const hillLit = blend(pal.meadowFar, pal.seed, 0.35)
+    // Body, sunlit top, shaded underside, trunk; dimmed by the light like the post
+    const leaf = blend(pal.bush, pal.pineLit, 0.45)
+    this.leafColors = [leaf, blend(leaf, pal.seed, 0.3), blend(leaf, pal.pineDark, 0.45), pal.pineDark]
+    // After dark they sink into the same dim tones as the grass around them
+    const dusk = 0.6 * (1 - light.day)
+    const tones = (body: string, top: string, under: string) =>
+      [body, top, under, '#4A3B2C'].map((c) => blend(lit(c, pal.light), pal.pineDark, dusk))
+    this.shrubColors = {
+      yellow: tones('#A6BF3E', '#D3D958', '#5E7C2D'),
+      green: tones('#5F8236', '#86A846', '#3A5527'),
+      sumac: tones('#A8503A', '#C9714A', '#6E3428'),
+    }
+    this.litLeft = 1 - smooth(-0.35, 0.35, sideways(s))
+    this.shadows = this.castShadows(s)
+    this.facetColors = this.scene.facets.map((f) => {
+      const t = lighting(f.n, f.tone)
+      const c =
+        f.kind === 'land' ? blend(pal.mtnDark, pal.mtnLit, t)
+        : f.kind === 'open' ? blend(openShade, openLit, t)
+        : f.kind === 'hill' ? blend(hillShade, hillLit, smooth(0.35, 1, t))
+        : f.kind === 'wood' ? blend(pal.pineDark, pal.mtnDark, 0.3)
+        : t < 0.5 ? blend(pal.rockShade, pal.rockLit, t / 0.5) : blend(pal.rockLit, pal.rockHi, (t - 0.5) / 0.5)
+      return f.haze ? blend(c, pal.sky2, f.haze) : c
+    })
+    this.treeColors = TERRAIN.groups.map((n) => {
+      const t = lighting(n)
+      return [blend(pal.pineDark, pal.mtnDark, 0.4), blend(pal.pineDark, pal.mtnLit, 0.15 + 0.7 * t)]
+    })
+  }
+
+  private fillFoliage(f: Foliage, [body, top, under, trunk]: string[]) {
+    const { ctx } = this
+    ctx.fillStyle = trunk
+    ctx.fill(f.trunk)
+    ctx.fillStyle = body
+    ctx.fill(f.body)
+    ctx.save()
+    ctx.clip(f.body)
+    ctx.fillStyle = top
+    ctx.fill(f.lit)
+    ctx.fillStyle = under
+    ctx.fill(f.shade)
+    ctx.restore()
+  }
+
+  // Each tree's shadow on the ground, from the real sun: a crown-shaped patch
+  // stretched away from the sun, found by putting the tree back on the map
+  private castShadows(sun: [number, number, number]) {
+    const path = new Path2D()
+    if (sun[2] < 0.03) return path
+    for (const t of this.scene.woodTrees) {
+      const base = pointAt(t.x, t.y, t.range)
+      const tall = (t.h * depth(base)) / FOCAL
+      let se = (-sun[0] / sun[2]) * tall
+      let sn = (-sun[1] / sun[2]) * tall
+      const len = Math.hypot(se, sn)
+      if (len > tall * 5) {
+        se *= (tall * 5) / len
+        sn *= (tall * 5) / len
+      }
+      const w = tall * 0.2
+      const pe = (-sn / (len || 1)) * w
+      const pn = (se / (len || 1)) * w
+      const at = (k: number, side: number) => project([base[0] + se * k + pe * side, base[1] + sn * k + pn * side, base[2]])
+      const pts = [at(0.2, 0), at(0.62, 1), at(1, 0), at(0.62, -1)]
+      if (pts.some((p) => !p)) continue
+      const [a, b, c, d] = pts as Pt[]
+      const mid = (p: Pt, q: Pt) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2] as Pt
+      const m0 = mid(a, b)
+      path.moveTo(m0[0], m0[1])
+      for (const [corner, next] of [[b, c], [c, d], [d, a], [a, b]] as [Pt, Pt][]) {
+        const m = mid(corner, next)
+        path.quadraticCurveTo(corner[0], corner[1], m[0], m[1])
+      }
+    }
+    return path
+  }
+
   private drawMountain(sun: Pt | null, at: number) {
     const { ctx, pal, scene, light } = this
     this.layer(DEPTH.mountain)
     ctx.fillStyle = pal.mtn
     ctx.fill(scene.mountain)
-    ctx.fillStyle = rgba(pal.talus, 0.75)
-    ctx.fill(scene.talus)
-    ctx.fillStyle = pal.mtnDark
-    ctx.fill(scene.stippleDark)
-    ctx.fillStyle = pal.mtnLit
-    ctx.fill(scene.stippleLit)
-    ctx.fillStyle = pal.rockLit
-    ctx.fill(scene.boulders)
-    ctx.fillStyle = pal.rockShade
-    ctx.fill(scene.boulderShade)
-    ctx.fillStyle = pal.mtnDark
-    ctx.fill(scene.talusTrees)
+    // Forest first, then the trees on it, then open slopes and rock printed over
+    scene.facets.forEach((f, i) => {
+      if (f.kind !== 'land') return
+      ctx.fillStyle = this.facetColors[i]
+      ctx.fill(f.path)
+    })
+    scene.trees.forEach((band, g) => {
+      ctx.fillStyle = this.treeColors[g][0]
+      ctx.fill(band.dark)
+      ctx.fillStyle = this.treeColors[g][1]
+      ctx.fill(band.lit)
+    })
+    scene.facets.forEach((f, i) => {
+      if (f.kind !== 'open' && f.kind !== 'rock') return
+      ctx.fillStyle = this.facetColors[i]
+      ctx.fill(f.path)
+    })
 
     for (const sl of scene.slabs) {
-      ctx.fillStyle = pal.rockLit
+      if (sl.id !== this.hover && sl.id !== this.pinned) continue
+      ctx.fillStyle = 'rgba(255,244,226,0.16)'
       ctx.fill(sl.path)
-      ctx.fillStyle = pal.rockShade
-      ctx.fill(sl.shade)
-      ctx.fillStyle = pal.rockHi
-      ctx.fill(sl.hi)
-      ctx.fillStyle = rgba(pal.rockShade, 0.4)
-      ctx.fill(sl.streaks)
-      ctx.fillStyle = rgba(pal.rockHi, 0.55)
-      ctx.fill(sl.flecks)
-      ctx.strokeStyle = rgba(pal.rockLine, 0.6)
-      ctx.lineWidth = 1
-      ctx.stroke(sl.lines)
-      const lift = sl.id && (sl.id === this.hover || sl.id === this.pinned)
-      if (lift) {
-        ctx.fillStyle = 'rgba(255,244,226,0.16)'
-        ctx.fill(sl.path)
-        ctx.strokeStyle = 'rgba(255,248,232,0.95)'
-        ctx.lineWidth = 1.4
-        ctx.stroke(sl.path)
-      }
+      ctx.strokeStyle = 'rgba(255,248,232,0.95)'
+      ctx.lineWidth = 1.2
+      ctx.stroke(sl.path)
     }
-    ctx.fillStyle = pal.pineDark
-    ctx.fill(scene.skirt.dark)
-    ctx.fillStyle = pal.mtnLit
-    ctx.fill(scene.skirt.lit)
 
     if (this.hover === 'green' || this.pinned === 'green') {
       ctx.strokeStyle = 'rgba(255,248,232,0.9)'
@@ -908,31 +979,36 @@ export class MeadowEngine {
       ctx.stroke(scene.ridge)
     }
 
-    // Backlit rim along the skyline when the sun drops behind it
-    if (sun && sun[1] > 120) {
-      const rim = ctx.createRadialGradient(sun[0], sun[1], 0, sun[0], sun[1], 420)
-      const k = smooth(120, 280, sun[1]) * (1 - smooth(310, 420, sun[1]))
-      rim.addColorStop(0, rgba(pal.glow, 0.95 * k))
+    // Backlit rim along the skyline while the sun is low in the west
+    const alt = this.sunDir[2]
+    const rimK = smooth(-0.02, 0.02, alt) * (1 - smooth(0.08, 0.35, alt)) * smooth(0, 0.3, facing(this.sunDir))
+    if (sun && rimK > 0.01) {
+      const cx = Math.min(1500, Math.max(-300, sun[0]))
+      const cy = Math.min(420, Math.max(60, sun[1]))
+      const rim = ctx.createRadialGradient(cx, cy, 0, cx, cy, 760)
+      rim.addColorStop(0, rgba(pal.glow, 0.95 * rimK))
       rim.addColorStop(1, rgba(pal.glow, 0))
       ctx.strokeStyle = rim
       ctx.lineWidth = 2.2
       ctx.stroke(scene.ridge)
       ctx.save()
       ctx.globalCompositeOperation = 'screen'
-      const bloom = ctx.createRadialGradient(sun[0], sun[1], 0, sun[0], sun[1], 260)
-      bloom.addColorStop(0, rgba(pal.glow, 0.45 * k))
+      const bloom = ctx.createRadialGradient(cx, cy, 0, cx, cy, 520)
+      bloom.addColorStop(0, rgba(pal.glow, 0.4 * rimK))
       bloom.addColorStop(1, rgba(pal.glow, 0))
       ctx.fillStyle = bloom
-      ctx.fillRect(sun[0] - 260, sun[1] - 260, 520, 520)
+      ctx.fillRect(cx - 520, cy - 520, 1040, 1040)
       ctx.restore()
     }
 
-    // Headlamps of climbers still out on the rock after dark
+    // Headlamps of climbers still out on the Third and First after dark
     if (light.stars > 0.05) {
-      HEADLAMP_ROUTES.forEach(([a, b], i) => {
+      HEADLAMPS.forEach(([id, dx, dy], i) => {
+        const top = scene.slabs.find((sl) => sl.id === id)?.top
+        if (!top) return
         const u = (at * 0.004 + i * 0.37) % 1
-        const x = a[0] + (b[0] - a[0]) * u + Math.sin(at * 0.7 + i) * 1.2
-        const y = a[1] + (b[1] - a[1]) * u
+        const x = top[0] + dx * (1 - u) + Math.sin(at * 0.7 + i) * 1.2
+        const y = top[1] + 6 + dy * (1 - u)
         const glow = ctx.createRadialGradient(x, y, 0, x, y, 7)
         glow.addColorStop(0, `rgba(255,236,190,${0.55 * light.stars})`)
         glow.addColorStop(1, 'rgba(255,236,190,0)')
@@ -943,27 +1019,6 @@ export class MeadowEngine {
         ctx.arc(x, y, 0.9, 0, Math.PI * 2)
         ctx.fill()
       })
-    }
-  }
-
-  // Tiny hikers out on the far side of the meadow, like the ones in the photo
-  private drawWalkers(at: number) {
-    const { ctx, pal } = this
-    const a = 1 - this.light.stars
-    if (a < 0.05) return
-    const people: [number, number, string][] = [
-      [288, 468, '#B8433A'], [300, 469, '#E9E4DA'], [311, 467, '#3C6FA8'], [323, 468, '#B8433A'],
-      [190, 466, '#D9783A'], [198, 467, '#3C6FA8'],
-    ]
-    const walk = (at * 3.2) % 480
-    people.push([560 - walk, 462 + walk * 0.012, '#E9E4DA'], [572 - walk, 462 + walk * 0.012, '#8E3B54'])
-    for (const [x, y, shirt] of people) {
-      ctx.fillStyle = rgba(lit('#3A3A3E', pal.light), a)
-      ctx.fillRect(x - 1, y - 3, 2, 3)
-      ctx.fillStyle = rgba(lit(shirt, pal.light), a)
-      ctx.fillRect(x - 1.2, y - 6.5, 2.4, 3.8)
-      ctx.fillStyle = rgba(lit('#B88466', pal.light), a)
-      ctx.fillRect(x - 0.8, y - 8.2, 1.6, 1.7)
     }
   }
 
@@ -1026,31 +1081,5 @@ export class MeadowEngine {
       ctx.restore()
     }
     ctx.globalAlpha = 1
-  }
-
-  // Cloud shadows sliding across the mountain and the meadow on a sunny day
-  private drawShadows(at: number) {
-    const { ctx, light } = this
-    if (light.sun < 0.05) return
-    this.layer(DEPTH.mountain)
-    ctx.save()
-    ctx.clip(this.scene.land)
-    ctx.globalCompositeOperation = 'multiply'
-    const span = 2600
-    for (const [x0, y, rx, ry] of [[300, 320, 170, 34], [900, 300, 220, 40], [520, 520, 280, 44], [1250, 580, 320, 56], [-200, 470, 260, 40]]) {
-      const x = ((((x0 + 700 + at * 7) % span) + span) % span) - 700
-      const g = ctx.createRadialGradient(x, y, 0, x, y, rx)
-      g.addColorStop(0, `rgba(96,110,150,${0.32 * light.sun})`)
-      g.addColorStop(0.7, `rgba(96,110,150,${0.24 * light.sun})`)
-      g.addColorStop(1, 'rgba(96,110,150,0)')
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.scale(1, ry / rx)
-      ctx.translate(-x, -y)
-      ctx.fillStyle = g
-      ctx.fillRect(x - rx, y - rx, rx * 2, rx * 2)
-      ctx.restore()
-    }
-    ctx.restore()
   }
 }

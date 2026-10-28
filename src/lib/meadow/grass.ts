@@ -2,7 +2,7 @@
 // rolling gusts and parted by the pointer. Blades live in photo units but are
 // drawn in screen space so every row gets its own parallax.
 
-import { FIGURES_Y, HORIZON, inTrail, nearTrail, rng } from './scene'
+import { HORIZON, inTrail, meadowTopY, nearTrail, rng } from './scene'
 import type { Palette } from './palette'
 
 const TABLE = (() => {
@@ -44,12 +44,11 @@ export interface Pointer {
 
 type Project = (x: number, y: number) => [number, number]
 
-const SLICES_BACK = 4
-const SLICES_FRONT = 3
+// Blades are drawn back to front in this many slices, so nearer rows cover farther ones
+const SLICES = 7
 
 export class Grass {
   private blades: Blade[] = []
-  private split = 0
 
   generate(x0: number, x1: number, y1: number, count: number) {
     const r = rng(7)
@@ -57,9 +56,11 @@ export class Grass {
     let guard = 0
     while (blades.length < count && guard++ < count * 3) {
       const x = x0 + (x1 - x0) * r()
-      const y = HORIZON + 14 + (y1 - HORIZON - 14) * r()
+      // Grass runs all the way up the meadow hills, tiny with distance
+      const top = meadowTopY(x) + 1
+      const y = top + (y1 - top) * r()
       if (inTrail(x, y)) continue
-      const t = (y - HORIZON) / 300
+      const t = Math.max(0, (y - HORIZON) / 300)
       // Grass along the trail is trampled short and stays greener
       const edge = nearTrail(x, y)
       const verge = edge && r() < 0.55
@@ -78,8 +79,18 @@ export class Grass {
     }
     blades.sort((a, b) => a.y - b.y)
     this.blades = blades
-    this.split = blades.findIndex((b) => b.y >= FIGURES_Y)
-    if (this.split < 0) this.split = blades.length
+  }
+
+  // The first blade rooted at or in front of y
+  private rowAt(y: number) {
+    let lo = 0
+    let hi = this.blades.length
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1
+      if (this.blades[mid].y < y) lo = mid + 1
+      else hi = mid
+    }
+    return lo
   }
 
   // Ripple outward from a tap, as if something just jumped out of the grass
@@ -100,7 +111,8 @@ export class Grass {
     t: number,
     wind: number,
     pointer: Pointer,
-    between: () => void,
+    // Things standing in the grass, each drawn at the row of its base
+    stands: [y: number, draw: () => void][],
   ) {
     const colors = [pal.grassDark, pal.grassMid, pal.grassLit, pal.verge]
     const gust = gustiness(t) * wind
@@ -141,10 +153,8 @@ export class Grass {
         const cy = sy - Math.cos(ca) * hp * 0.55
         const wp = Math.max(0.7, b.w * s)
 
-        // Blades flash their paler side as a gust bends them over
-        const tone = b.tone < 2 && g * gust > 0.42 ? b.tone + 1 : b.tone
         // Fill closes each blade on its own; an explicit closePath here is costly
-        const p = paths[tone]
+        const p = paths[b.tone]
         p.moveTo(sx - wp / 2, sy)
         p.quadraticCurveTo(cx - wp * 0.25, cy, tx, ty)
         p.quadraticCurveTo(cx + wp * 0.25, cy, sx + wp / 2, sy)
@@ -176,13 +186,18 @@ export class Grass {
     }
 
     const n = this.blades.length
-    for (let k = 0; k < SLICES_BACK; k++) {
-      drawRange(Math.floor((this.split * k) / SLICES_BACK), Math.floor((this.split * (k + 1)) / SLICES_BACK))
-    }
-    between()
-    for (let k = 0; k < SLICES_FRONT; k++) {
-      const span = n - this.split
-      drawRange(this.split + Math.floor((span * k) / SLICES_FRONT), this.split + Math.floor((span * (k + 1)) / SLICES_FRONT))
+    const cuts = stands.map(([y, draw]) => ({ at: this.rowAt(y), draw })).sort((a, b) => a.at - b.at)
+    let from = 0
+    for (let k = 1; k <= SLICES; k++) {
+      const to = Math.floor((n * k) / SLICES)
+      while (cuts.length && cuts[0].at <= to) {
+        const cut = cuts.shift()!
+        drawRange(from, cut.at)
+        from = cut.at
+        cut.draw()
+      }
+      drawRange(from, to)
+      from = to
     }
   }
 }

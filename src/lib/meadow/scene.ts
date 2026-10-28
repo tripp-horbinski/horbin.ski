@@ -1,9 +1,12 @@
-// Chautauqua Meadow, traced from a late-summer photograph looking southwest at
-// the Flatirons. Units are pixels of the 1200×800 photo, with the meadow's far
-// edge near y=440. Everything is built once as Path2D and filled per frame with
+// Chautauqua Meadow looking southwest at the Flatirons. Units are pixels of a
+// 1200×800 reference frame, with the meadow's far edge near y=440. The mountain
+// comes from USGS lidar (see scripts/meadow); the treeline, meadow and trail are
+// drawn by hand. Everything is built once as Path2D and filled per frame with
 // the current palette.
 
 import type { FeatureId } from './features'
+import { TERRAIN } from './terrain'
+import type { Facet } from './terrain-types'
 
 export type Pt = [number, number]
 
@@ -11,8 +14,11 @@ export type Pt = [number, number]
 export const X0 = -900
 export const X1 = 2100
 export const HORIZON = 440
-// Base of the hikers' feet; grass in front of this line is drawn over them
-export const FIGURES_Y = 632
+// Where the trail post stands; grass rooted in front of this line is drawn over it
+export const POST_Y = 632
+// Where Tripp stands, on the trail where it bends: his feet, with the grass in
+// front of them drawn over him
+export const RUNNER_SPOT: Pt = [1000, 642]
 
 export function rng(seed: number) {
   return () => {
@@ -22,15 +28,6 @@ export function rng(seed: number) {
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-const lerpPt = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)]
-
-function piecewise(pts: Pt[], x: number) {
-  if (x <= pts[0][0]) return pts[0][1]
-  for (let i = 1; i < pts.length; i++) {
-    if (x <= pts[i][0]) return lerp(pts[i - 1][1], pts[i][1], (x - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]))
-  }
-  return pts[pts.length - 1][1]
-}
 
 function polyPath(pts: Pt[], into = new Path2D()) {
   into.moveTo(pts[0][0], pts[0][1])
@@ -49,72 +46,33 @@ function inPoly(pts: Pt[], x: number, y: number) {
   return inside
 }
 
-// Green Mountain's skyline, right of the photo continuing toward Flagstaff
-const RIDGE: Pt[] = [
-  [-900, 372], [-700, 366], [-500, 362], [-300, 357], [-120, 351], [0, 347], [90, 344], [170, 340],
-  [195, 330], [230, 312], [265, 293], [290, 286], [320, 280], [355, 268], [380, 260], [410, 248],
-  [435, 240], [470, 234], [510, 231], [545, 234], [585, 240], [615, 238], [645, 233], [672, 226],
-  [700, 222], [720, 224], [745, 228], [780, 236], [830, 254], [880, 266], [930, 272], [980, 276],
-  [1030, 274], [1050, 270], [1065, 274], [1090, 277], [1110, 275], [1130, 280], [1150, 284], [1170, 296],
-  [1200, 310], [1260, 318], [1330, 312], [1420, 300], [1520, 296], [1620, 310], [1740, 330], [1860, 322],
-  [2000, 340], [2100, 350],
-]
-const ridgeY = (x: number) => piecewise(RIDGE, x)
-
-// Hazy foothills further south, only seen where the ridge drops away on the left
-const FAR: Pt[] = [[-900, 330], [-700, 318], [-480, 328], [-260, 314], [-60, 324], [80, 316], [190, 326], [320, 352]]
-
-const MEADOW_EDGE: Pt[] = [
-  [-900, 446], [0, 442], [300, 444], [600, 442], [800, 436], [880, 421], [1000, 416], [1100, 424],
-  [1200, 438], [1400, 446], [2100, 446],
-]
-const meadowEdge = (x: number) => piecewise(MEADOW_EDGE, x)
-
-const FOREST_TOP: Pt[] = [
-  [-900, 388], [0, 380], [150, 382], [300, 372], [450, 366], [620, 354], [800, 372], [950, 380],
-  [1200, 392], [2100, 392],
-]
-const forestTop = (x: number) => piecewise(FOREST_TOP, x)
-
-interface SlabDef {
-  id: FeatureId | null
-  tip: number
-  pts: Pt[]
+// Sample a per-column lidar profile, held flat past the ends of the rendered frame
+function profile(values: number[], x: number) {
+  const k = Math.min(values.length - 1, Math.max(0, (x - TERRAIN.x0) / TERRAIN.step))
+  const i = Math.min(values.length - 2, Math.floor(k))
+  return lerp(values[i], values[i + 1], k - i)
 }
 
-// Outlines run from the bottom-left, up the long face to the tip, then down the steep north side
-const SLAB_DEFS: SlabDef[] = [
-  { id: 'fifth', tip: 2, pts: [[214, 362], [250, 322], [292, 284], [301, 293], [285, 320], [266, 348], [262, 362]] },
-  { id: 'fourth', tip: 2, pts: [[268, 358], [300, 322], [346, 278], [357, 288], [345, 312], [322, 340], [318, 356]] },
-  { id: 'third', tip: 3, pts: [[334, 370], [370, 330], [420, 282], [456, 250], [463, 262], [461, 300], [440, 330], [410, 362], [400, 370]] },
-  { id: 'second', tip: 3, pts: [[466, 356], [500, 318], [560, 262], [597, 238], [606, 250], [598, 268], [580, 296], [552, 330], [530, 352]] },
-  { id: 'first', tip: 4, pts: [[626, 340], [622, 316], [638, 272], [668, 226], [692, 194], [712, 208], [741, 234], [738, 256], [721, 282], [700, 306], [676, 336]] },
-  { id: null, tip: 2, pts: [[318, 380], [330, 354], [338, 347], [347, 360], [343, 380]] },
-  { id: null, tip: 2, pts: [[490, 278], [500, 264], [512, 258], [522, 266], [518, 280]] },
-  // The rock tower standing out of the trees on the right
-  { id: null, tip: 3, pts: [[1132, 404], [1136, 374], [1141, 352], [1149, 337], [1157, 344], [1161, 362], [1173, 378], [1183, 404]] },
-]
+const ridgeY = (x: number) => profile(TERRAIN.skyline, x)
 
-const TALUS: Pt[] = [
-  [652, 342], [672, 322], [700, 312], [716, 300], [745, 298], [770, 310], [790, 306], [818, 326],
-  [842, 334], [866, 356], [884, 374], [852, 380], [818, 372], [790, 380], [748, 368], [716, 372],
-  [690, 360],
-]
+// Where the grass at your feet begins, about 100 m out. A traced photo has no
+// distances, so it gets a level meadow edge instead.
+export const groundY = (x: number) => (TERRAIN.ground ? profile(TERRAIN.ground, x) : 446)
+// Top of the open meadow, up the hills to where the woods begin
+export const meadowTopY = (x: number) => (TERRAIN.meadow ? profile(TERRAIN.meadow, x) : groundY(x) - 6)
 
-// Knobby outcrops along the right shoulder and scattered down its face
-const BOULDERS: [number, number, number][] = [
-  [1052, 271, 5], [1098, 280, 6], [1112, 276, 8], [1128, 282, 9], [1146, 287, 7], [1159, 293, 5],
-  [902, 305, 5], [918, 308, 7], [958, 301, 6], [978, 310, 5], [1004, 301, 4], [1190, 410, 6],
-]
+export interface FacetShape {
+  kind: Facet['kind']
+  path: Path2D
+  n?: number[]
+  tone?: number
+  haze: number
+}
 
 export interface SlabShape {
-  id: FeatureId | null
+  id: FeatureId
   path: Path2D
-  shade: Path2D
-  hi: Path2D
-  lines: Path2D
-  streaks: Path2D
-  flecks: Path2D
+  top: Pt
 }
 
 export interface TreeBand {
@@ -122,24 +80,146 @@ export interface TreeBand {
   lit: Path2D
 }
 
-// A conifer as a stack of jagged tiers; the lit path is its sunward (left) half
-function conifer(band: TreeBand, x: number, y: number, h: number, r: () => number, tiers = 4) {
-  const w = h * (0.24 + r() * 0.1)
-  const right: Pt[] = []
-  const left: Pt[] = []
-  for (let i = 1; i <= tiers; i++) {
-    const ty = y - h + h * (i / tiers) * 0.9
-    const tw = w * (0.3 + 0.7 * (i / tiers)) * (0.85 + r() * 0.3)
-    const notch = h * 0.05
-    right.push([x + tw, ty], [x + tw * 0.5, ty - notch])
-    left.push([x - tw * (0.9 + r() * 0.2), ty + r() * notch], [x - tw * 0.5, ty - notch])
+// A broadleaf crown in three flat tones, like separate screens in a print
+export interface Foliage {
+  body: Path2D
+  lit: Path2D
+  shade: Path2D
+  trunk: Path2D
+}
+
+const foliage = (): Foliage => ({ body: new Path2D(), lit: new Path2D(), shade: new Path2D(), trunk: new Path2D() })
+
+// Trees between the meadow and the mountain: ponderosas with a left and right
+// half to light, and broadleaf crowns
+export interface Grove {
+  dark: Path2D
+  left: Path2D
+  right: Path2D
+  leaves: Foliage
+}
+
+// Shrubs out in the grass, by color: the yellowing box elder and its kin,
+// darker green shrubs, and skunkbrush sumac turning rust in late summer
+export type ShrubKind = 'yellow' | 'green' | 'sumac'
+
+// Measured off the reference photo: kind, x, base y, crown width and height, trunk
+const SHRUBS: [ShrubKind, number, number, number, number, number][] = [
+  // The box elder catching the sun, right of center
+  ['yellow', 789, 488, 64, 42, 6],
+  // Two narrow, upright shrubs in the middle of the meadow
+  ['yellow', 440, 488, 22, 31, 1],
+  ['green', 528, 496, 17, 33, 1],
+  // A small dark shrub at the foot of the rise on the right
+  ['green', 768, 448, 15, 12, 0],
+  // Low clumps of sumac, already turning
+  ['sumac', 478, 490, 15, 12, 0],
+  ['sumac', 553, 493, 9, 7, 0],
+  ['sumac', 638, 492, 11, 8, 0],
+  ['sumac', 412, 491, 8, 6, 0],
+  // Past the edges of the photo, for wide screens
+  ['green', -150, 474, 24, 15, 0],
+  ['sumac', -60, 480, 14, 8, 0],
+  ['yellow', 1430, 482, 40, 30, 5],
+  ['sumac', 1330, 486, 12, 7, 0],
+]
+
+// Where a tree in front of the mountain stands, for casting its shadow
+export interface WoodTree {
+  x: number
+  y: number
+  h: number
+  range: number
+}
+
+// A closed curve through the midpoints of a polygon's sides, rounding its corners
+function smoothPath(pts: Pt[], into: Path2D) {
+  const mid = (a: Pt, b: Pt): Pt => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+  const start = mid(pts[pts.length - 1], pts[0])
+  into.moveTo(start[0], start[1])
+  pts.forEach((p, i) => {
+    const m = mid(p, pts[(i + 1) % pts.length])
+    into.quadraticCurveTo(p[0], p[1], m[0], m[1])
+  })
+  into.closePath()
+}
+
+// A broadleaf crown: an irregular dome on a short trunk. Sunlit leaf clusters
+// gather toward the upper left (the midday sun) and shaded pockets toward the
+// lower right, drawn clipped to the crown. Rough crowns are twiggy, like sumac.
+// Anything below floor is behind the ground in front and gets cut off.
+function broadleaf(f: Foliage, x: number, y: number, w: number, h: number, trunk: number, r: () => number, floor = Infinity, rough = 0) {
+  const clip = (v: number) => Math.min(v, floor)
+  if (trunk > 0) {
+    const tw = Math.max(0.8, w * 0.07)
+    polyPath([[x - tw / 2, clip(y)], [x - tw * 0.3, y - trunk - h * 0.25], [x + tw * 0.3, y - trunk - h * 0.25], [x + tw / 2, clip(y)]], f.trunk)
   }
-  right.pop()
-  left.pop()
-  const tip: Pt = [x + (r() - 0.5) * h * 0.05, y - h]
-  const outline: Pt[] = [tip, ...right, [x + w * 0.12, y], [x - w * 0.12, y], ...left.reverse()]
-  polyPath(outline, band.dark)
-  polyPath([tip, [x, y - h * 0.1], [x - w * 0.12, y], ...left], band.lit)
+  const cx = x + (r() - 0.5) * w * 0.06
+  const cy = y - trunk - h / 2
+  const phase = r() * 6
+  const phase2 = r() * 6
+  // An irregular blob around (bx, by): lobes of leaves bulge out of the rim
+  const blob = (into: Path2D, bx: number, by: number, rx: number, ry: number, n: number, bumps: number) => {
+    const pts: Pt[] = []
+    for (let i = 0; i < n; i++) {
+      const a = Math.PI + (i / n) * Math.PI * 2
+      const k = 1 + bumps * (0.6 * Math.sin(i * 0.9 + phase) + Math.abs(Math.sin(i * 2.3 + phase2))) + (r() - 0.5) * (0.08 + rough)
+      const s = Math.sin(a)
+      pts.push([bx + Math.cos(a) * rx * k, clip(by + s * ry * k * (s > 0 ? 0.85 : 1))])
+    }
+    smoothPath(pts, into)
+  }
+  blob(f.body, cx, cy, w / 2, h / 2, 40, 0.08)
+
+  // Dappled light over most of the crown and small shaded pockets low down,
+  // more of both on bigger crowns
+  const clusters = Math.min(16, Math.max(2, Math.round((w * h) / 140)))
+  const size = Math.min(w, h) * 0.2
+  const dapple = (into: Path2D, count: number, scale: number, where: (dx: number, dy: number) => boolean) => {
+    let made = 0
+    for (let tries = 0; tries < count * 10 && made < count; tries++) {
+      const dx = r() * 2 - 1
+      const dy = r() * 2 - 1
+      if (dx * dx + dy * dy > 1 || !where(dx, dy)) continue
+      const rad = size * scale * (0.6 + r() * 0.7)
+      blob(into, cx + dx * w * 0.45, cy + dy * h * 0.42, rad, rad * 0.8, 10, 0.12)
+      made++
+    }
+  }
+  dapple(f.shade, Math.max(1, Math.round(clusters * 0.7)), 0.55, (dx, dy) => dy * 0.9 + dx * 0.3 > 0.25)
+  dapple(f.lit, Math.round(clusters * 1.4), 0.85, (dx, dy) => dy * 0.9 + dx * 0.35 < 0.35)
+}
+
+// A ponderosa: a clumpy crown, widest a third of the way up and tapering to a
+// rounded point, on a bare trunk. Each half of the crown is kept separately so
+// the side facing the sun can be lit. Anything below floor is behind the
+// ground in front and gets cut off.
+function ponderosa(g: Grove, x: number, y: number, h: number, floor: number, r: () => number) {
+  const clip = (v: number) => Math.min(v, floor)
+  const tw = Math.max(0.5, h * 0.05)
+  const bottom = y - h * (0.2 + r() * 0.1)
+  if (bottom < floor) {
+    polyPath([[x - tw / 2, clip(y)], [x - tw * 0.35, bottom], [x + tw * 0.35, bottom], [x + tw / 2, clip(y)]], g.dark)
+  }
+  const top = y - h
+  const half = h * (0.17 + r() * 0.06)
+  const lean = (r() - 0.5) * h * 0.04
+  const levels = 7
+  const side = (dir: number) =>
+    Array.from({ length: levels }, (_, i) => {
+      const t = (i + 0.5) / levels
+      // Clumps of branches stick out at alternating heights on each side
+      const clump = (i + (dir > 0 ? 0 : 1)) % 2 ? 0.78 : 1.06
+      const w = half * Math.pow(1 - t, 0.55) * Math.sin(Math.min(1, t * 2.6) * (Math.PI / 2)) * clump * (0.9 + r() * 0.2)
+      return [x + lean * t + dir * w, clip(bottom + (top - bottom) * t)] as Pt
+    })
+  const right = side(1)
+  const left = side(-1)
+  const tip: Pt = [x + lean, top]
+  const foot: Pt = [x, clip(bottom)]
+  polyPath([foot, ...right, tip, ...left.reverse()], g.dark)
+  polyPath([foot, ...right, tip], g.right)
+  polyPath([foot, ...left, tip], g.left)
 }
 
 function spike(into: Path2D, x: number, y: number, h: number) {
@@ -183,207 +263,78 @@ export const inTrail = (x: number, y: number) => TRAIL_POLYS.some((p) => inPoly(
 export const nearTrail = (x: number, y: number) => TRAIL_EDGES.some((p) => inPoly(p, x, y))
 
 export interface Scene {
-  far: Path2D
   mountain: Path2D
   ridge: Path2D
-  land: Path2D
-  talus: Path2D
-  talusTrees: Path2D
-  stippleDark: Path2D
-  stippleLit: Path2D
-  boulders: Path2D
-  boulderShade: Path2D
+  facets: FacetShape[]
   slabs: SlabShape[]
-  skirt: TreeBand
-  forestFill: Path2D
-  forest: TreeBand[]
-  forestHit: Path2D
+  // Trees on the mountain, by the forest group they stand in
+  trees: TreeBand[]
+  // Farthest first, so nearer groves draw over them
+  woods: Grove[]
+  woodTrees: WoodTree[]
+  woodHit: Path2D
+  hillHit: Path2D
   meadowFar: Path2D
   meadowMid: Path2D
   meadowNear: Path2D
-  swath: Path2D
   verge: Path2D
   trail: Path2D
   trailHit: Path2D
   stones: Path2D
-  lone: TreeBand
-  bushes: Path2D
-  bushShade: Path2D
-  bushBright: Path2D
+  shrubs: Record<ShrubKind, Foliage>
   postHit: Path2D
-}
-
-function slabShape(def: SlabDef, r: () => number): SlabShape {
-  const { pts, tip: ti } = def
-  const tip = pts[ti]
-  const bl = pts[0]
-  const br = pts[pts.length - 1]
-  const path = polyPath(pts)
-
-  // North face in shade: the steep right side plus a wedge back to the base
-  const shade = polyPath([...pts.slice(ti), lerpPt(br, bl, 0.34), lerpPt(tip, lerpPt(br, bl, 0.34), 0.08)])
-
-  // Sunlit rim along the long face, tapering to nothing at the tip
-  const span = Math.hypot(br[0] - bl[0], br[1] - bl[1])
-  const inward: Pt = [((br[0] - bl[0]) / span) * Math.min(6, span * 0.14), ((br[1] - bl[1]) / span) * Math.min(6, span * 0.14)]
-  const leftSide = pts.slice(0, ti + 1)
-  const inner = leftSide.map(([x, y], i) => {
-    const k = Math.sqrt(1 - i / ti)
-    return [x + inward[0] * k, y + inward[1] * k] as Pt
-  })
-  const hi = polyPath([...leftSide, ...inner.reverse()])
-
-  // Bedding planes run up the face; a few cross joints break them up
-  const lines = new Path2D()
-  const rightSide = pts.slice(ti)
-  const onRight = (u: number) => rightSide[Math.min(rightSide.length - 1, Math.round(u * (rightSide.length - 1)))]
-  for (const t of [0.2, 0.4, 0.58, 0.76]) {
-    const a = lerpPt(lerpPt(bl, br, t), tip, 0.06)
-    const b = lerpPt(tip, onRight(0.4), t)
-    const m = lerpPt(a, b, 0.5)
-    lines.moveTo(a[0], a[1])
-    lines.quadraticCurveTo(m[0] + (r() - 0.5) * 3, m[1] + (r() - 0.5) * 3, b[0], b[1])
-  }
-  for (let i = 0; i < 5; i++) {
-    const u = 0.25 + r() * 0.6
-    const a = lerpPt(lerpPt(bl, tip, u), lerpPt(br, onRight(0.5), u), 0.1 + r() * 0.3)
-    const b = lerpPt(lerpPt(bl, tip, u), lerpPt(br, onRight(0.5), u), 0.45 + r() * 0.4)
-    lines.moveTo(a[0], a[1])
-    lines.lineTo(b[0], b[1] + 2)
-  }
-
-  // Darker water streaks running down the dip of the face
-  const streaks = new Path2D()
-  for (let i = 0; i < 3; i++) {
-    const t = 0.15 + r() * 0.6
-    const w = 0.02 + r() * 0.035
-    const a0 = lerpPt(bl, br, t)
-    const a1 = lerpPt(bl, br, t + w)
-    const len = 0.45 + r() * 0.45
-    const b0 = lerpPt(a0, lerpPt(tip, onRight(0.4), t), len)
-    const b1 = lerpPt(a1, lerpPt(tip, onRight(0.4), t + w), len * 0.92)
-    polyPath([a0, b0, b1, a1], streaks)
-  }
-
-  // Lichen and weathering flecks on the lit face
-  const flecks = new Path2D()
-  const xs = pts.map((p) => p[0])
-  const ys = pts.map((p) => p[1])
-  for (let i = 0; i < 70; i++) {
-    const x = lerp(Math.min(...xs), Math.max(...xs), r())
-    const y = lerp(Math.min(...ys), Math.max(...ys), r())
-    if (!inPoly(pts, x, y)) continue
-    const rr = 0.4 + r() * 0.9
-    flecks.moveTo(x + rr, y)
-    flecks.arc(x, y, rr, 0, Math.PI * 2)
-  }
-
-  return { id: def.id, path, shade, hi, lines, streaks, flecks }
 }
 
 export function buildScene(): Scene {
   const r = rng(41)
 
-  const far = polyPath([...FAR, [320, 460], [X0, 460]])
-
-  // Ridge with a fringe of tiny trees along the skyline
-  const ridgePts: Pt[] = []
-  for (let x = X0; x <= X1; x += 3) {
-    const y = ridgeY(x)
-    const forested = x > 160 && x < 1300
-    ridgePts.push([x, y + 0.5], [x + 1.5, y - (r() < 0.6 ? 1 + r() * (forested ? 4.5 : 2) : 0.5)])
-  }
-  const mountain = polyPath([...ridgePts, [X1, 470], [X0, 470]])
-  const land = polyPath([...ridgePts, [X1, 4000], [X0, 4000]])
+  const skyPts: Pt[] = []
+  for (let x = X0; x <= X1; x += TERRAIN.step) skyPts.push([x, ridgeY(x)])
+  const mountain = polyPath([...skyPts, [X1, 560], [X0, 560]])
   const ridge = new Path2D()
-  ridgePts.forEach(([x, y], i) => (i ? ridge.lineTo(x, y) : ridge.moveTo(x, y)))
+  skyPts.forEach(([x, y], i) => (i ? ridge.lineTo(x, y) : ridge.moveTo(x, y)))
 
-  const slabDefs = SLAB_DEFS
-  const inSlab = (x: number, y: number) => slabDefs.some((d) => inPoly(d.pts, x, y))
+  const facets = TERRAIN.facets.map(({ d, ...f }) => ({ ...f, path: new Path2D(d) }))
+  const slabs = TERRAIN.slabs.map((sl) => ({ id: sl.id, path: new Path2D(sl.d), top: [sl.top[0], sl.top[1]] as Pt }))
 
-  // Forest stippling the mountain's flanks, thinner over the talus
-  const stippleDark = new Path2D()
-  const stippleLit = new Path2D()
-  for (let i = 0; i < 4600; i++) {
-    const x = lerp(X0, X1, r())
-    const top = ridgeY(x) + 2
-    const y = lerp(top, 392, Math.pow(r(), 0.8))
-    if (y < top || inSlab(x, y)) continue
-    if (inPoly(TALUS, x, y) && r() < 0.55) continue
-    const h = 3 + r() * 3.5 + (y - top) * 0.025
-    spike(r() < 0.6 ? stippleDark : stippleLit, x, y, h)
+  // Pines from the lidar render, sized for their distance; about a third in shadow
+  const trees: TreeBand[] = TERRAIN.groups.map(() => ({ dark: new Path2D(), lit: new Path2D() }))
+  for (let i = 0; i < TERRAIN.trees.length; i += 4) {
+    const [x, y, h, g] = TERRAIN.trees.slice(i, i + 4)
+    const band = trees[g]
+    if (band) spike(r() < 0.35 ? band.dark : band.lit, x + (r() - 0.5), y + 1, h)
   }
 
-  // Blocky boulders and scrub mottling the talus
-  const talusTrees = new Path2D()
-  for (let i = 0; i < 160; i++) {
-    const x = lerp(650, 890, r())
-    const y = lerp(296, 384, r())
-    if (!inPoly(TALUS, x, y)) continue
-    if (r() < 0.5) spike(talusTrees, x, y, 3 + r() * 4)
-    else talusTrees.rect(x, y, 1.5 + r() * 2.5, 1 + r() * 1.5)
-  }
+  const woodHit = new Path2D()
+  const hillHit = new Path2D()
+  facets.forEach((f) => {
+    if (f.kind === 'wood') woodHit.addPath(f.path)
+    if (f.kind === 'hill') hillHit.addPath(f.path)
+  })
 
-  // Angular outcrops, with their north faces in shade
-  const boulders = new Path2D()
-  const boulderShade = new Path2D()
-  for (const [x, y, rad] of BOULDERS) {
-    const pts: Pt[] = Array.from({ length: 6 }, (_, i) => {
-      const a = -Math.PI / 2 + (i / 6) * Math.PI * 2 + (r() - 0.5) * 0.5
-      const k = rad * (0.75 + r() * 0.4)
-      return [x + Math.cos(a) * k, Math.min(y + rad * 0.45, y + Math.sin(a) * k)]
-    })
-    polyPath(pts, boulders)
-    polyPath([pts[0], pts[1], pts[2], pts[3], [x + rad * 0.1, y]], boulderShade)
+  // Every tree the imagery shows on the hills and along the foot of the
+  // mountain, in groups of a hundred or so from far to near
+  const packed = TERRAIN.woods ?? []
+  const woods: Grove[] = []
+  const woodTrees: WoodTree[] = []
+  for (let i = 0; i < packed.length; i += 6) {
+    if (i % 600 === 0) woods.push({ dark: new Path2D(), left: new Path2D(), right: new Path2D(), leaves: foliage() })
+    const grove = woods[woods.length - 1]
+    const [x, y, h, leafy, range, hidden] = packed.slice(i, i + 6)
+    if (leafy) {
+      // The broadleaf trees along the forest edge are lower and broader than the pines
+      broadleaf(grove.leaves, x, y, h * 0.62, h * 0.42, h * 0.1, r, y - hidden)
+    } else {
+      ponderosa(grove, x, y, h, y - hidden, r)
+    }
+    // Shadows only for trees standing in plain view
+    if (!hidden) woodTrees.push({ x, y, h, range })
   }
-
-  const slabs = slabDefs.map((d) => slabShape(d, r))
-
-  // Trees closing in around the slab bases, still on the mountain layer
-  const skirt: TreeBand = { dark: new Path2D(), lit: new Path2D() }
-  for (let i = 0; i < 520; i++) {
-    const x = lerp(160, 1250, r())
-    const y = lerp(330, 384, r())
-    if (y < ridgeY(x) + 30) continue
-    if (inSlab(x, y - 6) && r() < 0.7) continue
-    conifer(skirt, x, y, 7 + r() * 7, r, 3)
+  // Pointing at a crown counts as pointing at the pines, not the mountain behind
+  for (const grove of woods) {
+    woodHit.addPath(grove.dark)
+    woodHit.addPath(grove.leaves.body)
   }
-
-  // The dense lower forest down to the meadow, back rows first
-  const forestFill = polyPath([
-    ...Array.from({ length: 151 }, (_, i) => {
-      const x = lerp(X0, X1, i / 150)
-      return [x, forestTop(x) + 16] as Pt
-    }),
-    ...Array.from({ length: 151 }, (_, i) => {
-      const x = lerp(X1, X0, i / 150)
-      return [x, meadowEdge(x) + 3] as Pt
-    }),
-  ])
-  const trees: [number, number, number, number][] = []
-  for (let i = 0; i < 2200; i++) {
-    const x = lerp(X0, X1, r())
-    const top = forestTop(x)
-    const y = lerp(top + 8, meadowEdge(x) + 2, r())
-    trees.push([x, y, (9 + (y - 350) * 0.28) * (0.75 + r() * 0.5), 4])
-  }
-  // Tall ponderosas framing the left edge of the meadow
-  for (const [x, h] of [
-    [-260, 96], [-215, 84], [-170, 102], [-120, 90], [-70, 110], [-30, 98], [10, 106], [45, 92],
-    [80, 84], [118, 70], [152, 66], [186, 56], [228, 48], [262, 52], [300, 44], [-520, 80],
-    [-470, 92], [-420, 76], [-370, 88], [-320, 82], [-640, 86], [-590, 74], [-760, 90], [-700, 80],
-  ]) {
-    trees.push([x + (r() - 0.5) * 8, meadowEdge(x) + 1 + r() * 3, h, 6])
-  }
-  trees.sort((a, b) => a[1] - b[1])
-  const forest: TreeBand[] = []
-  const BANDS = 6
-  for (let b = 0; b < BANDS; b++) forest.push({ dark: new Path2D(), lit: new Path2D() })
-  trees.forEach(([x, y, h, tiers], i) => conifer(forest[Math.floor((i / trees.length) * BANDS)], x, y, h, r, tiers))
-  const forestHit = polyPath([
-    [X0, 340], [270, 340], [300, 368], [450, 364], [620, 352], [800, 370], [950, 378], [1200, 390], [X1, 390],
-    [X1, 446], [X0, 446],
-  ])
 
   // Meadow in flat bands, paler and sunnier toward the trees
   const band = (top: (x: number) => number) =>
@@ -394,14 +345,13 @@ export function buildScene(): Scene {
       }),
       [X1, 4000], [X0, 4000],
     ])
-  const meadowFar = band((x) => meadowEdge(x) - 1)
+  const meadowFar = band((x) => groundY(x) - 1)
   const bump = (x: number, c: number, w: number) => Math.exp(-(((x - c) / w) ** 2))
-  const meadowMid = band((x) => 506 + 9 * Math.sin(x / 150) + 5 * Math.sin(x / 53 + 1) + 30 * bump(x, 1060, 160))
-  const meadowNear = band((x) => 600 + 12 * Math.sin(x / 130 + 2) + 6 * Math.sin(x / 41))
-  const swath = polyPath([
-    [470, 512], [560, 498], [680, 502], [800, 496], [900, 508], [930, 540], [860, 560], [720, 548],
-    [600, 556], [500, 540],
-  ])
+  // Nearer bands follow the lidar's lines of equal distance, so they rise and
+  // dip with the meadow; a traced photo falls back to gentle waves
+  const [mid, near] = TERRAIN.bands ?? []
+  const meadowMid = band((x) => (mid ? profile(mid, x) : 506 + 9 * Math.sin(x / 150) + 5 * Math.sin(x / 53 + 1) + 30 * bump(x, 1060, 160)))
+  const meadowNear = band((x) => (near ? profile(near, x) : 600 + 12 * Math.sin(x / 130 + 2) + 6 * Math.sin(x / 41)))
 
   const verge = new Path2D()
   polyPath(ribbon(widen(TRAIL_MAIN, 24)), verge)
@@ -415,45 +365,18 @@ export function buildScene(): Scene {
   stones.ellipse(966, 604, 7, 4.5, -0.1, 0, Math.PI * 2)
   stones.moveTo(1061, 650)
   stones.ellipse(1056, 650, 4, 2.5, 0, 0, Math.PI * 2)
+  // A boulder out in the grass, left of the box elder
+  stones.moveTo(724, 490)
+  stones.ellipse(713, 490, 11, 4, -0.05, 0, Math.PI * 2)
 
-  // Lone pines and shrubs scattered out in the grass
-  const lone: TreeBand = { dark: new Path2D(), lit: new Path2D() }
-  for (const [x, y, h] of [
-    [100, 430, 38], [132, 434, 44], [707, 440, 26], [880, 420, 22], [1045, 432, 30], [1110, 446, 24],
-    [1185, 452, 20], [-260, 452, 30], [-520, 456, 26], [1500, 452, 28], [1700, 450, 34],
-  ]) {
-    conifer(lone, x, y, h, r, 5)
-  }
-  const bushes = new Path2D()
-  const bushShade = new Path2D()
-  const bushBright = new Path2D()
-  const shrub = (into: Path2D, x: number, y: number, rad: number) => {
-    for (const [dx, dy, k] of [[0, -0.6, 0.75], [-0.55, -0.35, 0.6], [0.55, -0.4, 0.62], [0, -1.05, 0.5]]) {
-      into.moveTo(x + dx * rad + k * rad, y + dy * rad)
-      into.arc(x + dx * rad, y + dy * rad, k * rad, 0, Math.PI * 2)
-    }
-  }
-  for (const [x, y, rad] of [[437, 476, 11], [527, 482, 7], [766, 448, 5], [300, 478, 5], [620, 472, 4], [-140, 470, 9]]) {
-    shrub(bushes, x, y, rad)
-    shrub(bushShade, x + rad * 0.25, y + rad * 0.12, rad * 0.7)
-  }
-  // The bright green shrub catching the sun, center right
-  shrub(bushBright, 790, 470, 22)
-  shrub(bushShade, 796, 473, 15)
+  const shrubs: Record<ShrubKind, Foliage> = { yellow: foliage(), green: foliage(), sumac: foliage() }
+  for (const [kind, x, y, w, h, trunk] of SHRUBS) broadleaf(shrubs[kind], x, y, w, h, trunk, r, Infinity, kind === 'sumac' ? 0.5 : 0)
 
   const postHit = new Path2D()
   postHit.rect(84, 508, 38, 160)
 
   return {
-    far, mountain, ridge, land, talus: polyPath(TALUS), talusTrees, stippleDark, stippleLit, boulders, boulderShade,
-    slabs, skirt, forestFill, forest, forestHit, meadowFar, meadowMid, meadowNear, swath, verge, trail,
-    trailHit, stones, lone, bushes, bushShade, bushBright, postHit,
+    mountain, ridge, facets, slabs, trees, woods, woodTrees, woodHit, hillHit, meadowFar, meadowMid,
+    meadowNear, verge, trail, trailHit, stones, shrubs, postHit,
   }
 }
-
-// Little climbers' headlamps creeping up the slabs after dark
-export const HEADLAMP_ROUTES: [Pt, Pt][] = [
-  [[372, 346], [452, 258]],
-  [[392, 350], [455, 266]],
-  [[646, 318], [690, 204]],
-]

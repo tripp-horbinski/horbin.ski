@@ -59,6 +59,12 @@ Tailwind CSS 3 with `@tailwindcss/typography` plugin. Design tokens are CSS cust
 
 `@/*` maps to `./src/*` (configured in `tsconfig.json`).
 
+### Meadow (`/meadow/`)
+
+An interactive canvas scene of the Flatirons from Chautauqua Meadow (`src/components/Meadow.tsx`, engine in `src/lib/meadow/`). The mountain is generated, not hand-drawn: `src/lib/meadow/terrain.ts` comes from USGS 3DEP lidar and NAIP imagery via the build-time scripts in `scripts/meadow/` (`npm run meadow:fetch` once to download into the gitignored `.cache`, then `npm run meadow:render`). Each rock/forest area carries its surface normal, so the engine lights it from the real sun position (`suncalc`) for any hour. The rolling meadow hills, the line where the near grass begins, and every tree between the meadow and the mountain come from the same data: trees are placed where the aerial imagery shows canopy, sized by how dense it is, and cast shadows from the real sun. `npm run meadow:trace -- photo.jpg` traces a photo into the same format, and `npm run meadow:calibrate` fits the lidar camera to a photo's skyline. Only trace photos you have rights to.
+
+The runner figure on `/me/` (`src/components/RunnerPortrait.tsx`, drawn by `src/lib/meadow/runner.ts`) is a screen print of Tripp traced from his 2024 Lakefront Marathon finish photo: `npm run meadow:runner -- finish.jpg` cuts him out with Apple's Vision framework (`scripts/meadow/segment.swift`, macOS only), repairs what the photo hides (his friend's hand, his arm behind his friend, his feet below the frame, the top of his cap, his watch face), poses that free arm in a shaka (upper arm at his side, forearm opened out and down) as thick as his other arm, matches his shaded legs to his arms, and prints his singlet solid black without the bib and medal, all placed in that photo's pixels, then separates flat inks and traces them with potrace into the generated `src/lib/meadow/runner-art.ts`. His shoes are Hoka Clifton 11s, a simple 3D model projected onto his ankles. They print in tan (ATPS) with their inks tagged, and `drawRunner` takes the colorway: tan on `/me/`, white in the meadow. In the meadow he stands on the trail at `RUNNER_SPOT` (`scene.ts`), sized so his eyes sit on the horizon, with the grass in front of him drawn over him the way it is over the trail post.
+
 ### SEO
 
 - Structured data (JSON-LD) via `src/lib/structured-data.ts`

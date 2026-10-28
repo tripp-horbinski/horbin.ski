@@ -11,7 +11,7 @@ export interface Feature {
   meta: string
   note: string
   anchor: [number, number]
-  layer: 'mountain' | 'forest' | 'ground' | 'figures'
+  layer: 'mountain' | 'forest' | 'ground' | 'post'
   href?: string
 }
 
@@ -95,7 +95,7 @@ export const FEATURES: Feature[] = [
     meta: 'Back to horbin.ski',
     note: 'Return to the start.',
     anchor: [103, 514],
-    layer: 'figures',
+    layer: 'post',
     href: '/',
   },
 ]

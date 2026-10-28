@@ -143,7 +143,7 @@ export default function Meadow() {
         ref={canvasRef}
         className="meadow-canvas"
         role="img"
-        aria-label="Illustration of the Flatirons above Chautauqua Meadow in Boulder, Colorado. Two hikers stand in golden late-summer grass beside a trail post, one pointing up at the slabs."
+        aria-label="Illustration of the Flatirons above Chautauqua Meadow in Boulder, Colorado, with golden late-summer grass and a trail post in the foreground."
         onPointerDown={() => setExplored(true)}
       />
 
