@@ -2,8 +2,11 @@ import type { Metadata } from 'next'
 import './globals.css'
 import ThemeToggle from '@/components/ThemeToggle'
 import Ridgeline from '@/components/Ridgeline'
+import { OG_IMAGE, SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
+  // Resolves the OpenGraph image and other relative URLs against the live site
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Tripp Horbinski — Developer & Runner',
     template: '%s | Tripp Horbinski'
@@ -15,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://horbin.ski',
+    images: [OG_IMAGE],
     title: 'Tripp Horbinski — Developer & Runner',
     description: 'Software developer and distance runner. Building things for the web and chasing finish lines.',
     siteName: 'Tripp Horbinski',
@@ -24,6 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Tripp Horbinski — Developer & Runner',
     description: 'Software developer and distance runner. Building things for the web and chasing finish lines.',
+    images: [OG_IMAGE.url],
   },
   robots: {
     index: true,

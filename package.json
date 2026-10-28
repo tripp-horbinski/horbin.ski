@@ -13,7 +13,8 @@
     "meadow:render": "node scripts/meadow/render.mjs",
     "meadow:trace": "node scripts/meadow/trace-photo.mjs",
     "meadow:calibrate": "node scripts/meadow/calibrate.mjs",
-    "meadow:runner": "node scripts/meadow/runner.mjs"
+    "meadow:runner": "node scripts/meadow/runner.mjs",
+    "meadow:og": "node scripts/meadow/og.mjs"
   },
   "repository": {
     "type": "git",

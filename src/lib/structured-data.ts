@@ -1,4 +1,5 @@
 import type { Post } from './posts'
+import { SITE_URL } from './site'
 
 export function generateBlogPostStructuredData(post: Post, url: string) {
   return {
@@ -9,14 +10,14 @@ export function generateBlogPostStructuredData(post: Post, url: string) {
     author: {
       '@type': 'Person',
       name: 'Tripp Horbinski',
-      url: 'https://horbin.ski/about',
+      url: `${SITE_URL}/about/`,
     },
     publisher: {
       '@type': 'Organization',
       name: 'Horbin.ski',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://horbin.ski/logo.png',
+        url: `${SITE_URL}/icon.png`,
       },
     },
     datePublished: post.date,
@@ -38,11 +39,11 @@ export function generateWebsiteStructuredData() {
     '@type': 'WebSite',
     name: 'Horbin.ski',
     description: 'A modern blog focused on technology insights and running adventures',
-    url: 'https://horbin.ski',
+    url: `${SITE_URL}/`,
     author: {
       '@type': 'Person',
       name: 'Tripp Horbinski',
-      url: 'https://horbin.ski/about',
+      url: `${SITE_URL}/about/`,
       sameAs: [
         'https://github.com/tripp-horbinski',
         'https://linkedin.com/in/tripphorbinski',
@@ -51,7 +52,7 @@ export function generateWebsiteStructuredData() {
     },
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://horbin.ski/search?q={search_term_string}',
+      target: `${SITE_URL}/search?q={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   }
