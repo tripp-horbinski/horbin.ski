@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { MeadowEngine } from '@/lib/meadow/engine'
+import { MeadowEngine, type Box } from '@/lib/meadow/engine'
 import { featureById, type FeatureId } from '@/lib/meadow/features'
 import { formatHour, paletteAt, phaseName } from '@/lib/meadow/palette'
 
-const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'green', 'meadow', 'trail']
+const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'green', 'meadow', 'trail', 'tripp']
 
 // The scene opens at 2:45 in the afternoon, whatever the site's theme
 const START_HOUR = 14.75
@@ -47,6 +47,15 @@ function placeNote(el: HTMLElement | null, pin: HTMLElement | null, pos: [number
   el.style.transform = `translate(${left}px, ${top}px)`
 }
 
+// Over Tripp, wherever he is on screen
+function placeLink(el: HTMLElement | null, b: Box) {
+  if (!el) return
+  el.style.visibility = 'visible'
+  el.style.width = `${b.w}px`
+  el.style.height = `${b.h}px`
+  el.style.transform = `translate(${b.x}px, ${b.y}px)`
+}
+
 export default function Meadow() {
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -55,6 +64,7 @@ export default function Meadow() {
   const noteRef = useRef<HTMLDivElement>(null)
   const pinRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const trippRef = useRef<HTMLAnchorElement>(null)
   const [hour, setHour] = useState(START_HOUR)
   const [playing, setPlaying] = useState(false)
   const [sound, setSound] = useState(false)
@@ -81,6 +91,7 @@ export default function Meadow() {
         placeLabel(labelRef.current, h)
         placeNote(noteRef.current, pinRef.current, p)
       },
+      onTripp: (box) => placeLink(trippRef.current, box),
     })
     engineRef.current = engine
 
@@ -143,11 +154,6 @@ export default function Meadow() {
       />
 
       <header className="meadow-top">
-        <Link href="/" className="meadow-sign">
-          <span aria-hidden="true">&larr;</span>
-          <span className="hidden sm:inline">Tripp Horbinski</span>
-          <span className="sm:hidden">Home</span>
-        </Link>
         <button
           type="button"
           className="meadow-sign"
@@ -164,9 +170,15 @@ export default function Meadow() {
       </header>
 
       <div className="meadow-title">
-        <h1>The Flatirons</h1>
+        <h1>Tripp Horbinski</h1>
         <p>Chautauqua Meadow &middot; Boulder, Colorado</p>
       </div>
+
+      {/* The canvas picks Tripp out by his outline for the pointer; this link
+          is for the keyboard and the screen reader */}
+      <Link ref={trippRef} href="/about/" className="meadow-tripp">
+        About Tripp
+      </Link>
 
       {panel && (
         <div id="meadow-panel" className="meadow-panel">

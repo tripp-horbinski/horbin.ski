@@ -7,7 +7,7 @@ import { featureById, type FeatureId } from './features'
 import { Grass, gustiness, type Pointer } from './grass'
 import { blend, lightAt, lit, paletteAt, rgba, smooth, type Palette } from './palette'
 import { drawPost } from './post'
-import { drawRunner, RUNNER, STANCE } from './runner'
+import { drawRunner, onRunner, RUNNER, STANCE } from './runner'
 import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Pt, type Scene } from './scene'
 import { depth, facing, FOCAL, moonAt, pointAt, project, sideways, sunDirection } from './sun'
 import { TERRAIN } from './terrain'
@@ -19,6 +19,8 @@ const K = 0.65 / 300
 const GROUND_DEPTH = 0.35
 const POST_DEPTH = GROUND_DEPTH + (POST_Y - HORIZON) * K
 const RUNNER_DEPTH = GROUND_DEPTH + (RUNNER_SPOT[1] - HORIZON) * K
+// Photo pixels to meadow units for Tripp, which puts his eyes on the horizon
+const TRIPP_K = (RUNNER_SPOT[1] - HORIZON) / (RUNNER.footY - RUNNER.eyeY)
 const DEPTH = { sky: 0.02, clouds: 0.06, mountain: 0.18, forest: 0.28 }
 // Climbers' headlamps: which slab, and where each route starts relative to its tip
 const HEADLAMPS: [FeatureId, number, number][] = [['third', -70, 80], ['third', -52, 72], ['first', -42, 100]]
@@ -65,6 +67,15 @@ export interface Callbacks {
   onSelect(id: FeatureId): void
   onHour(hour: number): void
   onAnchors(hover: Pt | null, pinned: Pt | null): void
+  // Where Tripp is on screen, every frame, for the link laid over him
+  onTripp(box: Box): void
+}
+
+export interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
 }
 
 // Cumulus piled up in rows of puffs, each row narrower, so the tops go cauliflower
@@ -129,6 +140,9 @@ export class MeadowEngine {
   private brush = 0
   private hover: Hit = 'sky'
   private pinned: FeatureId | null = null
+  private trippBox: Box = { x: 0, y: 0, w: 0, h: 0 }
+  // His silhouette in white at the size he's drawn, made when first needed after a resize
+  private trippMask: HTMLCanvasElement | null = null
 
 
   private clouds: Cloud[]
@@ -252,7 +266,9 @@ export class MeadowEngine {
     const count = Math.round(Math.min(6500, Math.max(1200, (this.W * this.H * (1 - this.hy)) / 105)))
     this.grass.generate(this.ax - half, this.ax + half, y1, count)
     this.paintStars()
+    this.trippMask = null
   }
+
 
   private layer(depth: number) {
     const k = this.dpr * this.s
@@ -292,7 +308,7 @@ export class MeadowEngine {
     const slab = this.scene.slabs.find((sl) => sl.id === id)
     const [x, y] = slab ? slab.top : f.anchor
     if (f.layer === 'ground') return this.groundPt(x, y)
-    if (f.layer === 'post') return this.toScreen(x, y, POST_DEPTH)
+    if (f.layer === 'runner') return this.toScreen(x, y, RUNNER_DEPTH)
     return this.toScreen(x, y, DEPTH.mountain)
   }
 
@@ -347,8 +363,8 @@ export class MeadowEngine {
     const X = x * this.dpr
     const Y = y * this.dpr
     let hit: Hit = 'sky'
-    this.layer(POST_DEPTH)
-    if (ctx.isPointInPath(scene.postHit, X, Y)) hit = 'post'
+    this.trippTransform()
+    if (onRunner(ctx, X, Y)) hit = 'tripp'
     else {
       this.ground()
       if (ctx.isPointInPath(scene.trailHit, X, Y)) hit = 'trail'
@@ -453,6 +469,7 @@ export class MeadowEngine {
 
     const hovered = this.hover !== 'sky' && this.hover !== 'meadow' ? this.anchorOf(this.hover) : null
     this.cb.onAnchors(hovered, this.pinned ? this.anchorOf(this.pinned) : null)
+    this.cb.onTripp(this.trippBox)
   }
 
   private update(dt: number) {
@@ -616,16 +633,56 @@ export class MeadowEngine {
   // Tripp on the trail. The camera is at eye height, so anyone standing on
   // the level meadow has their eyes on the horizon, however far off they are
   private drawTripp() {
-    const { ctx, pal, light } = this
+    const { ctx, pal, light, dpr } = this
+    // Where he is on screen, for his outline and the link over him
     const [x, y] = RUNNER_SPOT
-    const k = (y - HORIZON) / (RUNNER.footY - RUNNER.eyeY)
-    this.layer(RUNNER_DEPTH)
-    ctx.transform(k, 0, 0, k, x - RUNNER.footX * k, y - RUNNER.footY * k)
+    const [left, top] = this.toScreen(x + (RUNNER.x0 - RUNNER.footX) * TRIPP_K, y - (RUNNER.footY - RUNNER.y0) * TRIPP_K, RUNNER_DEPTH)
+    this.trippBox.x = left
+    this.trippBox.y = top
+    this.trippBox.w = (RUNNER.x1 - RUNNER.x0) * TRIPP_K * this.s
+    this.trippBox.h = (RUNNER.y1 - RUNNER.y0) * TRIPP_K * this.s
+
+    this.trippTransform()
     ctx.fillStyle = rgba(pal.pineDark, 0.16 + 0.18 * light.sun)
     ctx.beginPath()
     ctx.ellipse(RUNNER.footX, RUNNER.footY, STANCE.length / 2 + 30, 16, STANCE.angle, 0, Math.PI * 2)
     ctx.fill()
+
+    // Outlined in white while you point at him, like the rocks: his white
+    // silhouette nudged out all around, then him on top
+    if (this.hover === 'tripp') {
+      this.trippMask ??= this.maskTripp()
+      const w = 1.2 * this.s * dpr
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2
+        ctx.drawImage(this.trippMask, left * dpr + Math.cos(a) * w, top * dpr + Math.sin(a) * w)
+      }
+      this.trippTransform()
+    }
     drawRunner(ctx, pal.light, 'white')
+  }
+
+  // From the photo's pixels to the meadow, where he stands
+  private trippTransform() {
+    const [x, y] = RUNNER_SPOT
+    this.layer(RUNNER_DEPTH)
+    this.ctx.transform(TRIPP_K, 0, 0, TRIPP_K, x - RUNNER.footX * TRIPP_K, y - RUNNER.footY * TRIPP_K)
+  }
+
+  private maskTripp() {
+    const z = TRIPP_K * this.s * this.dpr
+    const c = document.createElement('canvas')
+    c.width = Math.ceil((RUNNER.x1 - RUNNER.x0) * z)
+    c.height = Math.ceil((RUNNER.y1 - RUNNER.y0) * z)
+    const g = c.getContext('2d')!
+    g.setTransform(z, 0, 0, z, -RUNNER.x0 * z, -RUNNER.y0 * z)
+    drawRunner(g, '#FFFFFF')
+    g.setTransform(1, 0, 0, 1, 0, 0)
+    g.globalCompositeOperation = 'source-in'
+    g.fillStyle = 'rgba(255,248,232,0.95)'
+    g.fillRect(0, 0, c.width, c.height)
+    return c
   }
 
   // Stars and the Milky Way, painted once per resize; late summer puts the core low in the south

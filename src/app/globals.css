@@ -383,34 +383,6 @@
     white-space: nowrap;
   }
 
-  /* Hero scene as the way into the meadow */
-  .meadow-portal {
-    position: relative;
-    display: block;
-  }
-
-  .meadow-portal-cue {
-    position: absolute;
-    right: 0.75rem;
-    bottom: 0.75rem;
-    padding: 0.45rem 1.5rem 0.35rem 0.85rem;
-    font-family: 'Josefin Sans', 'Futura', sans-serif;
-    font-weight: 600;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--sign-text);
-    background: var(--sign-wood);
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
-    transition: background-color 0.2s, transform 0.2s;
-  }
-
-  .meadow-portal:hover .meadow-portal-cue,
-  .meadow-portal:focus-visible .meadow-portal-cue {
-    background: var(--sign-post);
-    transform: translateX(3px);
-  }
-
   /* Figure plate for the meadow's people, with light presets underneath */
   .portrait-canvas {
     display: block;
@@ -488,7 +460,7 @@
     position: absolute;
     inset: 0 0 auto;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: flex-start;
     gap: 8px;
     padding: 16px;
@@ -525,6 +497,33 @@
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: #F6EEDC;
+  }
+
+  /* On a phone the name drops below the options button instead of running into it */
+  @media (max-width: 560px) {
+    .meadow-title {
+      top: 70px;
+    }
+  }
+
+  /* Link over Tripp: the canvas picks him out for the pointer, and the link
+     takes the keyboard focus */
+  .meadow-tripp {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    transform-origin: 0 0;
+    overflow: hidden;
+    color: transparent;
+    font-size: 1px;
+    border-radius: 3px;
+    pointer-events: none;
+  }
+
+  .meadow-tripp:focus-visible {
+    outline: 2px solid #FBF6EA;
+    outline-offset: 2px;
   }
 
   /* The one panel, opened from the top right: time of day, sound, field guide */

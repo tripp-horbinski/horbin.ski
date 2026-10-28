@@ -36,3 +36,10 @@ export function drawRunner(ctx: CanvasRenderingContext2D, light: string, shoes: 
     ctx.fill(inks![i], 'evenodd')
   })
 }
+
+// Whether a point, in the transform he's drawn with, lands on him rather than
+// on the meadow around him
+export function onRunner(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  inks ??= RUNNER_ART.inks.map((ink) => new Path2D(ink.d))
+  return inks.some((ink) => ctx.isPointInPath(ink, x, y, 'evenodd'))
+}

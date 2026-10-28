@@ -1,11 +1,6 @@
-import Meadow from '@/components/Meadow'
+import { redirect } from 'next/navigation'
 
-export const metadata = {
-  title: 'The Flatirons from Chautauqua Meadow',
-  description:
-    'A late-summer day below the Boulder Flatirons. Point at the rocks, tap the grass, and let the light go from alpenglow to stars.',
-}
-
+// The meadow is the homepage now
 export default function MeadowPage() {
-  return <Meadow />
+  redirect('/')
 }

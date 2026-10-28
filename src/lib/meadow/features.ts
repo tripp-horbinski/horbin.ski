@@ -3,7 +3,7 @@
 
 export type FeatureId =
   | 'first' | 'second' | 'third' | 'fourth' | 'fifth'
-  | 'green' | 'meadow' | 'trail' | 'post'
+  | 'green' | 'meadow' | 'trail' | 'tripp'
 
 export interface Feature {
   id: FeatureId
@@ -11,7 +11,7 @@ export interface Feature {
   meta: string
   note: string
   anchor: [number, number]
-  layer: 'mountain' | 'ground' | 'post'
+  layer: 'mountain' | 'ground' | 'runner'
   href?: string
 }
 
@@ -82,13 +82,14 @@ export const FEATURES: Feature[] = [
     href: '/writing/',
   },
   {
-    id: 'post',
-    name: 'Trailhead',
-    meta: 'Back to horbin.ski',
-    note: 'Return to the start.',
-    anchor: [103, 514],
-    layer: 'post',
-    href: '/',
+    id: 'tripp',
+    name: 'Meet Tripp',
+    meta: 'About me',
+    note: 'Who\'s standing on the trail.',
+    // Over his cap
+    anchor: [978, 419],
+    layer: 'runner',
+    href: '/about/',
   },
 ]
 

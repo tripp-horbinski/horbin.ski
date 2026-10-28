@@ -186,7 +186,6 @@ export interface Scene {
   trail: Path2D
   trailHit: Path2D
   stones: Path2D
-  postHit: Path2D
 }
 
 export function buildScene(): Scene {
@@ -260,11 +259,8 @@ export function buildScene(): Scene {
   stones.moveTo(1061, 650)
   stones.ellipse(1056, 650, 4, 2.5, 0, 0, Math.PI * 2)
 
-  const postHit = new Path2D()
-  postHit.rect(84, 508, 38, 160)
-
   return {
     mountain, ridge, facets, slabs, trees, woods, woodTrees, hillHit, meadowFar, meadowMid,
-    meadowNear, verge, trail, trailHit, stones, postHit,
+    meadowNear, verge, trail, trailHit, stones,
   }
 }
