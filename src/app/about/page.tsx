@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import RunnerPortrait from '@/components/RunnerPortrait'
 
 export const metadata = {
   title: 'About',
@@ -16,8 +15,7 @@ export default function AboutPage() {
       <p className="mt-2 mb-6 font-display text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--text-nav)' }}>
         Boulder, Colorado &middot; Elev. 5,328 ft
       </p>
-      <RunnerPortrait />
-      <ul className="legend mt-8">
+      <ul className="legend">
         <li>
           <span className="legend-symbol" aria-hidden="true">
             <svg viewBox="0 0 20 20" fill="currentColor">

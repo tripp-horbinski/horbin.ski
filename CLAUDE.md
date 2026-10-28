@@ -40,7 +40,7 @@ featured: true         # optional
 - `/projects/` — Portfolio: Esker and puppe.rs
 - `/writing/` — All posts as a title-only list
 - `/writing/[slug]/` — Individual post (uses `generateStaticParams`)
-- `/about/` — Tripp's portrait and bio; clicking him in the meadow goes here
+- `/about/` — Tripp's bio; clicking him in the meadow goes here
 - `/meadow/` — Redirects to `/`
 
 ### Layout Architecture
