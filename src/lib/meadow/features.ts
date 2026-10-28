@@ -68,7 +68,7 @@ export const FEATURES: Feature[] = [
     id: 'meadow',
     name: 'Chautauqua Meadow',
     meta: 'Late summer',
-    note: 'By late summer the grass has gone to seed and turned gold. Walk through it and the grasshoppers go off like popcorn. Tap the grass.',
+    note: 'By late summer the grass has gone to seed and turned gold. Tap the grass.',
     anchor: [600, 520],
     layer: 'ground',
   },

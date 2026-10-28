@@ -1,6 +1,5 @@
 // Generated ambience for the meadow: wind that follows the gusts, a rustle when
-// you brush the grass, snowy tree crickets after dark, and the dry crackle of a
-// band-winged grasshopper in flight. No audio files.
+// you brush the grass, and snowy tree crickets after dark. No audio files.
 
 function noiseBuffer(ctx: AudioContext, seconds: number, brown: boolean) {
   const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate)
@@ -33,7 +32,6 @@ export class Ambience {
   private rustle: GainNode
   private cricketBus: GainNode
   private crickets: Cricket[] = []
-  private click: AudioBuffer
   private timer: number
 
   constructor() {
@@ -82,11 +80,6 @@ export class Ambience {
       this.crickets.push({ osc, amp, period, next: ctx.currentTime + Math.random() })
     }
 
-    // A single dry click, repeated for the crackle of grasshopper wings
-    this.click = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.006), ctx.sampleRate)
-    const cd = this.click.getChannelData(0)
-    for (let i = 0; i < cd.length; i++) cd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / cd.length, 3)
-
     this.timer = window.setInterval(() => this.schedule(), 120)
   }
 
@@ -120,27 +113,6 @@ export class Ambience {
     this.windBand.frequency.setTargetAtTime(260 + 520 * gust, t, 0.4)
     this.rustle.gain.setTargetAtTime(0.006 + 0.02 * gust + 0.12 * brush, t, 0.08)
     this.cricketBus.gain.setTargetAtTime(night, t, 0.8)
-  }
-
-  private tick(at: number, gain: number, freq: number) {
-    const src = this.ctx.createBufferSource()
-    src.buffer = this.click
-    const hp = this.ctx.createBiquadFilter()
-    hp.type = 'highpass'
-    hp.frequency.value = freq
-    const g = this.ctx.createGain()
-    g.gain.value = gain
-    src.connect(hp).connect(g).connect(this.master)
-    src.start(at)
-  }
-
-  crackle(duration: number) {
-    let t = this.ctx.currentTime + 0.02
-    const end = t + duration
-    while (t < end) {
-      this.tick(t, 0.18 + Math.random() * 0.2, 2400)
-      t += 0.012 + Math.random() * 0.03
-    }
   }
 
   destroy() {

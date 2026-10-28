@@ -37,17 +37,6 @@ interface Cloud {
   puffs: [number, number, number][]
 }
 
-interface Hopper {
-  x0: number
-  y0: number
-  x1: number
-  y1: number
-  t: number
-  dur: number
-  peak: number
-  size: number
-}
-
 interface Mote {
   x: number
   y: number
@@ -152,7 +141,6 @@ export class MeadowEngine {
   private wisps: Path2D
   private stars: HTMLCanvasElement
   private twinkles: [number, number, number, number][] = []
-  private hoppers: Hopper[] = []
   private motes: Mote[] = []
   private meteors: Mote[] = []
   private nextMeteor = 6
@@ -400,25 +388,8 @@ export class MeadowEngine {
     } else this.cb.onSelect(hit)
   }
 
-  // Tap the grass: a grasshopper or two crackles away and seeds lift on the breeze
+  // Tap the grass: it shivers and seeds lift on the breeze
   private flush(x: number, y: number) {
-    const n = 1 + Math.floor(Math.random() * 2.4)
-    const sz = Math.max(1.1, this.s * 1.5)
-    for (let i = 0; i < n; i++) {
-      const dir = Math.random() < 0.5 ? -1 : 1
-      const dur = 0.55 + Math.random() * 0.35
-      this.hoppers.push({
-        x0: x + (Math.random() - 0.5) * 20,
-        y0: y,
-        x1: x + dir * (70 + Math.random() * 130) * sz,
-        y1: y + (Math.random() - 0.3) * 40 * sz,
-        t: -i * 0.12,
-        dur,
-        peak: (50 + Math.random() * 70) * sz,
-        size: sz * (0.85 + Math.random() * 0.3),
-      })
-      if (this.soundOn) window.setTimeout(() => this.audio?.crackle(dur * 0.8), i * 120)
-    }
     for (let i = 0; i < 12; i++) {
       this.motes.push({
         x: x + (Math.random() - 0.5) * 40,
@@ -492,7 +463,6 @@ export class MeadowEngine {
 
     const gust = gustiness(t) * (this.reduced ? 0 : 1)
 
-    this.hoppers = this.hoppers.filter((h) => (h.t += dt) < h.dur + 0.3)
     const breeze = 18 + 60 * gust
     this.motes = this.motes.filter((m) => {
       m.life += dt
@@ -627,7 +597,7 @@ export class MeadowEngine {
       }],
     ])
 
-    this.drawCritters()
+    this.drawSeeds()
 
     // Soft vignette, like the edge of a print
     this.screen()
@@ -1065,7 +1035,7 @@ export class MeadowEngine {
     }
   }
 
-  private drawCritters() {
+  private drawSeeds() {
     const { ctx, pal } = this
     this.screen()
     for (const m of this.motes) {
@@ -1074,55 +1044,5 @@ export class MeadowEngine {
       ctx.ellipse(m.x, m.y, 2.2, 0.9, Math.atan2(m.vy, m.vx), 0, Math.PI * 2)
       ctx.fill()
     }
-
-    // Band-winged grasshoppers flash their hindwings in flight
-    for (const h of this.hoppers) {
-      if (h.t < 0) continue
-      const u = Math.min(1, h.t / h.dur)
-      const x = h.x0 + (h.x1 - h.x0) * u
-      const y = h.y0 + (h.y1 - h.y0) * u - Math.sin(u * Math.PI) * h.peak
-      const fade = h.t > h.dur ? 1 - (h.t - h.dur) / 0.3 : 1
-      // Mirror for leftward hops, then pitch the body along its arc
-      const dir = h.x1 < h.x0 ? -1 : 1
-      const vy = h.y1 - h.y0 - Math.cos(u * Math.PI) * Math.PI * h.peak
-      const ang = u < 1 ? Math.atan2(vy, Math.abs(h.x1 - h.x0)) : 0
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.scale(h.size * dir, h.size)
-      ctx.rotate(ang)
-      ctx.globalAlpha = fade
-      if (u < 1) {
-        // Fanned hindwing: yellow with a black outer band
-        const open = 0.35 + 0.65 * Math.abs(Math.sin(h.t * 38))
-        ctx.fillStyle = lit('#2B2116', pal.light)
-        ctx.beginPath()
-        ctx.moveTo(0, -0.5)
-        ctx.arc(0, -0.5, 8.5, Math.PI + 0.25, Math.PI + 0.25 + 1.9 * open)
-        ctx.closePath()
-        ctx.fill()
-        ctx.fillStyle = lit('#F2B630', pal.light)
-        ctx.beginPath()
-        ctx.moveTo(0, -0.5)
-        ctx.arc(0, -0.5, 6.2, Math.PI + 0.25, Math.PI + 0.25 + 1.9 * open)
-        ctx.closePath()
-        ctx.fill()
-      }
-      ctx.fillStyle = lit('#7F7048', pal.light)
-      ctx.beginPath()
-      ctx.ellipse(0, 0, 7.5, 2.3, 0, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.strokeStyle = lit('#5E5236', pal.light)
-      ctx.lineWidth = 1.1
-      ctx.beginPath()
-      const legs = u < 1 ? 0.5 : 1
-      ctx.moveTo(-1, 0.5)
-      ctx.lineTo(-5, -3 * legs)
-      ctx.lineTo(-8, 2.5)
-      ctx.moveTo(4, 1)
-      ctx.lineTo(5, 3.5)
-      ctx.stroke()
-      ctx.restore()
-    }
-    ctx.globalAlpha = 1
   }
 }
