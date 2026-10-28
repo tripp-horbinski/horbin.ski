@@ -488,22 +488,11 @@
     line-height: 1;
     letter-spacing: 0.34em;
     margin-right: -0.34em;
-  }
-
-  .meadow-title p {
-    margin-top: 0.6rem;
-    font-size: 0.66rem;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: #F6EEDC;
-  }
-
-  /* On a phone the name drops below the options button instead of running into it */
-  @media (max-width: 560px) {
-    .meadow-title {
-      top: 70px;
-    }
+    white-space: nowrap;
+    /* A dark outline so the name reads over the clouds, painted under the
+       fill so the letters keep their weight */
+    -webkit-text-stroke: 0.1em #1B1E22;
+    paint-order: stroke fill;
   }
 
   /* Link over Tripp: the canvas picks him out for the pointer, and the link
@@ -845,11 +834,6 @@
   @media (max-width: 640px) {
     .meadow-title {
       top: 70px;
-    }
-
-    .meadow-title p {
-      font-size: 0.56rem;
-      letter-spacing: 0.22em;
     }
 
     /* On small screens the note docks along the bottom instead of floating */

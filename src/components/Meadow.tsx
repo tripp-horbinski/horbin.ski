@@ -171,7 +171,6 @@ export default function Meadow() {
 
       <div className="meadow-title">
         <h1>Tripp Horbinski</h1>
-        <p>Chautauqua Meadow &middot; Boulder, Colorado</p>
       </div>
 
       {/* The canvas picks Tripp out by his outline for the pointer; this link
