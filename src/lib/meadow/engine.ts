@@ -8,7 +8,7 @@ import { Grass, gustiness, type Pointer } from './grass'
 import { blend, lightAt, lit, paletteAt, rgba, smooth, type Palette } from './palette'
 import { drawPost } from './post'
 import { drawRunner, RUNNER, STANCE } from './runner'
-import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Foliage, type Pt, type Scene, type ShrubKind } from './scene'
+import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Pt, type Scene } from './scene'
 import { depth, facing, FOCAL, pointAt, project, sideways, sunDirection } from './sun'
 import { TERRAIN } from './terrain'
 
@@ -122,8 +122,6 @@ export class MeadowEngine {
   private sunPos: Pt | null = null
   private facetColors: string[] = []
   private treeColors: [string, string][] = []
-  private leafColors: string[] = []
-  private shrubColors = {} as Record<ShrubKind, string[]>
   // Tree shadows on the meadow hills, and how much of each crown half is in sun
   private shadows = new Path2D()
   private litLeft = 0.5
@@ -299,7 +297,7 @@ export class MeadowEngine {
     const [x, y] = slab ? slab.top : f.anchor
     if (f.layer === 'ground') return this.groundPt(x, y)
     if (f.layer === 'post') return this.toScreen(x, y, POST_DEPTH)
-    return this.toScreen(x, y, f.layer === 'forest' ? DEPTH.forest : DEPTH.mountain)
+    return this.toScreen(x, y, DEPTH.mountain)
   }
 
   // --- Input ---
@@ -361,8 +359,7 @@ export class MeadowEngine {
       else if (ctx.isPointInPath(scene.meadowFar, X, Y)) hit = 'meadow'
       else {
         this.layer(DEPTH.forest)
-        if (ctx.isPointInPath(scene.woodHit, X, Y)) hit = 'pines'
-        else if (ctx.isPointInPath(scene.hillHit, X, Y)) hit = 'meadow'
+        if (ctx.isPointInPath(scene.hillHit, X, Y)) hit = 'meadow'
         else {
           this.layer(DEPTH.mountain)
           const slab = scene.slabs.find((sl) => sl.id && ctx.isPointInPath(sl.path, X, Y))
@@ -573,7 +570,6 @@ export class MeadowEngine {
       ctx.globalAlpha = 1 - this.litLeft
       ctx.fill(grove.right)
       ctx.globalAlpha = 1
-      this.fillFoliage(grove.leaves, this.leafColors)
     }
 
     // Meadow, trail, and what grows out in it
@@ -594,7 +590,6 @@ export class MeadowEngine {
     }
     ctx.fillStyle = pal.talus
     ctx.fill(scene.stones)
-    for (const kind of ['sumac', 'green', 'yellow'] as const) this.fillFoliage(scene.shrubs[kind], this.shrubColors[kind])
 
     // Grass, with the trail post and Tripp standing in it
     this.screen()
@@ -863,18 +858,6 @@ export class MeadowEngine {
     // Meadow hills get more contrast than the mountain so their rolls read
     const hillShade = blend(pal.meadowMid, pal.pineDark, 0.4)
     const hillLit = blend(pal.meadowFar, pal.seed, 0.35)
-    // Body, sunlit top, shaded underside, trunk; dimmed by the light like the post
-    const leaf = blend(pal.bush, pal.pineLit, 0.45)
-    this.leafColors = [leaf, blend(leaf, pal.seed, 0.3), blend(leaf, pal.pineDark, 0.45), pal.pineDark]
-    // After dark they sink into the same dim tones as the grass around them
-    const dusk = 0.6 * (1 - light.day)
-    const tones = (body: string, top: string, under: string) =>
-      [body, top, under, '#4A3B2C'].map((c) => blend(lit(c, pal.light), pal.pineDark, dusk))
-    this.shrubColors = {
-      yellow: tones('#A6BF3E', '#D3D958', '#5E7C2D'),
-      green: tones('#5F8236', '#86A846', '#3A5527'),
-      sumac: tones('#A8503A', '#C9714A', '#6E3428'),
-    }
     this.litLeft = 1 - smooth(-0.35, 0.35, sideways(s))
     this.shadows = this.castShadows(s)
     this.facetColors = this.scene.facets.map((f) => {
@@ -893,20 +876,6 @@ export class MeadowEngine {
     })
   }
 
-  private fillFoliage(f: Foliage, [body, top, under, trunk]: string[]) {
-    const { ctx } = this
-    ctx.fillStyle = trunk
-    ctx.fill(f.trunk)
-    ctx.fillStyle = body
-    ctx.fill(f.body)
-    ctx.save()
-    ctx.clip(f.body)
-    ctx.fillStyle = top
-    ctx.fill(f.lit)
-    ctx.fillStyle = under
-    ctx.fill(f.shade)
-    ctx.restore()
-  }
 
   // Each tree's shadow on the ground, from the real sun: a crown-shaped patch
   // stretched away from the sun, found by putting the tree back on the map

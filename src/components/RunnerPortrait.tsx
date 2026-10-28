@@ -83,7 +83,7 @@ export default function RunnerPortrait() {
         ref={canvasRef}
         className="portrait-canvas"
         role="img"
-        aria-label="Screen print of Tripp after the Milwaukee Lakefront Marathon, smiling and throwing a shaka: backwards black cap, stubble, black singlet and shorts, a moose tattoo on his thigh, a black watch, a water bottle in the other hand, and tan Hoka running shoes."
+        aria-label="Screen print of Tripp after the Milwaukee Lakefront Marathon, smiling and throwing a shaka: backwards black cap, stubble, a black La Sportiva singlet fading to orange and yellow, black shorts, a moose tattoo on his thigh, a black watch, a water bottle in the other hand, and tan Hoka running shoes."
       />
       <figcaption className="portrait-lights">
         {LIGHTS.map((l) => (

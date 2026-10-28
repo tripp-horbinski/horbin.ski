@@ -80,49 +80,13 @@ export interface TreeBand {
   lit: Path2D
 }
 
-// A broadleaf crown in three flat tones, like separate screens in a print
-export interface Foliage {
-  body: Path2D
-  lit: Path2D
-  shade: Path2D
-  trunk: Path2D
-}
-
-const foliage = (): Foliage => ({ body: new Path2D(), lit: new Path2D(), shade: new Path2D(), trunk: new Path2D() })
-
 // Trees between the meadow and the mountain: ponderosas with a left and right
-// half to light, and broadleaf crowns
+// half to light
 export interface Grove {
   dark: Path2D
   left: Path2D
   right: Path2D
-  leaves: Foliage
 }
-
-// Shrubs out in the grass, by color: the yellowing box elder and its kin,
-// darker green shrubs, and skunkbrush sumac turning rust in late summer
-export type ShrubKind = 'yellow' | 'green' | 'sumac'
-
-// Measured off the reference photo: kind, x, base y, crown width and height, trunk
-const SHRUBS: [ShrubKind, number, number, number, number, number][] = [
-  // The box elder catching the sun, right of center
-  ['yellow', 789, 488, 64, 42, 6],
-  // Two narrow, upright shrubs in the middle of the meadow
-  ['yellow', 440, 488, 22, 31, 1],
-  ['green', 528, 496, 17, 33, 1],
-  // A small dark shrub at the foot of the rise on the right
-  ['green', 768, 448, 15, 12, 0],
-  // Low clumps of sumac, already turning
-  ['sumac', 478, 490, 15, 12, 0],
-  ['sumac', 553, 493, 9, 7, 0],
-  ['sumac', 638, 492, 11, 8, 0],
-  ['sumac', 412, 491, 8, 6, 0],
-  // Past the edges of the photo, for wide screens
-  ['green', -150, 474, 24, 15, 0],
-  ['sumac', -60, 480, 14, 8, 0],
-  ['yellow', 1430, 482, 40, 30, 5],
-  ['sumac', 1330, 486, 12, 7, 0],
-]
 
 // Where a tree in front of the mountain stands, for casting its shadow
 export interface WoodTree {
@@ -130,64 +94,6 @@ export interface WoodTree {
   y: number
   h: number
   range: number
-}
-
-// A closed curve through the midpoints of a polygon's sides, rounding its corners
-function smoothPath(pts: Pt[], into: Path2D) {
-  const mid = (a: Pt, b: Pt): Pt => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
-  const start = mid(pts[pts.length - 1], pts[0])
-  into.moveTo(start[0], start[1])
-  pts.forEach((p, i) => {
-    const m = mid(p, pts[(i + 1) % pts.length])
-    into.quadraticCurveTo(p[0], p[1], m[0], m[1])
-  })
-  into.closePath()
-}
-
-// A broadleaf crown: an irregular dome on a short trunk. Sunlit leaf clusters
-// gather toward the upper left (the midday sun) and shaded pockets toward the
-// lower right, drawn clipped to the crown. Rough crowns are twiggy, like sumac.
-// Anything below floor is behind the ground in front and gets cut off.
-function broadleaf(f: Foliage, x: number, y: number, w: number, h: number, trunk: number, r: () => number, floor = Infinity, rough = 0) {
-  const clip = (v: number) => Math.min(v, floor)
-  if (trunk > 0) {
-    const tw = Math.max(0.8, w * 0.07)
-    polyPath([[x - tw / 2, clip(y)], [x - tw * 0.3, y - trunk - h * 0.25], [x + tw * 0.3, y - trunk - h * 0.25], [x + tw / 2, clip(y)]], f.trunk)
-  }
-  const cx = x + (r() - 0.5) * w * 0.06
-  const cy = y - trunk - h / 2
-  const phase = r() * 6
-  const phase2 = r() * 6
-  // An irregular blob around (bx, by): lobes of leaves bulge out of the rim
-  const blob = (into: Path2D, bx: number, by: number, rx: number, ry: number, n: number, bumps: number) => {
-    const pts: Pt[] = []
-    for (let i = 0; i < n; i++) {
-      const a = Math.PI + (i / n) * Math.PI * 2
-      const k = 1 + bumps * (0.6 * Math.sin(i * 0.9 + phase) + Math.abs(Math.sin(i * 2.3 + phase2))) + (r() - 0.5) * (0.08 + rough)
-      const s = Math.sin(a)
-      pts.push([bx + Math.cos(a) * rx * k, clip(by + s * ry * k * (s > 0 ? 0.85 : 1))])
-    }
-    smoothPath(pts, into)
-  }
-  blob(f.body, cx, cy, w / 2, h / 2, 40, 0.08)
-
-  // Dappled light over most of the crown and small shaded pockets low down,
-  // more of both on bigger crowns
-  const clusters = Math.min(16, Math.max(2, Math.round((w * h) / 140)))
-  const size = Math.min(w, h) * 0.2
-  const dapple = (into: Path2D, count: number, scale: number, where: (dx: number, dy: number) => boolean) => {
-    let made = 0
-    for (let tries = 0; tries < count * 10 && made < count; tries++) {
-      const dx = r() * 2 - 1
-      const dy = r() * 2 - 1
-      if (dx * dx + dy * dy > 1 || !where(dx, dy)) continue
-      const rad = size * scale * (0.6 + r() * 0.7)
-      blob(into, cx + dx * w * 0.45, cy + dy * h * 0.42, rad, rad * 0.8, 10, 0.12)
-      made++
-    }
-  }
-  dapple(f.shade, Math.max(1, Math.round(clusters * 0.7)), 0.55, (dx, dy) => dy * 0.9 + dx * 0.3 > 0.25)
-  dapple(f.lit, Math.round(clusters * 1.4), 0.85, (dx, dy) => dy * 0.9 + dx * 0.35 < 0.35)
 }
 
 // A ponderosa: a clumpy crown, widest a third of the way up and tapering to a
@@ -272,7 +178,6 @@ export interface Scene {
   // Farthest first, so nearer groves draw over them
   woods: Grove[]
   woodTrees: WoodTree[]
-  woodHit: Path2D
   hillHit: Path2D
   meadowFar: Path2D
   meadowMid: Path2D
@@ -281,7 +186,6 @@ export interface Scene {
   trail: Path2D
   trailHit: Path2D
   stones: Path2D
-  shrubs: Record<ShrubKind, Foliage>
   postHit: Path2D
 }
 
@@ -305,35 +209,25 @@ export function buildScene(): Scene {
     if (band) spike(r() < 0.35 ? band.dark : band.lit, x + (r() - 0.5), y + 1, h)
   }
 
-  const woodHit = new Path2D()
   const hillHit = new Path2D()
   facets.forEach((f) => {
-    if (f.kind === 'wood') woodHit.addPath(f.path)
     if (f.kind === 'hill') hillHit.addPath(f.path)
   })
 
   // Every tree the imagery shows on the hills and along the foot of the
-  // mountain, in groups of a hundred or so from far to near
+  // mountain, in groups of a hundred or so from far to near. The few it takes
+  // for broadleaf are drawn as pines too: as rounded crowns they stood out as
+  // bright blobs in the dark of the forest.
   const packed = TERRAIN.woods ?? []
   const woods: Grove[] = []
   const woodTrees: WoodTree[] = []
   for (let i = 0; i < packed.length; i += 6) {
-    if (i % 600 === 0) woods.push({ dark: new Path2D(), left: new Path2D(), right: new Path2D(), leaves: foliage() })
+    if (i % 600 === 0) woods.push({ dark: new Path2D(), left: new Path2D(), right: new Path2D() })
     const grove = woods[woods.length - 1]
-    const [x, y, h, leafy, range, hidden] = packed.slice(i, i + 6)
-    if (leafy) {
-      // The broadleaf trees along the forest edge are lower and broader than the pines
-      broadleaf(grove.leaves, x, y, h * 0.62, h * 0.42, h * 0.1, r, y - hidden)
-    } else {
-      ponderosa(grove, x, y, h, y - hidden, r)
-    }
+    const [x, y, h, , range, hidden] = packed.slice(i, i + 6)
+    ponderosa(grove, x, y, h, y - hidden, r)
     // Shadows only for trees standing in plain view
     if (!hidden) woodTrees.push({ x, y, h, range })
-  }
-  // Pointing at a crown counts as pointing at the pines, not the mountain behind
-  for (const grove of woods) {
-    woodHit.addPath(grove.dark)
-    woodHit.addPath(grove.leaves.body)
   }
 
   // Meadow in flat bands, paler and sunnier toward the trees
@@ -365,18 +259,12 @@ export function buildScene(): Scene {
   stones.ellipse(966, 604, 7, 4.5, -0.1, 0, Math.PI * 2)
   stones.moveTo(1061, 650)
   stones.ellipse(1056, 650, 4, 2.5, 0, 0, Math.PI * 2)
-  // A boulder out in the grass, left of the box elder
-  stones.moveTo(724, 490)
-  stones.ellipse(713, 490, 11, 4, -0.05, 0, Math.PI * 2)
-
-  const shrubs: Record<ShrubKind, Foliage> = { yellow: foliage(), green: foliage(), sumac: foliage() }
-  for (const [kind, x, y, w, h, trunk] of SHRUBS) broadleaf(shrubs[kind], x, y, w, h, trunk, r, Infinity, kind === 'sumac' ? 0.5 : 0)
 
   const postHit = new Path2D()
   postHit.rect(84, 508, 38, 160)
 
   return {
-    mountain, ridge, facets, slabs, trees, woods, woodTrees, woodHit, hillHit, meadowFar, meadowMid,
-    meadowNear, verge, trail, trailHit, stones, shrubs, postHit,
+    mountain, ridge, facets, slabs, trees, woods, woodTrees, hillHit, meadowFar, meadowMid,
+    meadowNear, verge, trail, trailHit, stones, postHit,
   }
 }

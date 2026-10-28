@@ -3,7 +3,7 @@
 
 export type FeatureId =
   | 'first' | 'second' | 'third' | 'fourth' | 'fifth'
-  | 'green' | 'pines' | 'meadow' | 'trail' | 'post'
+  | 'green' | 'meadow' | 'trail' | 'post'
 
 export interface Feature {
   id: FeatureId
@@ -11,7 +11,7 @@ export interface Feature {
   meta: string
   note: string
   anchor: [number, number]
-  layer: 'mountain' | 'forest' | 'ground' | 'post'
+  layer: 'mountain' | 'ground' | 'post'
   href?: string
 }
 
@@ -63,14 +63,6 @@ export const FEATURES: Feature[] = [
     note: 'A peak on the eastern edge of the Front Range, right above Boulder. The Flatirons lean against its eastern flank.',
     anchor: [515, 230],
     layer: 'mountain',
-  },
-  {
-    id: 'pines',
-    name: 'Ponderosa pine',
-    meta: 'Pinus ponderosa',
-    note: 'The open forest at the foot of the Flatirons. On a warm afternoon, put your nose to a crack in the orange bark: it smells like vanilla.',
-    anchor: [60, 344],
-    layer: 'forest',
   },
   {
     id: 'meadow',

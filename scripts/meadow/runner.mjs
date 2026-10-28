@@ -416,9 +416,10 @@ async function repair(photo, shoes) {
     ${curled.map(({ finger, edge }) => `<path d="${finger}" fill="${tones.mid}"/><path d="${edge}" fill="${tones.lit}"/>`).join('')}
   </g>`)
 
-  // 3. For the meadow his singlet prints solid black, and his bib, medal and
-  //    lanyard come off with its flame print. Where the ribbons crossed his
-  //    chest inside the scoop neck, the skin is filled in from around it.
+  // 3. His bib, medal and lanyard come off, and his La Sportiva singlet is
+  //    printed in its own design, whole where they hid it. Where the ribbons
+  //    crossed his chest inside the scoop neck, the skin is filled in from
+  //    around it.
   const ribbons = new Uint8Array(W * H)
   for (const points of [
     [[346, 311], [368, 312], [362, 400], [360, 461], [339, 462], [333, 400]],
@@ -426,9 +427,9 @@ async function repair(photo, shoes) {
   ]) (await poly(points)).forEach((v, i) => v && mask[i] && (ribbons[i] = 1))
   const scoop = await poly([[352, 300], [361, 316], [365, 332], [371, 345], [390, 353], [409, 349], [417, 336], [421, 318], [426, 300]])
   inpaint(Uint8Array.from(ribbons, (v, i) => v & scoop[i]), Uint8Array.from(mask, (v, i) => v & !ribbons[i] & scoop[i] & isSkin(i)), 1500)
-  // All of his torso but the scoop goes black. Only along its edges, where his
-  //    arms meet it, does skin stay, told from the print's yellows by hue. On
-  //    both shoulders the jersey runs on over the top of the shoulder, its
+  // All of his torso but the scoop is the singlet. Only along its edges, where
+  //    his arms meet it, does skin stay, told from the print's yellows by hue.
+  //    On both shoulders the jersey runs on over the top of the shoulder, its
   //    edge one line with the shoulder's, and the armhole curves down from it
   //    to the armpit.
   const torso = await poly([[306, 346], [314, 328], [330, 314], [357, 308], [426, 300], [446, 308], [488, 320], [500, 327], [497, 336], [489, 360], [492, 420], [500, 470], [510, 546], [510, 612], [338, 612], [336, 520], [330, 440]])
@@ -441,9 +442,51 @@ async function repair(photo, shoes) {
     const [r, g, b] = [img[i * 3], img[i * 3 + 1], img[i * 3 + 2]]
     return r > g && g > b && b > 0.48 * r && g > 0.55 * r && r > 60
   }
+  // The singlet's design, in its inks from the photo: black, with a yellow
+  //    stripe across each shoulder from the neck to the armhole, as the photo
+  //    shows them where the lanyard and his friend's hand don't hide them,
+  //    LA SPORTIVA and its peak rising
+  //    across the chest, and below them facets from maroon through orange to
+  //    yellow at the hem, their edge sloping down to his right as in the photo
+  const PRINT = { maroon: [128, 44, 36], red: [208, 98, 40], orange: [224, 142, 48], gold: [226, 176, 30], pale: [239, 210, 118] }
+  const css = (c) => `rgb(${c})`
+  const jag = (yl, yr, j) => [320, 342, 364, 386, 408, 430, 452, 474, 496, 518].map((x, k) => [x, yl + ((yr - yl) * (x - 330)) / 175 + (k % 2 ? j : -j)])
+  const facet = (pts, c) => `<path d="M${pts.map((p) => p.join(' ')).join('L')}Z" fill="${css(c)}"/>`
+  const bands = [[505, 432, PRINT.maroon], [524, 456, PRINT.red], [540, 484, PRINT.orange], [557, 522, PRINT.gold]]
+  const stripe = (pts) => `<path d="M${pts.map((p) => p.join(' ')).join('L')}" fill="none" stroke="${css(PRINT.gold)}" stroke-width="2.4"/>`
+  const design = await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+    <rect width="100%" height="100%" fill="${css(SINGLET)}"/>
+    ${bands.map(([yl, yr, c], k) => facet([...jag(yl, yr, 2.5 + k), [518, 640], [320, 640]], c)).join('')}
+    ${facet([[440, 470], [472, 457], [456, 482]], PRINT.maroon)}${facet([[466, 500], [500, 486], [494, 514]], PRINT.red)}
+    ${facet([[396, 562], [440, 549], [424, 576]], PRINT.orange)}${facet([[352, 590], [392, 568], [398, 598]], PRINT.pale)}
+    ${facet([[430, 604], [470, 574], [482, 604]], PRINT.pale)}${facet([[338, 548], [362, 540], [352, 562]], PRINT.red)}
+    ${stripe([[362, 322], [348, 333], [335, 343], [318, 356]])}
+    ${stripe([[422, 314], [434, 321], [450, 332], [468, 338], [490, 344]])}
+    <path d="M420 421L448 400L476 418" fill="none" stroke="${css(PRINT.maroon)}" stroke-width="1.6"/>
+    ${facet([[437, 418], [448, 405], [459, 418]], PRINT.gold)}
+    <text x="339" y="467" transform="rotate(-32 339 467)" font-family="Helvetica Neue" font-weight="bold" font-size="16.5" letter-spacing="0.4" fill="${css(PRINT.gold)}">LA SPORTIVA</text>
+  </svg>`)).removeAlpha().raw().toBuffer()
+  // Each pixel takes the nearer of the two inks it's best explained as a blend
+  //    of, so the antialiased edge of the yellow piping on black doesn't snap
+  //    to the maroon that happens to lie between them
+  const inks = [SINGLET, ...Object.values(PRINT)]
+  const blendOf = (c) => {
+    let best = inks[0]
+    let err = Infinity
+    for (let a = 0; a < inks.length; a++) {
+      for (let b = a + 1; b < inks.length; b++) {
+        const [p, q] = [inks[a], inks[b]]
+        const d = [0, 1, 2].map((k) => p[k] - q[k])
+        const t = Math.min(1, Math.max(0, d.reduce((s, v, k) => s + v * (c[k] - q[k]), 0) / d.reduce((s, v) => s + v * v, 0)))
+        const e = [0, 1, 2].reduce((s, k) => s + (c[k] - (q[k] + t * d[k])) ** 2, 0)
+        if (e < err) [err, best] = [e, t >= 0.5 ? p : q]
+      }
+    }
+    return best
+  }
   for (let i = 0; i < W * H; i++) {
     if (!torso[i] || !mask[i] || scoop[i]) continue
-    if (inner[i] || ribbons[i] || !skinTone(i)) stamp(i, SINGLET)
+    if (inner[i] || ribbons[i] || !skinTone(i)) stamp(i, blendOf(design.subarray(i * 3, i * 3 + 3)))
   }
 
   // The water bottle, painted where it shows between his fingers
@@ -472,12 +515,62 @@ async function repair(photo, shoes) {
     await painting(s.body, (i) => below[i], true, shoeInks)
   }
 
-  // The top of his cap, which the mask cut off above the strap, with his hair
-  // coming through the opening
+  // His hair, as the photo has it, pulled through the opening above the
+  // strap: warm-toned pixels there, and above the crown the dark strands that
+  // stand out from the pale gray behind him. It's too near his skin's color to
+  // get inks of its own, so it prints in three light browns by how light the
+  // photo is there, softened a little, keeping the photo's own strands. The
+  // gray of the cap inside the opening goes black. Then the top of his cap,
+  // which the mask cut off above the strap, around it. The strap prints black
+  // through its buckle, which caught the light in the photo and read as a gap.
+  // The right side of the cap, from the strap's tail down to just above his
+  // ear, was sunlit gray against the gray behind him, so the mask lost most of
+  // it: it's filled in black out to its edge in the photo, leaving his skin.
+  const hairArea = await poly([[367, 201], [368, 190], [374, 182], [382, 175], [394, 172], [404, 175], [410, 186], [411, 201]])
+  const soft = await sharp(photoPx, { raw: { width: W, height: H, channels: 3 } }).blur(0.8).raw().toBuffer()
+  const HAIR = [[104, 80, 62], [158, 124, 94], [196, 164, 132]]
+  const tone = new Int8Array(W * H).fill(-1)
+  const lights = []
+  for (let i = 0; i < W * H; i++) {
+    if (!hairArea[i]) continue
+    const [r, g, b] = [soft[i * 3], soft[i * 3 + 1], soft[i * 3 + 2]]
+    const inside = ((i / W) | 0) >= 184
+    if (r - b > 16) {
+      tone[i] = 1
+      lights.push([i, 0.3 * r + 0.59 * g + 0.11 * b])
+    } else if (r + g + b < 300) tone[i] = inside ? 3 : 0
+    else if (inside) tone[i] = 3
+    else mask[i] = 0
+  }
+  // Warm pixels by lightness: the darkest third shade, the lightest third lit
+  lights.sort((p, q) => p[1] - q[1])
+  lights.forEach(([i], k) => (tone[i] = k < lights.length / 3 ? 0 : k < (lights.length * 2) / 3 ? 1 : 2))
+  // A vote of each pixel's neighbors, so the tones don't speckle
+  const voted = tone.slice()
+  for (let i = 0; i < W * H; i++) {
+    if (tone[i] < 0 || tone[i] === 3) continue
+    const n = [0, 0, 0]
+    for (const j of [i - W - 1, i - W, i - W + 1, i - 1, i, i + 1, i + W - 1, i + W, i + W + 1]) if (tone[j] >= 0 && tone[j] < 3) n[tone[j]]++
+    voted[i] = n.indexOf(Math.max(...n))
+  }
+  for (let i = 0; i < W * H; i++) {
+    if (voted[i] < 0) continue
+    stamp(i, voted[i] === 3 ? SINGLET : HAIR[voted[i]])
+    mask[i] = 1
+  }
   await painting('<path d="M348 214C346 200 352 189 364 184L378 181L404 182C416 184 426 192 430 206L432 214Z" fill="rgb(30,32,37)"/>', (i) => !mask[i])
-  await painting(`
-    <path d="M375 200C376 193 379 189 384 187L386 183L389 186L392 182L394 186L398 185L399 189C402 191 404 195 404 200Z" fill="rgb(176,140,100)"/>
-    <path d="M379 200C381 195 385 192 390 192C395 192 399 195 400 200Z" fill="rgb(138,106,74)"/>`)
+  const shape = (pts) => `M${pts.map((p) => p.join(' ')).join('L')}Z`
+  // The left side of his cap, which the mask left ragged against the dark
+  // behind it: trimmed to one curve down to the top of his ear, and filled in
+  // from there to his head
+  const capSide = [[352, 194], [349, 205], [347, 215], [346, 225], [345.5, 235], [346.5, 243]]
+  const beside = await poly([[330, 194], ...capSide, [330, 243]])
+  for (let i = 0; i < W * H; i++) if (beside[i]) mask[i] = 0
+  await painting(`<path d="${shape([...capSide, [356, 243], [358, 194]])}" fill="rgb(30,32,37)"/>`, (i) => !mask[i])
+  await painting('<rect x="367.5" y="200.5" width="5.5" height="10" fill="rgb(30,32,37)"/>', () => true, true)
+  const grayish = (i) => Math.max(img[i * 3], img[i * 3 + 1], img[i * 3 + 2]) - Math.min(img[i * 3], img[i * 3 + 1], img[i * 3 + 2]) < 40
+  const capRight = [[404, 199], [414, 195], [418, 186], [426, 195], [432, 205], [436, 216], [437, 226], [435, 234], [430, 236], [426, 230], [420, 220], [412, 212], [404, 208]]
+  await painting(`<path d="${shape(capRight)}" fill="rgb(30,32,37)"/>`, (i) => !mask[i] || (!paint[i * 4 + 3] && (!isSkin(i) || grayish(i))), true)
 
   // His watch, black: the mask took its bright face for sky
   await painting(`

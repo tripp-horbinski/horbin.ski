@@ -130,8 +130,6 @@ const STOPS: [number, Stop][] = [
   [16, AFTERNOON], [SHADE - 0.6, GOLDEN], [SHADE + 0.25, SUNSET], [20.2, DUSK], [21.3, NIGHT], [24, NIGHT],
 ]
 
-export const PHOTO_HOUR = 12.5
-
 type Lab = [number, number, number]
 
 function toLab(hex: string): Lab {
