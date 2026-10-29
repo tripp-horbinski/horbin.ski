@@ -212,7 +212,7 @@ export default function CareerPage() {
           Projects
         </Link>
         , and I&apos;d like to hear from you:{' '}
-        <Link href="/about/" className="link">
+        <Link href="/#contact" className="link">
           get in touch
         </Link>
         .

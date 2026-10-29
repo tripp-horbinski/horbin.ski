@@ -10,7 +10,7 @@ export function generateBlogPostStructuredData(post: Post, url: string) {
     author: {
       '@type': 'Person',
       name: 'Tripp Horbinski',
-      url: `${SITE_URL}/about/`,
+      url: `${SITE_URL}/`,
     },
     publisher: {
       '@type': 'Organization',
@@ -43,7 +43,7 @@ export function generateWebsiteStructuredData() {
     author: {
       '@type': 'Person',
       name: 'Tripp Horbinski',
-      url: `${SITE_URL}/about/`,
+      url: `${SITE_URL}/`,
       sameAs: [GITHUB, LINKEDIN],
     },
   }
@@ -55,7 +55,7 @@ export function generatePersonStructuredData() {
     '@context': 'https://schema.org',
     '@type': 'Person',
     name: 'Tripp Horbinski',
-    url: `${SITE_URL}/about/`,
+    url: `${SITE_URL}/`,
     jobTitle: 'Software Engineer',
     alumniOf: { '@type': 'CollegeOrUniversity', name: 'Milwaukee School of Engineering' },
     description: 'Software engineer building full-stack products, after six years in cloud and DevOps.',

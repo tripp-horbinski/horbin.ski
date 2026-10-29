@@ -84,12 +84,12 @@ export const FEATURES: Feature[] = [
   {
     id: 'tripp',
     name: 'Meet Tripp',
-    meta: 'About me',
+    meta: 'Say hello',
     note: 'Who\'s standing on the trail.',
     // Over his cap
     anchor: [978, 419],
     layer: 'runner',
-    href: '/about/',
+    href: '/#contact',
   },
 ]
 

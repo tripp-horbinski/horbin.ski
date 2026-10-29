@@ -1,12 +1,13 @@
 import Link from 'next/link'
 
-// About, Career and Projects; Backpacking is linked from About. Stack stays
-// out until its gear list is real: it's unlisted, and left out of the sitemap
-// and search. Writing is off the site for now (src/app/_writing)
+// Career and Projects; who he is and how to reach him are on the homepage,
+// which also links Backpacking. Stack stays out until its gear list is real:
+// it's unlisted, and left out of the sitemap and search. Writing is off the
+// site for now (src/app/_writing)
 const PAGES = [
-  { href: '/about/', label: 'About' },
   { href: '/career/', label: 'Career' },
   { href: '/projects/', label: 'Projects' },
+  { href: '/#contact', label: 'Contact' },
 ]
 
 // The line across the top of every page past the meadow, like the title
