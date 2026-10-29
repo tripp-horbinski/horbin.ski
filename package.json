@@ -14,7 +14,14 @@
     "meadow:trace": "node scripts/meadow/trace-photo.mjs",
     "meadow:calibrate": "node scripts/meadow/calibrate.mjs",
     "meadow:runner": "node scripts/meadow/runner.mjs",
-    "meadow:og": "node scripts/meadow/og.mjs"
+    "meadow:og": "node scripts/meadow/og.mjs",
+    "meadow:maps": "node scripts/meadow/maps.mjs",
+    "meadow:hiker": "node scripts/meadow/hiker.mjs",
+    "meadow:jacket": "node scripts/meadow/jacket.mjs",
+    "meadow:stella": "node scripts/meadow/stella.mjs",
+    "meadow:runner-bridge": "node scripts/meadow/runner-bridge.mjs",
+    "meadow:act": "node scripts/meadow/act-map.mjs",
+    "resume:pdf": "node scripts/resume-pdf.mjs"
   },
   "repository": {
     "type": "git",
