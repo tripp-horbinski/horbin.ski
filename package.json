@@ -14,7 +14,10 @@
     "meadow:trace": "node scripts/meadow/trace-photo.mjs",
     "meadow:calibrate": "node scripts/meadow/calibrate.mjs",
     "meadow:runner": "node scripts/meadow/runner.mjs",
-    "meadow:og": "node scripts/meadow/og.mjs"
+    "meadow:og": "node scripts/meadow/og.mjs",
+    "meadow:stella": "node scripts/meadow/stella.mjs",
+    "meadow:runner-bridge": "node scripts/meadow/runner-bridge.mjs",
+    "resume:pdf": "node scripts/resume-pdf.mjs"
   },
   "repository": {
     "type": "git",
@@ -37,13 +40,9 @@
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.0.5",
-    "date-fns": "^4.1.0",
-    "gray-matter": "^4.0.3",
     "next": "^16.0.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "remark": "^15.0.1",
-    "remark-html": "^16.0.1",
     "suncalc": "^2.1.1"
   },
   "devDependencies": {

@@ -1,11 +1,19 @@
 import Meadow from '@/components/Meadow'
+import Resume from '@/components/Resume'
+import { generatePersonStructuredData } from '@/lib/structured-data'
 
 export const metadata = {
-  title: 'Tripp Horbinski — Developer & Backpacker',
+  title: 'Tripp Horbinski — Software Engineer',
   description:
-    'Developer and backpacker in Boulder, Colorado. Step into Chautauqua Meadow below the Flatirons.',
+    'Tripp Horbinski builds beautiful, useful software that people use every day. Walk his career down the trail through Chautauqua Meadow, below the Flatirons.',
 }
 
 export default function Home() {
-  return <Meadow />
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonStructuredData()) }} />
+      <Meadow />
+      <Resume />
+    </>
+  )
 }

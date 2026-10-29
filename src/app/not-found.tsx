@@ -1,14 +1,15 @@
 import Link from 'next/link'
-import TrailSign from '@/components/TrailSign'
 
+// The site is one page; anywhere else gets a way back to it
 export default function NotFound() {
   return (
-    <div className="text-center">
-      <h1 className="sr-only">Page not found</h1>
-      <TrailSign title="Off trail" subtitle="This page doesn't exist" />
-      <p className="mt-8">
+    <div>
+      <h1 className="sheet-title">Off the trail</h1>
+      <p className="sheet-sub">Page not found</p>
+      <p className="mb-6">There&apos;s nothing here. This site is one page.</p>
+      <p>
         <Link href="/" className="link">
-          Back to the trailhead
+          Back to the meadow
         </Link>
       </p>
     </div>
