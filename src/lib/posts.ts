@@ -3,6 +3,7 @@ import path from 'path'
 import matter from 'gray-matter'
 import { remark } from 'remark'
 import html from 'remark-html'
+import { MAPS, type PlaceId } from './maps'
 
 const postsDirectory = path.join(process.cwd(), 'src/content/posts')
 
@@ -16,7 +17,16 @@ export interface Post {
   tags: string[]
   readTime: number
   featured?: boolean
+  // A place from src/lib/maps.ts to head the post, where it happened
+  map?: PlaceId
+  // Drafts show on the dev server only, so a post can be read in place before
+  // it goes out
+  draft?: boolean
 }
+
+const showDrafts = process.env.NODE_ENV !== 'production'
+
+const mapOf = (value: unknown) => (typeof value === 'string' && value in MAPS ? (value as PlaceId) : undefined)
 
 export function getAllPosts(): Post[] {
   try {
@@ -43,8 +53,11 @@ export function getAllPosts(): Post[] {
           tags: matterResult.data.tags || [],
           readTime: calculateReadTime(matterResult.content),
           featured: matterResult.data.featured || false,
+          map: mapOf(matterResult.data.map),
+          draft: matterResult.data.draft === true,
         } as Post
       })
+      .filter((post) => showDrafts || !post.draft)
 
     return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1))
   } catch (error) {
@@ -63,6 +76,9 @@ export function getPostBySlug(slug: string): Post | null {
     
     const fileContents = fs.readFileSync(fullPath, 'utf8')
     const matterResult = matter(fileContents)
+    if (matterResult.data.draft === true && !showDrafts) {
+      return null
+    }
 
     return {
       slug,
@@ -74,6 +90,8 @@ export function getPostBySlug(slug: string): Post | null {
       tags: matterResult.data.tags || [],
       readTime: calculateReadTime(matterResult.content),
       featured: matterResult.data.featured || false,
+      map: mapOf(matterResult.data.map),
+      draft: matterResult.data.draft === true,
     } as Post
   } catch (error) {
     console.error(`Error reading post ${slug}:`, error)
