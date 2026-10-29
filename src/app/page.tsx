@@ -1,9 +1,9 @@
 import Meadow from '@/components/Meadow'
 
 export const metadata = {
-  title: 'Tripp Horbinski — Developer & Backpacker',
+  title: 'Tripp Horbinski — Platform Engineer',
   description:
-    'Developer and backpacker in Boulder, Colorado. Step into Chautauqua Meadow below the Flatirons.',
+    'Platform engineer in Milwaukee with an AWS Golden Jacket. Walk his career up the trail through Chautauqua Meadow, below the Flatirons.',
 }
 
 export default function Home() {

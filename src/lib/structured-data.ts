@@ -1,5 +1,5 @@
 import type { Post } from './posts'
-import { SITE_URL } from './site'
+import { CREDLY, GITHUB, LINKEDIN, SITE_URL } from './site'
 
 export function generateBlogPostStructuredData(post: Post, url: string) {
   return {
@@ -38,23 +38,38 @@ export function generateWebsiteStructuredData() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Horbin.ski',
-    description: 'A modern blog focused on technology insights and running adventures',
+    description: 'Tripp Horbinski, platform engineer: his career, resume and side projects',
     url: `${SITE_URL}/`,
     author: {
       '@type': 'Person',
       name: 'Tripp Horbinski',
       url: `${SITE_URL}/about/`,
-      sameAs: [
-        'https://github.com/tripp-horbinski',
-        'https://linkedin.com/in/tripphorbinski',
-        'https://twitter.com/tripphorbinski',
-      ],
+      sameAs: [GITHUB, LINKEDIN],
     },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${SITE_URL}/search?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
+  }
+}
+
+// Who Tripp is, for search engines reading the About page
+export function generatePersonStructuredData() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Tripp Horbinski',
+    url: `${SITE_URL}/about/`,
+    jobTitle: 'Platform Engineer',
+    alumniOf: { '@type': 'CollegeOrUniversity', name: 'Milwaukee School of Engineering' },
+    description: 'Platform engineer building cloud-native platforms, developer infrastructure and distributed systems.',
+    homeLocation: { '@type': 'Place', name: 'Milwaukee, Wisconsin' },
+    knowsAbout: ['Amazon Web Services', 'Terraform', 'AWS CDK', 'Kubernetes', 'CI/CD', 'Infrastructure as Code', 'Python', 'TypeScript'],
+    hasCredential: {
+      '@type': 'EducationalOccupationalCredential',
+      name: 'AWS Golden Jacket (every AWS certification)',
+      credentialCategory: 'certification',
+      dateCreated: '2023-12-30',
+      url: CREDLY,
+      recognizedBy: { '@type': 'Organization', name: 'Amazon Web Services' },
     },
+    sameAs: [GITHUB, LINKEDIN, CREDLY],
   }
 }
 

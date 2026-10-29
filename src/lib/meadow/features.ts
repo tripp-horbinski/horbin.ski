@@ -75,11 +75,11 @@ export const FEATURES: Feature[] = [
   {
     id: 'trail',
     name: 'Follow the trail',
-    meta: 'To the writing',
-    note: 'Notes on software, running, and the trails around Boulder.',
+    meta: 'My career',
+    note: 'Where I’ve worked and what I did there.',
     anchor: [966, 552],
     layer: 'ground',
-    href: '/writing/',
+    href: '/career/',
   },
   {
     id: 'tripp',

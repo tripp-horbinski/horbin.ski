@@ -1,65 +1,131 @@
 import Link from 'next/link'
+import MapSheet from '@/components/MapSheet'
+import SheetNav from '@/components/SheetNav'
+import { JACKET_FRAME } from '@/lib/meadow/jacket-print'
+import { CREDLY, EMAIL, GITHUB, LINKEDIN } from '@/lib/site'
+import { generatePersonStructuredData } from '@/lib/structured-data'
 
 export const metadata = {
   title: 'About',
-  description: 'Tripp Horbinski, a developer and backpacker in Boulder, Colorado.',
+  description:
+    'Tripp Horbinski is a platform engineer in Milwaukee, Wisconsin: 8 years building cloud platforms, CI/CD and developer infrastructure, and an AWS Golden Jacket. He runs marathons and backpacks.',
 }
+
+// Where to find him, in the order a recruiter would reach for them
+const CONTACT = [
+  { label: 'Email', href: `mailto:${EMAIL}`, text: EMAIL },
+  { label: 'LinkedIn', href: LINKEDIN, text: 'in/tripp-horbinski' },
+  { label: 'GitHub', href: GITHUB, text: 'tripp-horbinski' },
+  { label: 'Resume', href: '/career/', text: 'My career, and the PDF' },
+]
 
 export default function AboutPage() {
   return (
     <div>
-      <Link href="/" className="trail-arrow">
-        Meadow
-      </Link>
-      <h1 className="mt-8 text-xl md:text-2xl leading-none">Tripp Horbinski</h1>
-      <p className="mt-2 mb-6 font-display text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--text-nav)' }}>
-        Boulder, Colorado &middot; Elev. 5,328 ft
-      </p>
-      <ul className="legend">
-        <li>
-          <span className="legend-symbol" aria-hidden="true">
-            <svg viewBox="0 0 20 20" fill="currentColor">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonStructuredData()) }}
+      />
+      <SheetNav current="/about/" />
+      <MapSheet place="milwaukee" />
+      <div className="intro">
+        <figure className="portrait-plate" style={{ aspectRatio: `${JACKET_FRAME.width} / ${JACKET_FRAME.height}` }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG; the export doesn't optimize images */}
+          <img
+            src="/about/tripp.svg"
+            alt="Screen print of Tripp smiling with his arms crossed, in his gold AWS Certified bomber jacket and jeans"
+          />
+        </figure>
+        <div className="intro-head">
+          <h1 className="sheet-title">Tripp Horbinski</h1>
+          <p className="sheet-sub">
+            Milwaukee, Wisconsin <span className="whitespace-nowrap">&middot; Elev. 617&nbsp;ft</span>
+          </p>
+        </div>
+        <ul className="map-key intro-body">
+          <li>
+            {/* Angle brackets, for code */}
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M7 5L2.5 10L7 15M13 5l4.5 5L13 15" />
+            </svg>
+            <p>
+              I&apos;m a platform engineer: 8 years building cloud platforms, CI/CD and developer infrastructure,
+              most recently at GoFundMe. It&apos;s all on{' '}
+              <Link href="/career/" className="link">
+                Career
+              </Link>
+              , and what I build on the side is on{' '}
+              <Link href="/projects/" className="link">
+                Projects
+              </Link>
+              .
+            </p>
+          </li>
+          <li>
+            {/* A medal on its ribbon */}
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M5.5 1.5h3.2l1.3 4.2-2.4 1.9zM14.5 1.5h-3.2L10 5.7l2.4 1.9z" />
+              <circle cx="10" cy="12.5" r="5.5" />
+            </svg>
+            <p>
+              I&apos;ve held every AWS certification since December 2023, the Golden Jacket. You can{' '}
+              <a href={CREDLY} target="_blank" rel="noopener noreferrer" className="link">
+                verify them on Credly
+              </a>
+              .
+            </p>
+          </li>
+          <li>
+            {/* A trail blaze, as the Ice Age Trail is marked */}
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <rect x="7" y="3" width="6" height="14" rx="1" />
+            </svg>
+            <p>
+              I run marathons and backpack: in August 2025 I walked the{' '}
+              <Link href="/backpacking/" className="link">
+                Arctic Circle Trail
+              </Link>
+              , 167 km across Greenland. My long trail at home is the Ice Age Trail.
+            </p>
+          </li>
+          <li>
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <ellipse cx="10" cy="13.2" rx="4.4" ry="3.6" />
               <circle cx="4.6" cy="8.4" r="1.9" />
               <circle cx="8.1" cy="5.4" r="1.9" />
               <circle cx="11.9" cy="5.4" r="1.9" />
               <circle cx="15.4" cy="8.4" r="1.9" />
             </svg>
-          </span>
-          <p>
-            I&apos;m a dog dad to 2{' '}
-            <a href="https://puppe.rs" target="_blank" rel="noopener noreferrer" className="link">
-              puppers
-            </a>
-            .
-          </p>
-        </li>
-        <li>
-          <span className="legend-symbol" aria-hidden="true">
-            <svg viewBox="0 0 20 20" fill="currentColor">
-              <rect x="9" y="3" width="2" height="15" />
-              <path d="M4 4.5h9.5l2.5 2.5-2.5 2.5H4z" />
-              <path d="M16 10.5H6.5L4 13l2.5 2.5H16z" />
-            </svg>
-          </span>
-          <p>
-            You can view my{' '}
-            <a href="https://github.com/tripp-horbinski" target="_blank" rel="noopener noreferrer" className="link">
-              AI slop
-            </a>
-            {' '}or connect with me on{' '}
-            <a
-              href="https://www.linkedin.com/in/tripp-horbinski/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link"
-            >
-              LinkedIn
-            </a>
-            .
-          </p>
-        </li>
-      </ul>
+            <p>
+              I&apos;m a dog dad to 2{' '}
+              <a href="https://puppe.rs" target="_blank" rel="noopener noreferrer" className="link">
+                puppers
+              </a>
+              .
+            </p>
+          </li>
+        </ul>
+
+        <div className="intro-more">
+          <h2 className="sheet-label">Get in touch</h2>
+          <dl className="contact">
+            {CONTACT.map((c) => (
+              <div key={c.label}>
+                <dt className="trail-list-meta">{c.label}</dt>
+                <dd>
+                  <a
+                    href={c.href}
+                    className="link"
+                    {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    {c.text}
+                  </a>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,11 +1,9 @@
 import { MetadataRoute } from 'next'
-import { getAllPosts } from '@/lib/posts'
 import { SITE_URL } from '@/lib/site'
 
 export const dynamic = 'force-static'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const posts = getAllPosts()
   const baseUrl = SITE_URL
 
   const staticPages = [
@@ -16,10 +14,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/writing/`,
+      url: `${baseUrl}/career/`,
       lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+      changeFrequency: 'monthly' as const,
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/backpacking/`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/projects/`,
@@ -35,12 +39,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  const postPages = posts.map((post) => ({
-    url: `${baseUrl}/writing/${post.slug}/`,
-    lastModified: new Date(post.date),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }))
-
-  return [...staticPages, ...postPages]
+  return staticPages
 }

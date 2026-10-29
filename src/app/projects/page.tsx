@@ -1,22 +1,48 @@
 import Link from 'next/link'
-import TrailSign from '@/components/TrailSign'
+import MapSheet from '@/components/MapSheet'
+import SheetNav from '@/components/SheetNav'
+import { GITHUB } from '@/lib/site'
 
 export const metadata = {
   title: 'Projects',
-  description: 'Esker, an Ice Age Trail tracker for Android, and puppe.rs, field guides for pet sitters.',
+  description:
+    'This site, generated from USGS lidar; Esker, an Ice Age Trail tracker for Android; and puppe.rs, field guides for pet sitters.',
 }
 
 export default function ProjectsPage() {
   return (
     <div>
-      <h1 className="sr-only">Projects</h1>
-      <TrailSign title="Projects" subtitle="Built from the trailhead" />
-      <p className="mt-6 mb-10 text-center" style={{ color: 'var(--text-nav)' }}>
-        By{' '}
-        <Link href="/" className="no-underline transition-colors" style={{ color: 'var(--text-nav)' }}>
-          Tripp Horbinski
-        </Link>
-      </p>
+      <SheetNav current="/projects/" />
+      <MapSheet place="parnell" />
+      <h1 className="sheet-title">Projects</h1>
+      <p className="sheet-sub mb-10">What I build on the side</p>
+
+      <section id="site" className="mb-12">
+        <p className="trail-eyebrow mb-3">Website &middot; 2026</p>
+        <h2 className="text-xl md:text-2xl mb-4">tripp.horbin.ski</h2>
+        <div className="prose">
+          <p>
+            The site you&apos;re on. Its{' '}
+            <Link href="/">homepage</Link> is a canvas scene of the Flatirons over Chautauqua Meadow that&apos;s
+            generated, not drawn: the mountain is USGS lidar, lit for any hour by the sun&apos;s real position,
+            and every tree stands where aerial imagery shows canopy. Every other page opens on contour lines of a
+            real place, traced from lidar with my own marching-squares tracer.
+          </p>
+          <p>
+            The figures of me are screen prints of my photos: cut out with Apple&apos;s Vision framework, repaired,
+            separated into flat inks and traced to vectors. Build-time scripts turn all that data into code, so
+            the site is a static export with no backend.
+          </p>
+        </div>
+        <p className="trail-list-meta mt-4">
+          Next.js &middot; TypeScript &middot; Canvas &middot; Node &middot; Swift &middot; USGS 3DEP &middot; OpenStreetMap
+        </p>
+        <p className="mt-6">
+          <a href={`${GITHUB}/horbin.ski`} target="_blank" rel="noopener noreferrer" className="link">
+            Source on GitHub
+          </a>
+        </p>
+      </section>
 
       <section id="esker" className="mb-12">
         <p className="trail-eyebrow mb-3">Android app &middot; 2026</p>
