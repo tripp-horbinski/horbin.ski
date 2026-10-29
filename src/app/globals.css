@@ -749,15 +749,29 @@
     min-height: 115svh;
   }
 
-  .home-contact-list div {
-    display: flex;
-    gap: 0.75rem;
+  /* Each way to reach him on a line, its mark beside it */
+  .home-contact-list {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0.8rem 0 0;
+    padding: 0 1rem;
+    list-style: none;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 0.88rem;
   }
 
-  .home-contact-list dt {
+  .home-contact-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+
+  .home-contact-list svg {
     flex: none;
-    width: 4.5rem;
-    padding-top: 0.2rem;
+    width: 16px;
+    height: 16px;
+    color: #6B4D3A;
   }
 
   .home-card p a,
@@ -767,7 +781,8 @@
     text-underline-offset: 2px;
   }
 
-  .home-contact-list dd {
+  .home-contact-list a {
+    min-width: 0;
     overflow-wrap: anywhere;
   }
 
@@ -802,7 +817,8 @@
 
     .home-card p,
     .home-card dl,
-    .home-card-actions {
+    .home-card-actions,
+    .home-contact-list {
       padding: 0 0.85rem;
     }
 

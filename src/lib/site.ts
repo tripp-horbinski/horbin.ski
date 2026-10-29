@@ -13,7 +13,7 @@ export const OG_IMAGE = {
 }
 
 // Where to reach Tripp, on the homepage, in its resume and in its structured data
-export const EMAIL = 'tripp@horbin.ski'
+export const EMAIL = 'tripphorbinski@gmail.com'
 export const GITHUB = 'https://github.com/tripp-horbinski'
 export const LINKEDIN = 'https://www.linkedin.com/in/tripp-horbinski/'
 

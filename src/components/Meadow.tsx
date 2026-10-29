@@ -8,7 +8,7 @@ import { PROJECTS } from '@/content/projects'
 import { MeadowEngine, type Box } from '@/lib/meadow/engine'
 import { featureById, type FeatureId } from '@/lib/meadow/features'
 import { formatHour, paletteAt, phaseName, smooth } from '@/lib/meadow/palette'
-import { CREDLY, RESUME_PDF } from '@/lib/site'
+import { CREDLY, EMAIL, GITHUB, LINKEDIN, RESUME_PDF } from '@/lib/site'
 
 const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'green', 'meadow', 'trail', 'tripp']
 
@@ -66,6 +66,56 @@ const EVENING = 18.9
 const NIGHT = 21.5
 const HOURS = [START_HOUR, ...STEPS.map((step) => step.hour), START_HOUR, EVENING, NIGHT]
 const LATEST = ROLES[0]
+
+// The ways to reach him, each with its mark
+const ICON = { width: 16, height: 16, viewBox: '0 0 16 16', 'aria-hidden': true } as const
+const CONTACT = [
+  {
+    label: 'Email',
+    href: `mailto:${EMAIL}`,
+    text: EMAIL,
+    icon: (
+      <svg {...ICON} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
+        <rect x="1.5" y="3.25" width="13" height="9.5" rx="1.5" />
+        <path d="M2 4l6 4.75L14 4" />
+      </svg>
+    ),
+  },
+  {
+    label: 'LinkedIn',
+    href: LINKEDIN,
+    text: 'in/tripp-horbinski',
+    icon: (
+      <svg {...ICON}>
+        <rect x="1" y="1" width="14" height="14" rx="2" fill="currentColor" />
+        <circle cx="4.9" cy="4.8" r="1.1" fill="#F3EAD6" />
+        <path d="M3.9 6.6h2v5.9h-2zM7.4 6.6h1.9v.9c.4-.7 1.2-1.1 2.1-1.1 1.6 0 2.3 1 2.3 2.7v3.4h-2V9.5c0-.8-.3-1.3-1-1.3s-1.3.5-1.3 1.4v2.9h-2z" fill="#F3EAD6" />
+      </svg>
+    ),
+  },
+  {
+    label: 'GitHub',
+    href: GITHUB,
+    text: 'tripp-horbinski',
+    icon: (
+      <svg {...ICON} fill="currentColor">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'AWS certifications',
+    href: CREDLY,
+    text: 'Every AWS certification, on Credly',
+    // A medal on its ribbon
+    icon: (
+      <svg {...ICON} viewBox="0 0 20 20" fill="currentColor">
+        <path d="M5.5 1.5h3.2l1.3 4.2-2.4 1.9zM14.5 1.5h-3.2L10 5.7l2.4 1.9z" />
+        <circle cx="10" cy="12.5" r="5.5" />
+      </svg>
+    ),
+  },
+]
 
 function boulderHour() {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -591,30 +641,22 @@ export default function Meadow() {
             </a>
             .
           </p>
-          <dl className="home-facts home-contact-list">
-            {PROFILE.contact
-              .filter((c) => c.label !== 'Web')
-              .map((c) => (
-                <div key={c.label}>
-                  <dt>{c.label}</dt>
-                  <dd>
-                    <a href={c.href} {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
-                      {c.text}
-                    </a>
-                  </dd>
-                </div>
-              ))}
-            <div>
-              <dt>AWS</dt>
-              <dd>
-                <a href={CREDLY} target="_blank" rel="noopener noreferrer">
-                  Every certification, on Credly
+          <ul className="home-contact-list">
+            {CONTACT.map((c) => (
+              <li key={c.label}>
+                {c.icon}
+                <a
+                  href={c.href}
+                  aria-label={`${c.label}: ${c.text}`}
+                  {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  {c.text}
                 </a>
-              </dd>
-            </div>
-          </dl>
+              </li>
+            ))}
+          </ul>
           <div className="home-card-actions">
-            <a href={PROFILE.contact[0].href} className="meadow-sign">
+            <a href={`mailto:${EMAIL}`} className="meadow-sign">
               Email me
             </a>
             <a href={RESUME_PDF} className="meadow-sign" download>
