@@ -4,6 +4,8 @@ import { format } from 'date-fns'
 import { getPostBySlug, getAllPosts, markdownToHtml } from '@/lib/posts'
 import { generateBlogPostStructuredData } from '@/lib/structured-data'
 import { OG_IMAGE, SITE_URL } from '@/lib/site'
+import MapSheet from '@/components/MapSheet'
+import SheetNav from '@/components/SheetNav'
 
 interface Props {
   params: { slug: string }
@@ -67,11 +69,13 @@ export default async function BlogPost({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <SheetNav current="/writing/" />
       <article>
-        <Link href="/writing" className="trail-arrow">
-          Writing
-        </Link>
-        <p className="trail-eyebrow mt-8 mb-3">{post.category}</p>
+        {post.map && <MapSheet place={post.map} />}
+        <p className="trail-eyebrow mt-8 mb-3">
+          {post.category}
+          {post.draft && <> &middot; Draft</>}
+        </p>
         <h1 className="text-xl md:text-2xl mb-1">
           {post.title}
         </h1>
