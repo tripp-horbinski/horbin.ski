@@ -1995,17 +1995,21 @@
     pointer-events: auto;
   }
 
-  .home-title {
-    position: absolute;
+  /* His name, his line, his role and the buttons to his resume and to him,
+     fixed over the sky while everything else scrolls */
+  .home-head {
+    position: fixed;
     top: 18px;
     left: 50%;
+    z-index: 2;
     width: calc(100vw - 32px);
     transform: translateX(-50%);
     text-align: center;
+    pointer-events: none;
     text-shadow: 0 1px 2px rgba(18, 22, 36, 0.4), 0 0 28px rgba(18, 22, 36, 0.3);
   }
 
-  .home-title h1 {
+  .home-head h1 {
     color: #FBF6EA;
     font-size: clamp(1.35rem, 3.4vw, 2.5rem);
     line-height: 1;
@@ -2132,7 +2136,7 @@
   }
 
   /* Each stop a screen and a bit of scrolling, its card held in place while
-     the scene walks its milepost in */
+     the hour moves on behind it */
   .home-step {
     position: relative;
     min-height: 115svh;
@@ -2142,11 +2146,13 @@
     min-height: 100svh;
   }
 
+  /* Held on the grass, just below the meadow's far edge (--grass, from the
+     engine's horizon), as tall as the grass leaves room for */
   .home-card {
     position: sticky;
-    top: 20svh;
-    width: min(400px, calc(100vw - 32px));
-    max-height: calc(100svh - 88px);
+    top: calc(var(--grass, 56svh) + 16px);
+    width: min(600px, calc(100vw - 32px));
+    max-height: calc(100svh - var(--grass, 56svh) - 32px);
     margin-left: max(16px, 6vw);
     overflow: auto;
     border-radius: 5px;
@@ -2168,17 +2174,6 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: #F3EAD6;
-  }
-
-  .home-mile {
-    display: grid;
-    place-items: center;
-    width: 1.35rem;
-    height: 1.35rem;
-    border-radius: 3px;
-    background: #F3EAD6;
-    color: #33271F;
-    letter-spacing: 0;
   }
 
   .home-card h2 {
@@ -2278,57 +2273,225 @@
     color: #6B675A;
   }
 
-  /* On a phone the card holds near the top, under the bar, leaving the
-     trail below it in view; only the summary is long enough to cover it */
-  @media (max-width: 640px) {
-    .home-card {
-      top: 64px;
-      max-height: calc(100svh - 80px);
-      margin-left: 16px;
-    }
+  /* What he builds on his own time, as the evening comes on: a slim heading
+     and a card for each side by side, held on the grass like a stop's card */
+  .home-projects {
+    position: relative;
+    min-height: 130svh;
+    padding: 0 max(16px, 6vw);
   }
 
-  /* The bar that comes in once you're past the opening screen */
-  .home-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 40;
-    display: flex;
+  .home-projects-hold {
+    position: sticky;
+    top: calc(var(--grass, 56svh) + 16px);
+  }
+
+  .home-projects-head {
+    display: inline-flex;
     flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.4rem 1.25rem;
-    padding: 0.8rem max(16px, 6vw) 0.7rem;
-    background: rgba(27, 30, 34, 0.62);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    align-items: baseline;
+    gap: 0.2rem 0.75rem;
+    padding: 0.5rem 0.9rem 0.4rem;
+    border-radius: 5px;
+    background: rgba(27, 30, 34, 0.55);
+    color: #FBF6EA;
+  }
+
+  .home-projects-head h2 {
+    color: #FBF6EA;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .home-projects-head p {
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    font-size: 0.85rem;
+  }
+
+  .home-projects-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    max-width: 1100px;
+    margin-top: 0.6rem;
+  }
+
+  .home-card.home-project {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin: 0;
+  }
+
+  .home-project h3 {
+    padding: 0.85rem 1rem 0;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    color: #2B2A25;
+  }
+
+  .home-project h3 + p {
+    margin-top: 0.4rem;
+  }
+
+  .home-card .home-stack {
+    margin-top: 0.6rem;
     font-family: 'Josefin Sans', 'Futura', sans-serif;
     font-weight: 600;
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #F3EAD6;
-    opacity: 0;
-    transform: translateY(-100%);
-    pointer-events: none;
-    transition: opacity 0.25s, transform 0.25s;
+    color: #8A8473;
   }
 
-  .home-bar-on {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-
-  .home-bar ul {
+  .home-project-links {
     display: flex;
-    gap: 1.25rem;
+    flex-wrap: wrap;
+    gap: 0 1rem;
   }
 
-  .home-bar a:hover {
-    color: #FFFFFF;
+  .home-project-links .home-more {
+    margin-right: 0;
+  }
+
+  .home-project-links .home-more:last-child {
+    margin-right: 1rem;
+  }
+
+  /* Getting in touch, under the stars: the last stop, its card held on the
+     grass like the others, each way to reach him on a line */
+  .home-step.home-contact {
+    min-height: 115svh;
+  }
+
+  .home-contact-list div {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .home-contact-list dt {
+    flex: none;
+    width: 4.5rem;
+    padding-top: 0.2rem;
+  }
+
+  .home-card p a,
+  .home-contact-list a {
+    text-decoration: underline;
+    text-decoration-color: #B88C77;
+    text-underline-offset: 2px;
+  }
+
+  .home-contact-list dd {
+    overflow-wrap: anywhere;
+  }
+
+  /* On a phone the card sits at the bottom, over the grass, leaving the sky,
+     the mountain and Tripp on the trail above it in view. A stop's card is at
+     its end so it holds at the bottom of the screen while its stop scrolls
+     by. Everything's a little tighter */
+  @media (max-width: 640px) {
+    .home-step {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .home-card {
+      top: auto;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      width: auto;
+      max-height: calc(100svh - var(--grass, 44svh) - 20px);
+      margin: 0 10px;
+    }
+
+    .home-card header {
+      padding: 0.5rem 0.85rem 0.4rem;
+    }
+
+    .home-card h2,
+    .home-project h3 {
+      padding: 0.65rem 0.85rem 0;
+      font-size: 0.82rem;
+    }
+
+    .home-card p,
+    .home-card dl,
+    .home-card-actions {
+      padding: 0 0.85rem;
+    }
+
+    .home-card p,
+    .home-card dl {
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .home-impact {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem 0.75rem;
+      margin-top: 0.55rem;
+    }
+
+    .home-impact dt {
+      font-size: 1.05rem;
+    }
+
+    .home-impact dd {
+      font-size: 0.68rem;
+    }
+
+    .home-more {
+      margin: 0.6rem 0.85rem 0;
+    }
+
+    .home-card > :last-child {
+      margin-bottom: 0.75rem;
+    }
+
+    .home-tagline {
+      font-size: 0.9rem;
+    }
+
+    /* The projects held at the bottom, swiped through sideways */
+    .home-projects {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0;
+    }
+
+    .home-projects-hold {
+      top: auto;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .home-projects-head {
+      margin-left: 10px;
+    }
+
+    .home-projects-list {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 10px;
+      padding: 0 10px;
+      scrollbar-width: none;
+    }
+
+    .home-projects-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .home-card.home-project {
+      flex: 0 0 84%;
+      max-height: calc(100svh - var(--grass, 44svh) - 64px);
+      scroll-snap-align: center;
+    }
   }
 
   /* The time of day is the walk's to set once you're on it */
@@ -2347,7 +2510,6 @@
       animation: none;
     }
 
-    .home-bar,
     .meadow-top {
       transition: none;
     }
@@ -2670,7 +2832,7 @@
   }
 
   @media (max-width: 640px) {
-    .home-title {
+    .home-head {
       top: 70px;
     }
 

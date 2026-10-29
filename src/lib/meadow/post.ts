@@ -73,26 +73,3 @@ export function drawPost(ctx: CanvasRenderingContext2D, light: string) {
   ctx.stroke()
   ctx.restore()
 }
-
-// A milepost for the career walk, cut like the trail post: a square post with
-// a corner toward you, its number on a plate. Its foot is at the origin and
-// it's drawn at the trail post's scale; the engine sizes it for its distance
-export const MILEPOST_FOOT = 672
-
-export function drawMilepost(ctx: CanvasRenderingContext2D, light: string, n: number) {
-  const c = (hex: string) => lit(hex, light)
-  ctx.fillStyle = c(C.postHi)
-  ctx.fill(new Path2D('M-8 -118L-1 -115L-1 0L-8 0Z'))
-  ctx.fillStyle = c(C.post)
-  ctx.fill(new Path2D('M-1 -115L9 -120L9 0L-1 0Z'))
-  ctx.fillStyle = c(C.top)
-  ctx.fill(new Path2D('M-8 -118L1 -122.5L9 -120L-1 -115Z'))
-  // The plate, its number routed in
-  ctx.fillStyle = c(C.sticker)
-  ctx.fill(new Path2D('M0.5 -108L8 -111.5L8 -88L0.5 -84.5Z'))
-  ctx.fillStyle = c(C.grain)
-  ctx.font = '700 14px "Josefin Sans", "Futura", sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(String(n), 4.3, -97)
-}

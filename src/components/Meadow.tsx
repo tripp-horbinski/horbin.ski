@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent } from 'react'
 import { CERTIFICATIONS, EDUCATION, PROFILE, ROLES } from '@/content/career'
+import { PROJECTS } from '@/content/projects'
 import { MeadowEngine, type Box } from '@/lib/meadow/engine'
 import { featureById, type FeatureId } from '@/lib/meadow/features'
 import { formatHour, paletteAt, phaseName, smooth } from '@/lib/meadow/palette'
-import { RESUME_PDF } from '@/lib/site'
+import { CREDLY, RESUME_PDF } from '@/lib/site'
 
 const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'green', 'meadow', 'trail', 'tripp']
 
@@ -16,9 +17,9 @@ const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'gree
 const START_HOUR = 14.75
 
 // The career walk the page scrolls through over the meadow: where its Resume
-// button lands, a milepost for each step of his career, oldest first, and
-// today. Each stop sets the hour, from dawn for his first step to the hour the
-// scene opens on, now
+// button lands, a stop for each step of his career, oldest first, and today.
+// Each stop sets the hour, from dawn for his first step to the hour the scene
+// opens on, now
 const DAWN = 6.5
 const NOW = 2026 + 9 / 12
 const yearOf = (month: string) => {
@@ -61,8 +62,12 @@ const STEPS: Step[] = [
 ]
   .sort((a, b) => a.month.localeCompare(b.month))
   .map(({ month, ...step }) => ({ ...step, hour: hourOf(month) }))
-// The hour at each stop: the summary, the steps, then today
-const HOURS = [START_HOUR, ...STEPS.map((step) => step.hour), START_HOUR]
+// The hour at each stop: the summary, the steps, today, evening coming on
+// over what he builds on his own time after the sun's left the meadow, and
+// night under the stars for getting in touch
+const EVENING = 18.9
+const NIGHT = 21.5
+const HOURS = [START_HOUR, ...STEPS.map((step) => step.hour), START_HOUR, EVENING, NIGHT]
 const LATEST = ROLES[0]
 
 function boulderHour() {
@@ -102,8 +107,7 @@ function placeNote(el: HTMLElement | null, pin: HTMLElement | null, pos: [number
 // Over Tripp, wherever he is on screen
 function placeLink(el: HTMLElement | null, b: Box) {
   if (!el) return
-  // Nowhere while he's off the trail for the walk
-  el.style.visibility = b.w ? 'visible' : 'hidden'
+  el.style.visibility = 'visible'
   el.style.width = `${b.w}px`
   el.style.height = `${b.h}px`
   el.style.transform = `translate(${b.x}px, ${b.y}px)`
@@ -118,8 +122,9 @@ export default function Meadow() {
   const pinRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const trippRef = useRef<HTMLAnchorElement>(null)
-  const stepRefs = useRef<(HTMLDivElement | null)[]>([])
-  // Scrolled past the opening screen, where the bar comes in and the options go
+  // The walk's stops, today, then the projects, in the order the page passes them
+  const stepRefs = useRef<(HTMLElement | null)[]>([])
+  // Scrolled past the opening screen, where the time-of-day options go
   const [past, setPast] = useState(false)
   const [hour, setHour] = useState(START_HOUR)
   const [playing, setPlaying] = useState(false)
@@ -151,14 +156,32 @@ export default function Meadow() {
     })
     engineRef.current = engine
 
+    // The cards live on the grass: the page's parts past the first screen
+    // fade out where they'd scroll up past the meadow's far edge into the
+    // trees and the mountain, a fade that's redrawn as they scroll
+    const root = document.documentElement
+    const clip = (grass: number) => {
+      for (const id of ['career', 'projects', 'contact']) {
+        const el = document.getElementById(id)
+        if (!el) continue
+        const cut = grass - el.getBoundingClientRect().top
+        const mask = cut > 0 ? `linear-gradient(to bottom, transparent ${cut}px, #000 ${cut + 28}px)` : ''
+        el.style.maskImage = mask
+        el.style.webkitMaskImage = mask
+      }
+    }
+
     // How far down the walk the page is, in stops (the summary 0, the steps
-    // from 1, today last), by where the stops' middles are against the middle
-    // of the screen: the engine walks the mileposts and sets the hour from it
+    // from 1, then today, the projects and getting in touch), by where the
+    // stops' middles are against the middle of the grass; the hour follows it
     let raf = 0
     let shown = START_HOUR
     const measure = () => {
       raf = 0
-      const line = window.innerHeight * 0.5
+      const grass = engine.horizon() + 6
+      root.style.setProperty('--grass', `${Math.round(grass)}px`)
+      clip(grass)
+      const line = (grass + window.innerHeight) / 2
       const centers = stepRefs.current.map((el) => {
         const r = el!.getBoundingClientRect()
         return r.top + r.height / 2
@@ -170,7 +193,6 @@ export default function Meadow() {
         const i = centers.findIndex((c, k) => k < last && line >= c && line < centers[k + 1])
         p = i + (line - centers[i]) / (centers[i + 1] - centers[i])
       }
-      engine.setWalk(p, STEPS.length)
       const i = Math.min(last - 1, Math.floor(p))
       // The opening hour rewinds to dawn on the way to the first step
       const f = i === 0 ? smooth(0, 1, p - i) : p - i
@@ -187,7 +209,7 @@ export default function Meadow() {
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
-    engine.setWalk(0, STEPS.length)
+    measure()
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
@@ -202,15 +224,17 @@ export default function Meadow() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
       window.removeEventListener('keydown', onKey)
+      root.style.removeProperty('--grass')
     }
   }, [])
 
-  // The Resume button and the bar's links slide down to the walk
-  function toCareer(e: MouseEvent) {
+  // The Resume button and the bar's links slide down to their part of the page
+  const toSection = (id: string) => (e: MouseEvent) => {
     e.preventDefault()
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    document.getElementById('career')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+    document.getElementById(id)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
   }
+  const toCareer = toSection('career')
 
   useEffect(() => engineRef.current?.setPinned(pinned), [pinned])
   useEffect(() => engineRef.current?.setPlaying(playing), [playing])
@@ -272,9 +296,9 @@ export default function Meadow() {
 
       {/* The canvas picks Tripp out by his outline for the pointer; this link
           is for the keyboard and the screen reader */}
-      <Link ref={trippRef} href="/about/" className="meadow-tripp">
-        About Tripp
-      </Link>
+      <a ref={trippRef} href="#contact" className="meadow-tripp" onClick={toSection('contact')}>
+        Get in touch with Tripp
+      </a>
 
       {panel && (
         <div id="meadow-panel" className="meadow-panel">
@@ -382,7 +406,9 @@ export default function Meadow() {
         pointer through to the meadow */}
     <div className="home">
       <section className="home-hero" aria-labelledby="home-name">
-        <div className="home-title">
+        {/* Who he is and the quick ways to his resume and to him stay put
+            over the sky while everything else scrolls */}
+        <div className="home-head">
           <h1 id="home-name">Tripp Horbinski</h1>
           <p className="home-tagline">{PROFILE.tagline}</p>
           <p className="home-role">
@@ -392,12 +418,9 @@ export default function Meadow() {
             <a href="#career" className="meadow-sign" onClick={toCareer}>
               Resume
             </a>
-            <a href={RESUME_PDF} className="meadow-sign" download>
-              Download PDF
-            </a>
-            <Link href="/about/" className="meadow-sign">
+            <a href="#contact" className="meadow-sign" onClick={toSection('contact')}>
               Get in touch
-            </Link>
+            </a>
           </div>
         </div>
         <a href="#career" className="home-cue" onClick={toCareer}>
@@ -458,9 +481,6 @@ export default function Meadow() {
           >
             <article className="home-card">
               <header>
-                <span className="home-mile" aria-label={`Milepost ${i + 1}`}>
-                  {i + 1}
-                </span>
                 <span>{step.meta}</span>
               </header>
               <h2>{step.title}</h2>
@@ -506,41 +526,113 @@ export default function Meadow() {
               <a href={RESUME_PDF} className="meadow-sign" download>
                 Download PDF
               </a>
-              <Link href="/about/" className="meadow-sign">
+              <a href="#contact" className="meadow-sign" onClick={toSection('contact')}>
                 Get in touch
-              </Link>
+              </a>
             </div>
+            <p className="home-hint">Keep scrolling for what I build on my own time.</p>
           </article>
         </div>
       </section>
-    </div>
 
-    {/* Once past the opening screen: his name back to the top, and the way to everything else */}
-    <nav className={`home-bar${past ? ' home-bar-on' : ''}`} aria-label="Site">
-      <a
-        href="#top"
-        className="home-bar-name"
-        onClick={(e) => {
-          e.preventDefault()
-          window.scrollTo({ top: 0, behavior: 'smooth' })
+      {/* What he builds because he loves to, as the evening comes on */}
+      <section
+        id="projects"
+        className="home-projects"
+        aria-labelledby="projects-title"
+        ref={(el) => {
+          stepRefs.current[STEPS.length + 2] = el
         }}
       >
-        Tripp Horbinski
-      </a>
-      <ul>
-        <li>
-          <a href="#career" onClick={toCareer}>
-            Career
-          </a>
-        </li>
-        <li>
-          <Link href="/projects/">Projects</Link>
-        </li>
-        <li>
-          <Link href="/about/">About</Link>
-        </li>
-      </ul>
-    </nav>
+        <div className="home-projects-hold">
+        <header className="home-projects-head">
+          <h2 id="projects-title">On my own time</h2>
+          <p>Things I&apos;ve built because I love building them</p>
+        </header>
+        <div className="home-projects-list">
+          {PROJECTS.map((p) => (
+            <article key={p.id} className="home-card home-project">
+              <header>
+                <span>
+                  {p.kind} &middot; {p.year}
+                </span>
+              </header>
+              <h3>{p.name}</h3>
+              <p>{p.summary}</p>
+              <p className="home-stack">{p.stack.join(' · ')}</p>
+              <div className="home-project-links">
+                {p.link && (
+                  <a href={p.link.href} className="home-more" target="_blank" rel="noopener noreferrer">
+                    {p.link.text} &rarr;
+                  </a>
+                )}
+                <Link href={`/projects/#${p.id}`} className="home-more">
+                  More &rarr;
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+        </div>
+      </section>
+
+      {/* Who he is off the keyboard and how to reach him, under the stars */}
+      <section
+        id="contact"
+        className="home-step home-contact"
+        aria-labelledby="contact-title"
+        ref={(el) => {
+          stepRefs.current[STEPS.length + 3] = el
+        }}
+      >
+        <article className="home-card home-contact-card">
+          <header>
+            <span>Get in touch</span>
+          </header>
+          <h2 id="contact-title">I&apos;d like to hear from you</h2>
+          <p>
+            Off the keyboard I run marathons and backpack: in August 2025 I walked the{' '}
+            <Link href="/backpacking/">Arctic Circle Trail</Link>, 167 km across Greenland. My long trail at home is the
+            Ice Age Trail, and I&apos;m a dog dad to two{' '}
+            <a href="https://puppe.rs" target="_blank" rel="noopener noreferrer">
+              puppers
+            </a>
+            .
+          </p>
+          <dl className="home-facts home-contact-list">
+            {PROFILE.contact
+              .filter((c) => c.label !== 'Web')
+              .map((c) => (
+                <div key={c.label}>
+                  <dt>{c.label}</dt>
+                  <dd>
+                    <a href={c.href} {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                      {c.text}
+                    </a>
+                  </dd>
+                </div>
+              ))}
+            <div>
+              <dt>AWS</dt>
+              <dd>
+                <a href={CREDLY} target="_blank" rel="noopener noreferrer">
+                  Every certification, on Credly
+                </a>
+              </dd>
+            </div>
+          </dl>
+          <div className="home-card-actions">
+            <a href={PROFILE.contact[0].href} className="meadow-sign">
+              Email me
+            </a>
+            <a href={RESUME_PDF} className="meadow-sign" download>
+              Download PDF
+            </a>
+          </div>
+        </article>
+      </section>
+    </div>
+
     </>
   )
 }
