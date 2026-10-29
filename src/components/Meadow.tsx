@@ -203,12 +203,12 @@ export default function Meadow() {
     })
     engineRef.current = engine
 
-    // The cards live on the grass: the page's parts past the first screen
+    // The cards live on the grass: they, and the first screen's scroll cue,
     // fade out where they'd scroll up past the meadow's far edge into the
     // trees and the mountain, a fade that's redrawn as they scroll
     const root = document.documentElement
     const clip = (grass: number) => {
-      for (const id of ['career', 'projects', 'contact']) {
+      for (const id of ['home-cue', 'career', 'projects', 'contact']) {
         const el = document.getElementById(id)
         if (!el) continue
         const cut = grass - el.getBoundingClientRect().top
@@ -470,10 +470,9 @@ export default function Meadow() {
             </a>
           </div>
         </div>
-        <a href="#career" className="home-cue" onClick={toCareer}>
-          Scroll to walk my career
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M2 4l4 4 4-4" />
+        <a id="home-cue" href="#career" className="home-cue" onClick={toCareer} aria-label="Scroll to walk my career">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4.5 5l4.5 4.5L13.5 5M4.5 9.5L9 14l4.5-4.5" />
           </svg>
         </a>
       </section>
