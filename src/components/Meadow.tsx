@@ -3,15 +3,67 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, MouseEvent } from 'react'
+import { CERTIFICATIONS, EDUCATION, PROFILE, ROLES } from '@/content/career'
 import { MeadowEngine, type Box } from '@/lib/meadow/engine'
 import { featureById, type FeatureId } from '@/lib/meadow/features'
-import { formatHour, paletteAt, phaseName } from '@/lib/meadow/palette'
+import { formatHour, paletteAt, phaseName, smooth } from '@/lib/meadow/palette'
+import { RESUME_PDF } from '@/lib/site'
 
 const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'green', 'meadow', 'trail', 'tripp']
 
 // The scene opens at 2:45 in the afternoon, whatever the site's theme
 const START_HOUR = 14.75
+
+// The career walk the page scrolls through over the meadow: where its Resume
+// button lands, a milepost for each step of his career, oldest first, and
+// today. Each stop sets the hour, from dawn for his first step to the hour the
+// scene opens on, now
+const DAWN = 6.5
+const NOW = 2026 + 9 / 12
+const yearOf = (month: string) => {
+  const [y, m] = month.split('-').map(Number)
+  return y + (m - 1) / 12
+}
+const hourOf = (month: string) => DAWN + ((yearOf(month) - 2014) / (NOW - 2014)) * (START_HOUR - DAWN)
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+type Step = {
+  meta: string
+  title: string
+  org: string
+  impact?: { value: string; label: string }[]
+  text?: string
+  href: string
+  link: string
+  hour: number
+}
+const SCHOOL = EDUCATION[0]
+// In the order they happened: school, each role (a role told in phases, a
+// stop for each, so GoFundMe's turn to full stack is its own step), and the
+// Golden Jacket where it fell
+const STEPS: Step[] = [
+  { month: SCHOOL.start, meta: SCHOOL.dates, title: SCHOOL.degree, org: SCHOOL.school, href: `/career/#${slug(SCHOOL.school)}`, link: 'On my resume' },
+  ...ROLES.flatMap((r) =>
+    (r.phases ?? [{ label: '', dates: r.dates, start: r.start, highlights: r.highlights, impact: r.impact }]).map((p) => ({
+      month: p.start,
+      meta: p.dates,
+      title: r.title,
+      org: [r.org, p.label, r.place].filter(Boolean).join(' · '),
+      impact: p.impact,
+      // Without numbers, a stop leads with its first bullet
+      text: p.impact.length ? undefined : p.highlights[0],
+      href: `/career/#${slug(r.org)}`,
+      link: 'More on my resume',
+    })),
+  ),
+  ...CERTIFICATIONS.map((c) => ({ month: c.month, meta: c.date, title: c.name, org: c.issuer, text: c.note, href: c.href, link: 'Verify on Credly' })),
+]
+  .sort((a, b) => a.month.localeCompare(b.month))
+  .map(({ month, ...step }) => ({ ...step, hour: hourOf(month) }))
+// The hour at each stop: the summary, the steps, then today
+const HOURS = [START_HOUR, ...STEPS.map((step) => step.hour), START_HOUR]
+const LATEST = ROLES[0]
 
 function boulderHour() {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -50,7 +102,8 @@ function placeNote(el: HTMLElement | null, pin: HTMLElement | null, pos: [number
 // Over Tripp, wherever he is on screen
 function placeLink(el: HTMLElement | null, b: Box) {
   if (!el) return
-  el.style.visibility = 'visible'
+  // Nowhere while he's off the trail for the walk
+  el.style.visibility = b.w ? 'visible' : 'hidden'
   el.style.width = `${b.w}px`
   el.style.height = `${b.h}px`
   el.style.transform = `translate(${b.x}px, ${b.y}px)`
@@ -65,6 +118,9 @@ export default function Meadow() {
   const pinRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const trippRef = useRef<HTMLAnchorElement>(null)
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([])
+  // Scrolled past the opening screen, where the bar comes in and the options go
+  const [past, setPast] = useState(false)
   const [hour, setHour] = useState(START_HOUR)
   const [playing, setPlaying] = useState(false)
   const [sound, setSound] = useState(false)
@@ -95,9 +151,44 @@ export default function Meadow() {
     })
     engineRef.current = engine
 
-    const root = document.documentElement
-    const overflow = root.style.overflow
-    root.style.overflow = 'hidden'
+    // How far down the walk the page is, in stops (the summary 0, the steps
+    // from 1, today last), by where the stops' middles are against the middle
+    // of the screen: the engine walks the mileposts and sets the hour from it
+    let raf = 0
+    let shown = START_HOUR
+    const measure = () => {
+      raf = 0
+      const line = window.innerHeight * 0.5
+      const centers = stepRefs.current.map((el) => {
+        const r = el!.getBoundingClientRect()
+        return r.top + r.height / 2
+      })
+      const last = centers.length - 1
+      let p = 0
+      if (line >= centers[last]) p = last
+      else if (line > centers[0]) {
+        const i = centers.findIndex((c, k) => k < last && line >= c && line < centers[k + 1])
+        p = i + (line - centers[i]) / (centers[i + 1] - centers[i])
+      }
+      engine.setWalk(p, STEPS.length)
+      const i = Math.min(last - 1, Math.floor(p))
+      // The opening hour rewinds to dawn on the way to the first step
+      const f = i === 0 ? smooth(0, 1, p - i) : p - i
+      const h = HOURS[i] + (HOURS[i + 1] - HOURS[i]) * f
+      engine.setHour(h)
+      if (Math.abs(h - shown) > 1 / 12) {
+        shown = h
+        setHour(h)
+      }
+      setPast(window.scrollY > window.innerHeight * 0.5)
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(measure)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    engine.setWalk(0, STEPS.length)
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       setPinned(null)
@@ -107,10 +198,19 @@ export default function Meadow() {
     return () => {
       engine.destroy()
       engineRef.current = null
-      root.style.overflow = overflow
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
       window.removeEventListener('keydown', onKey)
     }
   }, [])
+
+  // The Resume button and the bar's links slide down to the walk
+  function toCareer(e: MouseEvent) {
+    e.preventDefault()
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    document.getElementById('career')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+  }
 
   useEffect(() => engineRef.current?.setPinned(pinned), [pinned])
   useEffect(() => engineRef.current?.setPlaying(playing), [playing])
@@ -145,6 +245,7 @@ export default function Meadow() {
   const note = pinned ? featureById(pinned) : null
 
   return (
+    <>
     <div className="meadow">
       <canvas
         ref={canvasRef}
@@ -153,7 +254,7 @@ export default function Meadow() {
         aria-label="Illustration of the Flatirons above Chautauqua Meadow in Boulder, Colorado, with golden late-summer grass and a trail post in the foreground."
       />
 
-      <header className="meadow-top">
+      <header className={`meadow-top${past ? ' meadow-top-away' : ''}`}>
         <button
           type="button"
           className="meadow-sign"
@@ -168,10 +269,6 @@ export default function Meadow() {
           <span className="hidden sm:inline">Options</span>
         </button>
       </header>
-
-      <div className="meadow-title">
-        <h1>Tripp Horbinski</h1>
-      </div>
 
       {/* The canvas picks Tripp out by his outline for the pointer; this link
           is for the keyboard and the screen reader */}
@@ -279,5 +376,171 @@ export default function Meadow() {
         )}
       </section>
     </div>
+
+    {/* The page over the scene: who he is and the quick ways to his resume,
+        then his career as a walk down the trail. Empty space lets the
+        pointer through to the meadow */}
+    <div className="home">
+      <section className="home-hero" aria-labelledby="home-name">
+        <div className="home-title">
+          <h1 id="home-name">Tripp Horbinski</h1>
+          <p className="home-tagline">{PROFILE.tagline}</p>
+          <p className="home-role">
+            {PROFILE.headline} &middot; Milwaukee &middot; AWS Golden Jacket
+          </p>
+          <div className="home-actions">
+            <a href="#career" className="meadow-sign" onClick={toCareer}>
+              Resume
+            </a>
+            <a href={RESUME_PDF} className="meadow-sign" download>
+              Download PDF
+            </a>
+            <Link href="/about/" className="meadow-sign">
+              Get in touch
+            </Link>
+          </div>
+        </div>
+        <a href="#career" className="home-cue" onClick={toCareer}>
+          Scroll to walk my career
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2 4l4 4 4-4" />
+          </svg>
+        </a>
+      </section>
+
+      <section id="career" className="home-walk" aria-labelledby="career-title">
+        <div
+          className="home-step"
+          ref={(el) => {
+            stepRefs.current[0] = el
+          }}
+        >
+          <article className="home-card">
+            <header>
+              <span>Career</span>
+            </header>
+            <h2 id="career-title">{PROFILE.headline}</h2>
+            <p>{PROFILE.intro}</p>
+            <dl className="home-facts">
+              <div>
+                <dt>Most recently</dt>
+                <dd>
+                  {LATEST.title}, {LATEST.org} &middot; {LATEST.dates}
+                </dd>
+              </div>
+              <div>
+                <dt>Certified</dt>
+                <dd>
+                  {CERTIFICATIONS[0].name} &middot; {CERTIFICATIONS[0].date}
+                </dd>
+              </div>
+            </dl>
+            <div className="home-card-actions">
+              <Link href="/career/" className="meadow-sign">
+                Full resume
+              </Link>
+              <a href={RESUME_PDF} className="meadow-sign" download>
+                Download PDF
+              </a>
+            </div>
+            <p className="home-hint">Keep scrolling to walk it, 2014 to today.</p>
+          </article>
+        </div>
+
+        {STEPS.map((step, i) => (
+          <div
+            // A role's phases share its title; with the dates each is unique
+            key={`${step.title} ${step.meta}`}
+            className="home-step"
+            ref={(el) => {
+              stepRefs.current[i + 1] = el
+            }}
+          >
+            <article className="home-card">
+              <header>
+                <span className="home-mile" aria-label={`Milepost ${i + 1}`}>
+                  {i + 1}
+                </span>
+                <span>{step.meta}</span>
+              </header>
+              <h2>{step.title}</h2>
+              <p className="home-org">{step.org}</p>
+              {step.impact && step.impact.length > 0 && (
+                <dl className="home-impact">
+                  {step.impact.map((n) => (
+                    <div key={n.label}>
+                      <dt>{n.value}</dt>
+                      <dd>{n.label}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {step.text && <p>{step.text}</p>}
+              <a
+                href={step.href}
+                className="home-more"
+                {...(step.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {step.link} &rarr;
+              </a>
+            </article>
+          </div>
+        ))}
+
+        <div
+          className="home-step home-step-today"
+          ref={(el) => {
+            stepRefs.current[STEPS.length + 1] = el
+          }}
+        >
+          <article className="home-card">
+            <header>
+              <span>Today</span>
+            </header>
+            <h2>That&apos;s the trail so far</h2>
+            <p>The whole of it is on my resume, and I&apos;d like to hear from you.</p>
+            <div className="home-card-actions">
+              <Link href="/career/" className="meadow-sign">
+                Full resume
+              </Link>
+              <a href={RESUME_PDF} className="meadow-sign" download>
+                Download PDF
+              </a>
+              <Link href="/about/" className="meadow-sign">
+                Get in touch
+              </Link>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    {/* Once past the opening screen: his name back to the top, and the way to everything else */}
+    <nav className={`home-bar${past ? ' home-bar-on' : ''}`} aria-label="Site">
+      <a
+        href="#top"
+        className="home-bar-name"
+        onClick={(e) => {
+          e.preventDefault()
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}
+      >
+        Tripp Horbinski
+      </a>
+      <ul>
+        <li>
+          <a href="#career" onClick={toCareer}>
+            Career
+          </a>
+        </li>
+        <li>
+          <Link href="/projects/">Projects</Link>
+        </li>
+        <li>
+          <Link href="/about/">About</Link>
+        </li>
+      </ul>
+    </nav>
+    </>
   )
 }

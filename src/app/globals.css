@@ -1211,6 +1211,25 @@
     color: var(--text-nav);
   }
 
+  /* A role told in phases, each under its own line */
+  .career-phase {
+    margin-top: 0.9rem;
+  }
+
+  .career-phase h4 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0 1rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--leg);
+  }
+
   .career-impact {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
@@ -1391,6 +1410,14 @@
     .career-role {
       padding-left: 0;
       border-left: none;
+    }
+
+    .career-phase {
+      margin-top: 0.5rem;
+    }
+
+    .career-phase h4 {
+      color: inherit;
     }
 
     .resume .sheet-title {
@@ -1898,10 +1925,11 @@
   }
 
   /* The meadow: a full-screen scene with routed-wood park signs for controls */
+  /* The scene, fixed behind the homepage as it scrolls over it */
   .meadow {
     position: fixed;
     inset: 0;
-    z-index: 30;
+    z-index: 0;
     overflow: hidden;
     background: #3C76C6;
     color: #F3EAD6;
@@ -1967,18 +1995,17 @@
     pointer-events: auto;
   }
 
-  .meadow-title {
+  .home-title {
     position: absolute;
     top: 18px;
     left: 50%;
+    width: calc(100vw - 32px);
     transform: translateX(-50%);
     text-align: center;
-    white-space: nowrap;
-    pointer-events: none;
     text-shadow: 0 1px 2px rgba(18, 22, 36, 0.4), 0 0 28px rgba(18, 22, 36, 0.3);
   }
 
-  .meadow-title h1 {
+  .home-title h1 {
     color: #FBF6EA;
     font-size: clamp(1.35rem, 3.4vw, 2.5rem);
     line-height: 1;
@@ -2009,6 +2036,321 @@
   .meadow-tripp:focus-visible {
     outline: 2px solid #FBF6EA;
     outline-offset: 2px;
+  }
+
+  /* The homepage over the scene: a full screen to open on, then the career
+     walk, a stop at a time. The page itself lets the pointer through to the
+     meadow; only what's on it takes it */
+  main:has(.home) {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  body:has(.home) .profile,
+  body:has(.home) .theme-toggle {
+    display: none;
+  }
+
+  .home {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    color: #F3EAD6;
+  }
+
+  .home a,
+  .home button,
+  .home-card {
+    pointer-events: auto;
+  }
+
+  .home-hero {
+    position: relative;
+    height: 100svh;
+  }
+
+  /* His own line, in the body face so it reads as him talking */
+  .home-tagline {
+    margin-top: 0.9rem;
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.9vw, 1.25rem);
+    color: #FBF6EA;
+  }
+
+  .home-role {
+    margin-top: 0.6rem;
+    font-weight: 600;
+    font-size: clamp(0.62rem, 1.4vw, 0.8rem);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #FBF6EA;
+  }
+
+  .home-actions,
+  .home-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.1rem;
+  }
+
+  .home-actions .meadow-sign,
+  .home-card-actions .meadow-sign {
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #F3EAD6;
+    text-shadow: none;
+  }
+
+  .home-cue {
+    position: absolute;
+    left: 50%;
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    translate: -50% 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.55rem 0.9rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(27, 30, 34, 0.55);
+    font-weight: 600;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    animation: home-nudge 2.4s ease-in-out infinite;
+  }
+
+  @keyframes home-nudge {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  /* Each stop a screen and a bit of scrolling, its card held in place while
+     the scene walks its milepost in */
+  .home-step {
+    position: relative;
+    min-height: 115svh;
+  }
+
+  .home-step-today {
+    min-height: 100svh;
+  }
+
+  .home-card {
+    position: sticky;
+    top: 20svh;
+    width: min(400px, calc(100vw - 32px));
+    max-height: calc(100svh - 88px);
+    margin-left: max(16px, 6vw);
+    overflow: auto;
+    border-radius: 5px;
+    background: #F3EAD6;
+    color: #3B3A33;
+    box-shadow: 0 3px 0 #C9B996, 0 18px 40px rgba(20, 14, 8, 0.35);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .home-card header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem 0.45rem;
+    background: #3D5E45;
+    font-weight: 600;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #F3EAD6;
+  }
+
+  .home-mile {
+    display: grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 3px;
+    background: #F3EAD6;
+    color: #33271F;
+    letter-spacing: 0;
+  }
+
+  .home-card h2 {
+    padding: 0.85rem 1rem 0;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #2B2A25;
+  }
+
+  .home-card p,
+  .home-card dl {
+    padding: 0 1rem;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .home-card h2 + p,
+  .home-card .home-org + p {
+    margin-top: 0.45rem;
+  }
+
+  .home-card .home-org {
+    margin-top: 0.15rem;
+    font-style: italic;
+    color: #6B675A;
+  }
+
+  .home-facts {
+    margin-top: 0.75rem;
+  }
+
+  .home-facts div + div {
+    margin-top: 0.3rem;
+  }
+
+  .home-facts dt {
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #8F5F4A;
+  }
+
+  .home-impact {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 0.7rem 1rem;
+    margin-top: 0.75rem;
+  }
+
+  .home-impact dt {
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.1;
+    color: #2B2A25;
+  }
+
+  .home-impact dd {
+    margin-top: 0.1rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: #5A5649;
+  }
+
+  .home-card-actions {
+    justify-content: flex-start;
+    padding: 0 1rem;
+  }
+
+  .home-more {
+    display: inline-block;
+    margin: 0.85rem 1rem 0;
+    font-weight: 600;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #8F5F4A;
+  }
+
+  .home-more:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .home-card > :last-child {
+    margin-bottom: 1rem;
+  }
+
+  .home-card .home-hint {
+    margin-top: 0.85rem;
+    font-style: italic;
+    color: #6B675A;
+  }
+
+  /* On a phone the card holds near the top, under the bar, leaving the
+     trail below it in view; only the summary is long enough to cover it */
+  @media (max-width: 640px) {
+    .home-card {
+      top: 64px;
+      max-height: calc(100svh - 80px);
+      margin-left: 16px;
+    }
+  }
+
+  /* The bar that comes in once you're past the opening screen */
+  .home-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 1.25rem;
+    padding: 0.8rem max(16px, 6vw) 0.7rem;
+    background: rgba(27, 30, 34, 0.62);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #F3EAD6;
+    opacity: 0;
+    transform: translateY(-100%);
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+  }
+
+  .home-bar-on {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .home-bar ul {
+    display: flex;
+    gap: 1.25rem;
+  }
+
+  .home-bar a:hover {
+    color: #FFFFFF;
+  }
+
+  /* The time of day is the walk's to set once you're on it */
+  .meadow-top {
+    transition: opacity 0.25s;
+  }
+
+  .meadow-top-away {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s, visibility 0s 0.25s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-cue {
+      animation: none;
+    }
+
+    .home-bar,
+    .meadow-top {
+      transition: none;
+    }
   }
 
   /* The one panel, opened from the top right: time of day, sound, field guide */
@@ -2328,7 +2670,7 @@
   }
 
   @media (max-width: 640px) {
-    .meadow-title {
+    .home-title {
       top: 70px;
     }
 

@@ -6,14 +6,19 @@ import { Ambience } from './audio'
 import { featureById, type FeatureId } from './features'
 import { Grass, gustiness, type Pointer } from './grass'
 import { blend, lightAt, lit, paletteAt, rgba, smooth, type Palette } from './palette'
-import { drawPost } from './post'
+import { drawMilepost, drawPost, MILEPOST_FOOT } from './post'
 import { drawRunner, onRunner, RUNNER, STANCE } from './runner'
-import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Pt, type Scene } from './scene'
+import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, TRAIL_AT_TRIPP, TRAIL_LENGTH, trailAt, X0, X1, type Pt, type Scene } from './scene'
 import { depth, facing, FOCAL, moonAt, pointAt, project, sideways, sunDirection } from './sun'
 import { TERRAIN } from './terrain'
 
 // One full day when playing, in seconds
 const DAY_SECONDS = 96
+// The career walk: how long a milepost holds still either side of its stop,
+// in stops, while you read it, and how far past the trail's near end, in frame
+// units, a passed post walks out of the picture
+const HOLD = 0.2
+const BEYOND = 420
 // Ground depth gained per photo pixel below the horizon
 const K = 0.65 / 300
 const GROUND_DEPTH = 0.35
@@ -136,6 +141,7 @@ export class MeadowEngine {
   private hover: Hit = 'sky'
   private pinned: FeatureId | null = null
   private trippBox: Box = { x: 0, y: 0, w: 0, h: 0 }
+  private walk = { progress: 0, count: 0 }
   // His silhouette in white at the size he's drawn, made when first needed after a resize
   private trippMask: HTMLCanvasElement | null = null
   // And blurred into the glow round him
@@ -235,6 +241,12 @@ export class MeadowEngine {
 
   setPinned(id: FeatureId | null) {
     this.pinned = id
+  }
+
+  // How far down the career walk the page is, in stops: 0 before it, a
+  // milepost at each of 1 to `count`, and today after the last
+  setWalk(progress: number, count: number) {
+    this.walk = { progress, count }
   }
 
   // --- View ---
@@ -365,7 +377,7 @@ export class MeadowEngine {
     const Y = y * this.dpr
     let hit: Hit = 'sky'
     this.trippTransform()
-    if (onRunner(ctx, X, Y)) hit = 'tripp'
+    if (this.trippShown() > 0.5 && onRunner(ctx, X, Y)) hit = 'tripp'
     else {
       this.ground()
       if (ctx.isPointInPath(scene.trailHit, X, Y)) hit = 'trail'
@@ -601,6 +613,7 @@ export class MeadowEngine {
         this.drawTripp()
         this.screen()
       }],
+      ...this.mileposts(),
     ])
 
     this.drawSeeds()
@@ -614,19 +627,58 @@ export class MeadowEngine {
     ctx.fillRect(0, 0, this.W, this.H)
   }
 
+  // The career walk's mileposts, each in the grass at the row of its foot. A
+  // post comes over the rise at the trail's far end a stop before its own,
+  // walks down the trail to where Tripp stands, holds there while you read
+  // its stop, and walks on out of the picture. Sized for its distance: with
+  // the camera at eye height, a thing's height on screen goes with how far
+  // its foot is below the horizon
+  private mileposts(): [number, () => void][] {
+    const { progress, count } = this.walk
+    const posts: [number, () => void][] = []
+    for (let i = 1; i <= count; i++) {
+      const o = progress - i
+      const away = (Math.sign(o) * Math.max(0, Math.abs(o) - HOLD)) / (1 - HOLD)
+      if (away <= -1 || away >= 1) continue
+      const along = away < 0 ? TRAIL_AT_TRIPP * (1 + away) : TRAIL_AT_TRIPP + away * (TRAIL_LENGTH + BEYOND - TRAIL_AT_TRIPP)
+      const [x, y, w] = trailAt(along)
+      const f = (y - HORIZON) / (MILEPOST_FOOT - HORIZON)
+      posts.push([y, () => {
+        this.layer(GROUND_DEPTH + (y - HORIZON) * K)
+        // At the trail's edge, on the right
+        this.ctx.translate(x + w / 2 + 10 * f, y)
+        this.ctx.scale(f, f)
+        drawMilepost(this.ctx, this.pal.light, i)
+        this.screen()
+      }])
+    }
+    return posts
+  }
+
+  // Tripp steps off the trail for the walk and is back on it at today
+  private trippShown() {
+    const { progress, count } = this.walk
+    if (!count) return 1
+    return Math.max(1 - smooth(0.1, 0.6, progress), smooth(count + 0.35, count + 0.9, progress))
+  }
+
   // Tripp on the trail. The camera is at eye height, so anyone standing on
   // the level meadow has their eyes on the horizon, however far off they are
   private drawTripp() {
     const { ctx, pal, light, dpr } = this
-    // Where he is on screen, for his outline and the link over him
+    // Where he is on screen, for his outline and the link over him; nowhere
+    // while he's off the trail
+    const shown = this.trippShown()
     const [x, y] = RUNNER_SPOT
     const [left, top] = this.toScreen(x + (RUNNER.x0 - RUNNER.footX) * TRIPP_K, y - (RUNNER.footY - RUNNER.y0) * TRIPP_K, RUNNER_DEPTH)
     this.trippBox.x = left
     this.trippBox.y = top
-    this.trippBox.w = (RUNNER.x1 - RUNNER.x0) * TRIPP_K * this.s
-    this.trippBox.h = (RUNNER.y1 - RUNNER.y0) * TRIPP_K * this.s
+    this.trippBox.w = shown > 0.5 ? (RUNNER.x1 - RUNNER.x0) * TRIPP_K * this.s : 0
+    this.trippBox.h = shown > 0.5 ? (RUNNER.y1 - RUNNER.y0) * TRIPP_K * this.s : 0
+    if (shown < 0.01) return
 
     this.trippTransform()
+    ctx.globalAlpha = shown
     ctx.fillStyle = rgba(pal.pineDark, 0.16 + 0.18 * light.sun)
     ctx.beginPath()
     ctx.ellipse(RUNNER.footX, RUNNER.footY, STANCE.length / 2 + 30, 16, STANCE.angle, 0, Math.PI * 2)
@@ -639,9 +691,9 @@ export class MeadowEngine {
     const breath = this.hover === 'tripp' ? 1 : this.reduced ? 0.5 : 0.5 - 0.5 * Math.cos((this.t * Math.PI * 2) / GLOW_PERIOD)
     const pad = (this.trippGlow.width - this.trippMask!.width) / 2
     ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.globalAlpha = (0.3 + 0.65 * breath) * (1 - 0.5 * light.stars)
+    ctx.globalAlpha = (0.3 + 0.65 * breath) * (1 - 0.5 * light.stars) * shown
     ctx.drawImage(this.trippGlow, left * dpr - pad, top * dpr - pad)
-    ctx.globalAlpha = 1
+    ctx.globalAlpha = shown
     this.trippTransform()
 
     // Outlined in white while you point at him, like the rocks: his white
@@ -657,6 +709,7 @@ export class MeadowEngine {
       this.trippTransform()
     }
     drawRunner(ctx, pal.light, 'white')
+    ctx.globalAlpha = 1
   }
 
   // From the photo's pixels to the meadow, where he stands

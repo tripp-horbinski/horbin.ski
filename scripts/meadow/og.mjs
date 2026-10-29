@@ -70,8 +70,9 @@ try {
   if (!ready) throw new Error(`The meadow never drew at ${url}; is the site running?`)
   await sleep(1500)
 
-  // The picture is the scene and his name, without the controls or Next's dev badge
-  await evaluate(`document.head.insertAdjacentHTML('beforeend', '<style>.meadow-top, nextjs-portal { display: none !important }</style>')`)
+  // The picture is the scene, his name and his role, without the buttons, the
+  // controls or Next's dev badge
+  await evaluate(`document.head.insertAdjacentHTML('beforeend', '<style>.meadow-top, .home-actions, .home-cue, nextjs-portal { display: none !important }</style>')`)
   await sleep(200)
   const { data } = await send('Page.captureScreenshot', { format: 'png' })
   // As a JPEG it stays well under the ~300 KB some apps (WhatsApp) allow a preview picture

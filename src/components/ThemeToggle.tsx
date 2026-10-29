@@ -20,7 +20,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="fixed bottom-4 right-4 p-2 rounded-full transition-colors print:hidden"
+      className="theme-toggle fixed bottom-4 right-4 p-2 rounded-full transition-colors print:hidden"
       style={{
         color: 'var(--text-muted)',
         background: 'var(--bg)',

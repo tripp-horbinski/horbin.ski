@@ -168,6 +168,26 @@ const TRAIL_EDGES = [ribbon(widen(TRAIL_MAIN, 26)), ribbon(widen(TRAIL_SPUR, 22)
 export const inTrail = (x: number, y: number) => TRAIL_POLYS.some((p) => inPoly(p, x, y))
 export const nearTrail = (x: number, y: number) => TRAIL_EDGES.some((p) => inPoly(p, x, y))
 
+// The main trail's centerline by distance along it, from its far end on the
+// rise down toward you, in frame units: where it is there and how wide.
+// Past its near end it carries straight on, out of the frame
+const TRAIL_AT = TRAIL_MAIN.reduce<number[]>((at, [x, y], i) => [...at, i ? at[i - 1] + Math.hypot(x - TRAIL_MAIN[i - 1][0], y - TRAIL_MAIN[i - 1][1]) : 0], [])
+export const TRAIL_LENGTH = TRAIL_AT[TRAIL_AT.length - 1]
+export function trailAt(s: number): [number, number, number] {
+  const k = TRAIL_AT.findIndex((a) => a >= s)
+  const i = k === -1 ? TRAIL_MAIN.length - 1 : Math.max(1, k)
+  const [x0, y0, w0] = TRAIL_MAIN[i - 1]
+  const [x1, y1, w1] = TRAIL_MAIN[i]
+  const t = (s - TRAIL_AT[i - 1]) / (TRAIL_AT[i] - TRAIL_AT[i - 1])
+  return [lerp(x0, x1, t), lerp(y0, y1, t), lerp(w0, w1, Math.min(1, t))]
+}
+// Where on it, along, the trail passes Tripp's spot
+export const TRAIL_AT_TRIPP = (() => {
+  let best = 0
+  for (let s = 0; s <= TRAIL_LENGTH; s += 2) if (Math.abs(trailAt(s)[1] - RUNNER_SPOT[1]) < Math.abs(trailAt(best)[1] - RUNNER_SPOT[1])) best = s
+  return best
+})()
+
 export interface Scene {
   mountain: Path2D
   ridge: Path2D
