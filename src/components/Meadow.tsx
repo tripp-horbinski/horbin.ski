@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent } from 'react'
@@ -27,7 +26,6 @@ const yearOf = (month: string) => {
   return y + (m - 1) / 12
 }
 const hourOf = (month: string) => DAWN + ((yearOf(month) - 2014) / (NOW - 2014)) * (START_HOUR - DAWN)
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
 type Step = {
   meta: string
@@ -35,8 +33,9 @@ type Step = {
   org: string
   impact?: { value: string; label: string }[]
   text?: string
-  href: string
-  link: string
+  // Somewhere to see more, for the Golden Jacket: Credly
+  href?: string
+  link?: string
   hour: number
 }
 const SCHOOL = EDUCATION[0]
@@ -44,7 +43,7 @@ const SCHOOL = EDUCATION[0]
 // stop for each, so GoFundMe's turn to full stack is its own step), and the
 // Golden Jacket where it fell
 const STEPS: Step[] = [
-  { month: SCHOOL.start, meta: SCHOOL.dates, title: SCHOOL.degree, org: SCHOOL.school, href: `/career/#${slug(SCHOOL.school)}`, link: 'On my resume' },
+  { month: SCHOOL.start, meta: SCHOOL.dates, title: SCHOOL.degree, org: SCHOOL.school },
   ...ROLES.flatMap((r) =>
     (r.phases ?? [{ label: '', dates: r.dates, start: r.start, highlights: r.highlights, impact: r.impact }]).map((p) => ({
       month: p.start,
@@ -54,8 +53,6 @@ const STEPS: Step[] = [
       impact: p.impact,
       // Without numbers, a stop leads with its first bullet
       text: p.impact.length ? undefined : p.highlights[0],
-      href: `/career/#${slug(r.org)}`,
-      link: 'More on my resume',
     })),
   ),
   ...CERTIFICATIONS.map((c) => ({ month: c.month, meta: c.date, title: c.name, org: c.issuer, text: c.note, href: c.href, link: 'Verify on Credly' })),
@@ -459,9 +456,9 @@ export default function Meadow() {
               </div>
             </dl>
             <div className="home-card-actions">
-              <Link href="/career/" className="meadow-sign">
-                Full resume
-              </Link>
+              <a href={RESUME_PDF} className="meadow-sign" target="_blank" rel="noopener noreferrer">
+                View resume
+              </a>
               <a href={RESUME_PDF} className="meadow-sign" download>
                 Download PDF
               </a>
@@ -496,13 +493,11 @@ export default function Meadow() {
                 </dl>
               )}
               {step.text && <p>{step.text}</p>}
-              <a
-                href={step.href}
-                className="home-more"
-                {...(step.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              >
-                {step.link} &rarr;
-              </a>
+              {step.href && (
+                <a href={step.href} className="home-more" target="_blank" rel="noopener noreferrer">
+                  {step.link} &rarr;
+                </a>
+              )}
             </article>
           </div>
         ))}
@@ -520,9 +515,9 @@ export default function Meadow() {
             <h2>That&apos;s the trail so far</h2>
             <p>The whole of it is on my resume, and I&apos;d like to hear from you.</p>
             <div className="home-card-actions">
-              <Link href="/career/" className="meadow-sign">
-                Full resume
-              </Link>
+              <a href={RESUME_PDF} className="meadow-sign" target="_blank" rel="noopener noreferrer">
+                View resume
+              </a>
               <a href={RESUME_PDF} className="meadow-sign" download>
                 Download PDF
               </a>
@@ -566,9 +561,6 @@ export default function Meadow() {
                     {p.link.text} &rarr;
                   </a>
                 )}
-                <Link href={`/projects/#${p.id}`} className="home-more">
-                  More &rarr;
-                </Link>
               </div>
             </article>
           ))}
@@ -592,7 +584,7 @@ export default function Meadow() {
           <h2 id="contact-title">I&apos;d like to hear from you</h2>
           <p>
             Off the keyboard I run marathons and backpack: in August 2025 I walked the{' '}
-            <Link href="/backpacking/">Arctic Circle Trail</Link>, 167 km across Greenland. My long trail at home is the
+            Arctic Circle Trail, 167 km across Greenland. My long trail at home is the
             Ice Age Trail, and I&apos;m a dog dad to two{' '}
             <a href="https://puppe.rs" target="_blank" rel="noopener noreferrer">
               puppers

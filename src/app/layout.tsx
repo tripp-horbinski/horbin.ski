@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import ThemeToggle from '@/components/ThemeToggle'
-import ElevationProfile from '@/components/ElevationProfile'
 import { OG_IMAGE, SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
@@ -58,8 +56,6 @@ export default function RootLayout({
       </head>
       <body className="antialiased min-h-screen flex flex-col">
         <main className="w-full max-w-xl mx-auto px-4 mt-10 md:mt-16 mb-10 flex-1">{children}</main>
-        <ElevationProfile />
-        <ThemeToggle />
       </body>
     </html>
   )

@@ -1,8 +1,8 @@
-// Tripp's career: the one source for the homepage's walk, the Career page,
-// its timeline and its PDF. Written with him from his resume and an interview
+// Tripp's career: the one source for the homepage's walk and its print-only
+// resume, and so the PDF. Written with him from his resume and an interview
 // about his GoFundMe work: the detail goes to his recent years, and his
 // earlier roles keep their best one or two lines. `impact` pulls the numbers
-// out of the bullets to lead each role, or each phase of a role, on the page.
+// out of the bullets to lead each role, or each phase of a role, on its card.
 
 import { CREDLY, EMAIL, GITHUB, LINKEDIN } from '@/lib/site'
 

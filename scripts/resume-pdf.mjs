@@ -1,9 +1,9 @@
-// Prints the Career page to public/tripp-horbinski-resume.pdf, the PDF it
-// offers, so the two always say the same thing: on paper it's just the resume,
-// without the nav, the timeline or the impact figures. Run it against the dev
-// server or any build of the site whenever src/content/career.ts changes:
+// Prints the homepage to public/tripp-horbinski-resume.pdf, the PDF it offers:
+// on paper the page is just its print-only resume (src/components/Resume.tsx),
+// so the two always say the same thing. Run it against the dev server or any
+// build of the site whenever src/content/career.ts changes:
 //
-//   npm run resume:pdf [-- http://localhost:3000/career/]
+//   npm run resume:pdf [-- http://localhost:3000/]
 //
 // Needs Google Chrome; set CHROME to its binary if it isn't in /Applications.
 
@@ -12,7 +12,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-const url = process.argv[2] ?? 'http://localhost:3000/career/'
+const url = process.argv[2] ?? 'http://localhost:3000/'
 const out = new URL('../public/tripp-horbinski-resume.pdf', import.meta.url)
 const chromePath = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
@@ -59,7 +59,7 @@ try {
   let ready = false
   for (let i = 0; i < 120 && !ready; i++) {
     await sleep(500)
-    ready = await evaluate(`document.fonts.status === 'loaded' && !!document.querySelector('.career')`)
+    ready = await evaluate(`document.fonts.status === 'loaded' && !!document.querySelector('.resume')`)
   }
   if (!ready) throw new Error(`The resume never loaded at ${url}; is the site running?`)
 

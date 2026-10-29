@@ -1,4 +1,5 @@
 import Meadow from '@/components/Meadow'
+import Resume from '@/components/Resume'
 import { generatePersonStructuredData } from '@/lib/structured-data'
 
 export const metadata = {
@@ -12,6 +13,7 @@ export default function Home() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonStructuredData()) }} />
       <Meadow />
+      <Resume />
     </>
   )
 }

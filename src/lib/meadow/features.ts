@@ -79,7 +79,7 @@ export const FEATURES: Feature[] = [
     note: 'Where I’ve worked and what I did there.',
     anchor: [966, 552],
     layer: 'ground',
-    href: '/career/',
+    href: '/#career',
   },
   {
     id: 'tripp',

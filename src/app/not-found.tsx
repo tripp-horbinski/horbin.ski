@@ -1,18 +1,12 @@
 import Link from 'next/link'
-import MapSheet from '@/components/MapSheet'
-import SheetNav from '@/components/SheetNav'
 
+// The site is one page; anywhere else gets a way back to it
 export default function NotFound() {
   return (
     <div>
-      <SheetNav />
-      <MapSheet place="driftless" />
-      <h1 className="sheet-title">Off the map</h1>
+      <h1 className="sheet-title">Off the trail</h1>
       <p className="sheet-sub">Page not found</p>
-      <p className="mb-6">
-        There&apos;s no page here. You&apos;re in the Driftless Area, the corner of Wisconsin the glaciers missed
-        too.
-      </p>
+      <p className="mb-6">There&apos;s nothing here. This site is one page.</p>
       <p>
         <Link href="/" className="link">
           Back to the meadow
