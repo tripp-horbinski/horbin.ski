@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { blend, paletteAt, rgba, type Palette } from '@/lib/meadow/palette'
-import { drawRunner, RUNNER, STANCE } from '@/lib/meadow/runner'
+import { drawFigure, FIGURES, type FigureName } from '@/lib/meadow/runner'
 
 // Preview hours, to see the figure in the light it will get in the meadow
 const LIGHTS = [
@@ -40,9 +40,17 @@ function backdrop(ctx: CanvasRenderingContext2D, W: number, H: number, pal: Pale
   ctx.fill()
 }
 
-export default function RunnerPortrait() {
+const DESCRIPTIONS: Record<FigureName, string> = {
+  finish:
+    'Screen print of Tripp after the Milwaukee Lakefront Marathon, smiling and throwing a shaka: backwards black cap, stubble, a black La Sportiva singlet fading to orange and yellow, black shorts, a moose tattoo on his thigh, a black watch, a water bottle in the other hand, and tan Hoka running shoes.',
+  bridge:
+    'Screen print of Tripp running across the Hoan Bridge in the Milwaukee Lakefront Marathon, mid-stride with his fists up: backwards black cap, stubble, a black La Sportiva singlet fading to orange and yellow, black shorts, a moose tattoo on his thigh, a black watch, and tan Hoka running shoes.',
+}
+
+export default function RunnerPortrait({ figure = 'finish' }: { figure?: FigureName }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [hour, setHour] = useState(12.5)
+  const { art, stance } = FIGURES[figure]
 
   // The print is still, so it only redraws for a new hour or a new size
   useEffect(() => {
@@ -61,21 +69,21 @@ export default function RunnerPortrait() {
 
       // Figure scaled to stand on the meadow with room above the cap, a
       // shadow along the line through his feet
-      const k = (H * 0.88) / (RUNNER.y1 - RUNNER.y0)
+      const k = (H * 0.88) / (art.y1 - art.y0)
       const fx = W * 0.5
-      const fy = H * 0.97 - (RUNNER.y1 - RUNNER.footY) * k
+      const fy = H * 0.97 - (art.y1 - art.footY) * k
       ctx.fillStyle = rgba(pal.pineDark, 0.28)
       ctx.beginPath()
-      ctx.ellipse(fx, fy, (STANCE.length / 2 + 30) * k, 16 * k, STANCE.angle, 0, Math.PI * 2)
+      ctx.ellipse(fx, fy, (stance.length / 2 + 30) * k, 16 * k, stance.angle, 0, Math.PI * 2)
       ctx.fill()
-      ctx.setTransform(dpr * k, 0, 0, dpr * k, dpr * (fx - RUNNER.footX * k), dpr * (fy - RUNNER.footY * k))
-      drawRunner(ctx, pal.light)
+      ctx.setTransform(dpr * k, 0, 0, dpr * k, dpr * (fx - art.footX * k), dpr * (fy - art.footY * k))
+      drawFigure(ctx, art, pal.light)
     }
     draw()
     const resize = new ResizeObserver(draw)
     resize.observe(canvas)
     return () => resize.disconnect()
-  }, [hour])
+  }, [hour, art, stance])
 
   return (
     <figure className="portrait">
@@ -83,7 +91,7 @@ export default function RunnerPortrait() {
         ref={canvasRef}
         className="portrait-canvas"
         role="img"
-        aria-label="Screen print of Tripp after the Milwaukee Lakefront Marathon, smiling and throwing a shaka: backwards black cap, stubble, a black La Sportiva singlet fading to orange and yellow, black shorts, a moose tattoo on his thigh, a black watch, a water bottle in the other hand, and tan Hoka running shoes."
+        aria-label={DESCRIPTIONS[figure]}
       />
       <figcaption className="portrait-lights">
         {LIGHTS.map((l) => (
