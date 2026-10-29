@@ -23,6 +23,9 @@ const POST_X = 103
 const RUNNER_DEPTH = GROUND_DEPTH + (RUNNER_SPOT[1] - HORIZON) * K
 // Photo pixels to meadow units for Tripp, which puts his eyes on the horizon
 const TRIPP_K = (RUNNER_SPOT[1] - HORIZON) / (RUNNER.footY - RUNNER.eyeY)
+// How far the glow round him spreads, in meadow units, and how long one breath of it takes in seconds
+const GLOW = 9
+const GLOW_PERIOD = 2.8
 const DEPTH = { sky: 0.02, clouds: 0.06, mountain: 0.18, forest: 0.28 }
 // Climbers' headlamps: which slab, and where each route starts relative to its tip
 const HEADLAMPS: [FeatureId, number, number][] = [['third', -70, 80], ['third', -52, 72], ['first', -42, 100]]
@@ -135,6 +138,8 @@ export class MeadowEngine {
   private trippBox: Box = { x: 0, y: 0, w: 0, h: 0 }
   // His silhouette in white at the size he's drawn, made when first needed after a resize
   private trippMask: HTMLCanvasElement | null = null
+  // And blurred into the glow round him
+  private trippGlow: HTMLCanvasElement | null = null
 
 
   private clouds: Cloud[]
@@ -262,6 +267,7 @@ export class MeadowEngine {
     this.grass.generate(this.ax - half, this.ax + half, y1, count)
     this.paintStars()
     this.trippMask = null
+    this.trippGlow = null
   }
 
 
@@ -626,6 +632,18 @@ export class MeadowEngine {
     ctx.ellipse(RUNNER.footX, RUNNER.footY, STANCE.length / 2 + 30, 16, STANCE.angle, 0, Math.PI * 2)
     ctx.fill()
 
+    // A soft white glow breathes round him so he reads as something to click,
+    // held at its brightest while you point at him and held still for reduced
+    // motion. It's dimmer at night, when the dark meadow would make it glare
+    this.trippGlow ??= this.glowTripp()
+    const breath = this.hover === 'tripp' ? 1 : this.reduced ? 0.5 : 0.5 - 0.5 * Math.cos((this.t * Math.PI * 2) / GLOW_PERIOD)
+    const pad = (this.trippGlow.width - this.trippMask!.width) / 2
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.globalAlpha = (0.3 + 0.65 * breath) * (1 - 0.5 * light.stars)
+    ctx.drawImage(this.trippGlow, left * dpr - pad, top * dpr - pad)
+    ctx.globalAlpha = 1
+    this.trippTransform()
+
     // Outlined in white while you point at him, like the rocks: his white
     // silhouette nudged out all around, then him on top
     if (this.hover === 'tripp') {
@@ -660,6 +678,25 @@ export class MeadowEngine {
     g.globalCompositeOperation = 'source-in'
     g.fillStyle = 'rgba(255,248,232,0.95)'
     g.fillRect(0, 0, c.width, c.height)
+    return c
+  }
+
+  // That silhouette blurred into a halo, with a margin for it to spread into.
+  // It's drawn off the canvas so only its shadow lands, and twice, so the
+  // halo is bright at his edge
+  private glowTripp() {
+    const mask = (this.trippMask ??= this.maskTripp())
+    const blur = GLOW * this.s * this.dpr
+    const pad = Math.ceil(blur * 1.5)
+    const c = document.createElement('canvas')
+    c.width = mask.width + pad * 2
+    c.height = mask.height + pad * 2
+    const g = c.getContext('2d')!
+    g.shadowColor = 'rgba(255,248,232,1)'
+    g.shadowBlur = blur
+    g.shadowOffsetX = c.width
+    g.drawImage(mask, pad - c.width, pad)
+    g.drawImage(mask, pad - c.width, pad)
     return c
   }
 
