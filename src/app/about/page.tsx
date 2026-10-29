@@ -8,7 +8,7 @@ import { generatePersonStructuredData } from '@/lib/structured-data'
 export const metadata = {
   title: 'About',
   description:
-    'Tripp Horbinski is a platform engineer in Milwaukee, Wisconsin: 8 years building cloud platforms, CI/CD and developer infrastructure, and an AWS Golden Jacket. He runs marathons and backpacks.',
+    'Tripp Horbinski is a software engineer in Milwaukee, Wisconsin, who builds beautiful, useful software: full stack since 2025, after six years in cloud and DevOps, and an AWS Golden Jacket. He runs marathons and backpacks.',
 }
 
 // Where to find him, in the order a recruiter would reach for them
@@ -49,8 +49,8 @@ export default function AboutPage() {
               <path d="M7 5L2.5 10L7 15M13 5l4.5 5L13 15" />
             </svg>
             <p>
-              I&apos;m a platform engineer: 8 years building cloud platforms, CI/CD and developer infrastructure,
-              most recently at GoFundMe. It&apos;s all on{' '}
+              I&apos;m a software engineer who builds beautiful, useful software: six years in cloud and DevOps,
+              then full stack at GoFundMe. It&apos;s all on{' '}
               <Link href="/career/" className="link">
                 Career
               </Link>

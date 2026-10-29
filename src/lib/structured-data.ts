@@ -38,7 +38,7 @@ export function generateWebsiteStructuredData() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Horbin.ski',
-    description: 'Tripp Horbinski, platform engineer: his career, resume and side projects',
+    description: 'Tripp Horbinski, software engineer: his career, resume and side projects',
     url: `${SITE_URL}/`,
     author: {
       '@type': 'Person',
@@ -56,11 +56,11 @@ export function generatePersonStructuredData() {
     '@type': 'Person',
     name: 'Tripp Horbinski',
     url: `${SITE_URL}/about/`,
-    jobTitle: 'Platform Engineer',
+    jobTitle: 'Software Engineer',
     alumniOf: { '@type': 'CollegeOrUniversity', name: 'Milwaukee School of Engineering' },
-    description: 'Platform engineer building cloud-native platforms, developer infrastructure and distributed systems.',
+    description: 'Software engineer building full-stack products, after six years in cloud and DevOps.',
     homeLocation: { '@type': 'Place', name: 'Milwaukee, Wisconsin' },
-    knowsAbout: ['Amazon Web Services', 'Terraform', 'AWS CDK', 'Kubernetes', 'CI/CD', 'Infrastructure as Code', 'Python', 'TypeScript'],
+    knowsAbout: ['TypeScript', 'Next.js', 'React', 'PHP', 'Laravel', 'MySQL', 'Amazon Web Services', 'Terraform', 'Kubernetes', 'CI/CD'],
     hasCredential: {
       '@type': 'EducationalOccupationalCredential',
       name: 'AWS Golden Jacket (every AWS certification)',

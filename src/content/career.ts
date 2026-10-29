@@ -1,8 +1,22 @@
-// Tripp's career: the one source for the Career page, its timeline and its PDF.
-// From his resume; the roles' `highlights` are its bullets as written, and
-// `impact` pulls the numbers out of them to lead each role on the page.
+// Tripp's career: the one source for the homepage's walk, the Career page,
+// its timeline and its PDF. Written with him from his resume and an interview
+// about his GoFundMe work: the detail goes to his recent years, and his
+// earlier roles keep their best one or two lines. `impact` pulls the numbers
+// out of the bullets to lead each role, or each phase of a role, on the page.
 
 import { CREDLY, EMAIL, GITHUB, LINKEDIN } from '@/lib/site'
+
+export type Impact = { value: string; label: string }
+
+// A stretch of a role doing different work, told on its own
+export type Phase = {
+  label: string
+  dates: string
+  start: string
+  end: string
+  highlights: string[]
+  impact: Impact[]
+}
 
 export type Role = {
   title: string
@@ -13,15 +27,23 @@ export type Role = {
   start: string
   end: string
   highlights: string[]
-  impact: { value: string; label: string }[]
+  impact: Impact[]
+  // Newest first, in place of the role's own highlights and impact
+  phases?: Phase[]
 }
 
 export const PROFILE = {
   name: 'Tripp Horbinski',
-  headline: 'Platform Engineer',
+  headline: 'Software Engineer',
   location: 'Milwaukee, Wisconsin',
+  // What he wants people to know first, in his own words
+  tagline: 'I build beautiful, useful software that people use every day.',
+  // The homepage's summary, in his voice
+  intro:
+    'I’m a software engineer. I spent six years in cloud and DevOps learning how software ships, from commit to production, at Northwestern Mutual, Veda, Cardless and GoFundMe. In 2025 I moved to building the product itself, full stack. I want to keep delivering products people use every day.',
+  // The resume's
   summary:
-    'Platform Engineer with 8 years of experience building cloud-native platforms, developer infrastructure, and distributed systems. Proven track record modernizing production systems, leading acquisition integrations, and delivering zero-downtime migrations at scale. AWS Certified Golden Jacket recipient with expertise in cloud architecture, Infrastructure as Code, CI/CD platforms, and developer tooling.',
+    'Software engineer with 8 years of experience. Six years in cloud and DevOps, owning how software ships from commit to production; since 2025, a full-stack engineer building GoFundMe Pro in TypeScript, Next.js, Laravel and AWS. AWS Certified Golden Jacket recipient.',
   contact: [
     { label: 'Email', href: `mailto:${EMAIL}`, text: EMAIL },
     { label: 'LinkedIn', href: LINKEDIN, text: 'in/tripp-horbinski' },
@@ -30,7 +52,7 @@ export const PROFILE = {
   ],
 }
 
-// Newest first, the way a resume reads; the journey walks them oldest first
+// Newest first, the way a resume reads; the homepage walks them oldest first
 export const ROLES: Role[] = [
   {
     title: 'Senior Software Engineer',
@@ -39,20 +61,39 @@ export const ROLES: Role[] = [
     dates: 'Apr 2023 – Oct 2026',
     start: '2023-04',
     end: '2026-10',
-    highlights: [
-      'Served as a technical lead for the rebranding and domain consolidation of the acquired Classy platform under the GoFundMe Pro brand, coordinating changes across 27 services and delivering a zero-downtime migration from classy.org to pro.gofundme.com supporting millions of daily transactions without customer impact.',
-      'Designed and implemented a dual-domain serving strategy using Cloudflare, CloudFront, Route53, ECS, and Lambda, enabling feature-flag-driven rollouts, gradual traffic migration, and safe rollback paths throughout the transition.',
-      'Established deployment and infrastructure standards for customer-facing applications, introducing Infrastructure as Code and rollout patterns adopted across engineering teams to support future platform modernization efforts.',
-      'Developed reusable GitHub Actions workflows and self-hosted runner infrastructure that enabled GoFundMe Pro repositories to migrate from Bitbucket to GitHub, eliminating AWS CodePipeline, standardizing CI/CD workflows, and simplifying software delivery across 8 engineering teams.',
-      'Led migration of a mission-critical sharded MongoDB cluster powering GoFundMe Pro donation experiences from self-managed EC2 infrastructure to MongoDB Atlas, improving reliability, scalability, and operational efficiency.',
-      'Modernized the company’s Kong API platform by migrating from EC2 to ECS and implementing infrastructure-driven configuration management, improving reliability while reducing operational burden.',
-      'Led re-architecture of GoFundMe Pro’s annual donor receipts platform, designing a scalable AWS-based architecture capable of reliably processing high-volume annual communications while reducing operational complexity and improving maintainability.',
-      'Mentored engineers through GoFundMe’s mentorship program, providing guidance on cloud architecture, platform engineering, and software development practices.',
-    ],
-    impact: [
-      { value: '27', label: 'services in a zero-downtime domain migration' },
-      { value: 'Millions', label: 'of daily transactions, no customer impact' },
-      { value: '8', label: 'engineering teams onto shared GitHub Actions' },
+    highlights: [],
+    impact: [],
+    phases: [
+      {
+        label: 'Full stack, GoFundMe Pro',
+        dates: 'Jan 2025 – Oct 2026',
+        start: '2025-01',
+        end: '2026-10',
+        highlights: [
+          'Technical lead for four product areas in moving GoFundMe Pro from classy.org to pro.gofundme.com (Nov 2025 – Mar 2026), brought on by a senior staff engineer as the platform’s subject-matter expert: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site. The move touched 27 repositories and used a dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda for flag-driven rollout and safe rollback; it shipped with zero downtime for enterprise organizations, under millions of daily transactions.',
+          'Led the redesign of the annual summary receipts, about 2 million generated each January: moved them from a Lambda workload that timed out and retried into an ECS Fargate task on the primary API, won buy-in from the architecture decision makers, and added what wasn’t possible before: receipts on demand, requested by donors or sent by nonprofit admins on their behalf, and year-to-date summaries. The January 2026 run had no issues or incidents.',
+          'Built reporting, data and onboarding features in the admin nonprofit administrators use to run their fundraising.',
+          'On Post-Donate, worked on everything a donor sees after giving: the thank-you page, transactional emails, and the start of share attribution.',
+          'Used Claude across the development lifecycle: PRDs and documentation, ramping up in new repositories and their patterns, scoping work, keeping QA visible against the definition of done, and finding high-impact improvements.',
+        ],
+        impact: [
+          { value: '27', label: 'repositories moved to pro.gofundme.com with zero downtime' },
+          { value: '4', label: 'product areas led through the migration' },
+          { value: '2M', label: 'or so annual receipts each January, no incidents' },
+        ],
+      },
+      {
+        label: 'Cloud and platform',
+        dates: 'Apr 2023 – Dec 2024',
+        start: '2023-04',
+        end: '2024-12',
+        highlights: [
+          'Built reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, across 8 engineering teams.',
+          'Led the migration of a sharded MongoDB cluster from self-managed EC2 to MongoDB Atlas, and of the Kong API platform from EC2 to ECS.',
+          'Mentored engineers through GoFundMe’s mentorship program.',
+        ],
+        impact: [{ value: '8', label: 'engineering teams onto shared GitHub Actions' }],
+      },
     ],
   },
   {
@@ -63,10 +104,8 @@ export const ROLES: Role[] = [
     start: '2022-08',
     end: '2023-01',
     highlights: [
-      'Codified 100% of production AWS infrastructure using Terraform, establishing a scalable Infrastructure-as-Code foundation that improved deployment reliability, operational consistency, and auditability.',
-      'Authored and drove adoption of the company’s first Infrastructure Roadmap, aligning leadership and engineering teams around strategic platform investments and long-term cloud architecture priorities.',
-      'Led migration of production Kubernetes infrastructure to a new VPC, executing a phased strategy that maintained 99.9% uptime for critical services throughout the transition.',
-      'Consolidated multiple DevOps tools into a unified CI/CD platform, reducing deployment times by 50% while simplifying software delivery workflows across engineering teams.',
+      'Codified 100% of production AWS infrastructure in Terraform, and wrote and drove adoption of the company’s first infrastructure roadmap.',
+      'Moved production Kubernetes to a new VPC at 99.9% uptime for critical services, and cut deployment times by 50% by consolidating DevOps tools into one CI/CD platform.',
     ],
     impact: [
       { value: '100%', label: 'of production AWS infrastructure in Terraform' },
@@ -82,10 +121,8 @@ export const ROLES: Role[] = [
     start: '2021-01',
     end: '2022-08',
     highlights: [
-      'Designed and built cloud-native applications using Python and TypeScript, leveraging AWS CDK and Terraform to create reusable infrastructure and deployment patterns.',
-      'Led the company-wide migration from GitHub to GitLab SaaS, architecting shared CI/CD pipelines and an autoscaling EC2 runner platform that improved build efficiency and developer experience.',
-      'Implemented Datadog observability across AWS infrastructure and application workloads, providing actionable visibility into production performance and operational health.',
-      'Mentored engineers on cloud architecture, infrastructure, and software engineering best practices through recurring office hours and internal technical publications.',
+      'Led the company-wide migration from GitHub to GitLab, with shared CI/CD pipelines on an autoscaling EC2 runner platform.',
+      'Built cloud-native applications in Python and TypeScript on AWS CDK and Terraform, and brought Datadog observability to AWS infrastructure and workloads.',
     ],
     impact: [],
   },
@@ -97,9 +134,8 @@ export const ROLES: Role[] = [
     start: '2018-06',
     end: '2021-01',
     highlights: [
-      'Designed and maintained a shared GitLab CI/CD platform supporting 3,000+ engineers, standardizing security, testing, and deployment workflows while accelerating adoption through zero-touch change management and improved release velocity.',
-      'Developed Python-based data collection systems and Amazon Redshift integrations that enabled engineering leadership to measure DORA metrics and improve software delivery performance.',
-      'Served as an early contributor to enterprise adoption of AWS CDK, helping define reusable infrastructure constructs, documentation standards, and CI/CD integration patterns used across multiple engineering teams.',
+      'Designed and maintained a shared GitLab CI/CD platform for 3,000+ engineers, standardizing security, testing and deployment.',
+      'An early contributor to the company’s adoption of AWS CDK, and built the Python and Redshift data collection leadership used to measure DORA metrics.',
     ],
     impact: [{ value: '3,000+', label: 'engineers on the shared GitLab CI/CD platform' }],
   },
@@ -128,14 +164,11 @@ export const EDUCATION = [
 ]
 
 export const SKILLS = [
+  { group: 'Languages & frameworks', items: ['TypeScript', 'Next.js', 'React', 'PHP (Laravel)', 'Python', 'JavaScript', 'Bash'] },
+  { group: 'Data', items: ['MySQL', 'PostgreSQL', 'MongoDB Atlas', 'MongoDB', 'Amazon Redshift'] },
   {
-    group: 'Cloud & Infrastructure',
+    group: 'Cloud & infrastructure',
     items: ['AWS', 'Terraform', 'AWS CDK', 'CloudFormation', 'Kubernetes', 'Docker', 'ECS', 'EKS', 'EC2', 'Lambda', 'CloudFront', 'Route53', 'IAM', 'VPC', 'RDS', 'DynamoDB', 'S3'],
   },
-  {
-    group: 'Platform Engineering',
-    items: ['GitHub Actions', 'GitLab CI/CD', 'Bitbucket', 'Infrastructure as Code', 'Platform Architecture', 'Developer Tooling', 'OpenTelemetry', 'Kong API Gateway'],
-  },
-  { group: 'Languages', items: ['Python', 'TypeScript', 'JavaScript', 'Bash', 'PHP'] },
-  { group: 'Data & Storage', items: ['PostgreSQL', 'MongoDB Atlas', 'MongoDB', 'Amazon Redshift'] },
+  { group: 'Delivery & tooling', items: ['GitHub Actions', 'GitLab CI/CD', 'Bitbucket', 'Infrastructure as Code', 'OpenTelemetry', 'Kong API Gateway', 'Claude'] },
 ]

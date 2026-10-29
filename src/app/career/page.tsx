@@ -2,14 +2,14 @@ import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import CareerTimeline, { type Mark, type Span } from '@/components/CareerTimeline'
 import SheetNav from '@/components/SheetNav'
-import { CERTIFICATIONS, EDUCATION, PROFILE, ROLES, SKILLS } from '@/content/career'
+import { CERTIFICATIONS, EDUCATION, PROFILE, ROLES, SKILLS, type Impact } from '@/content/career'
 import { RESUME_PDF } from '@/lib/site'
 import { generatePersonStructuredData } from '@/lib/structured-data'
 
 export const metadata = {
   title: 'Career',
   description:
-    'Tripp Horbinski’s career: a platform engineer in Milwaukee with 8 years building cloud-native platforms, developer infrastructure and distributed systems, and an AWS Golden Jacket.',
+    'Tripp Horbinski’s career: a software engineer in Milwaukee, full stack on GoFundMe Pro since 2025 after six years in cloud and DevOps, with an AWS Golden Jacket.',
 }
 
 // Each role's color on the timeline and beside it below, oldest first, in
@@ -35,6 +35,29 @@ function tenure(start: string, end: string) {
 
 // Names short enough for the timeline's bars
 const SHORT: Record<string, string> = { 'Northwestern Mutual': 'NM' }
+
+// A role's numbers set large, then its bullets
+function Detail({ impact, highlights }: { impact: Impact[]; highlights: string[] }) {
+  return (
+    <>
+      {impact.length > 0 && (
+        <dl className="career-impact">
+          {impact.map((i) => (
+            <div key={i.label}>
+              <dt>{i.value}</dt>
+              <dd>{i.label}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <ul>
+        {highlights.map((h) => (
+          <li key={h}>{h}</li>
+        ))}
+      </ul>
+    </>
+  )
+}
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
@@ -114,21 +137,19 @@ export default function CareerPage() {
               </span>
             </h3>
             <p className="career-tenure">{tenure(role.start, role.end)}</p>
-            {role.impact.length > 0 && (
-              <dl className="career-impact">
-                {role.impact.map((i) => (
-                  <div key={i.label}>
-                    <dt>{i.value}</dt>
-                    <dd>{i.label}</dd>
-                  </div>
-                ))}
-              </dl>
+            {role.phases ? (
+              role.phases.map((phase) => (
+                <div key={phase.label} className="career-phase">
+                  <h4>
+                    <span>{phase.label}</span>
+                    <span className="trail-list-meta">{phase.dates}</span>
+                  </h4>
+                  <Detail impact={phase.impact} highlights={phase.highlights} />
+                </div>
+              ))
+            ) : (
+              <Detail impact={role.impact} highlights={role.highlights} />
             )}
-            <ul>
-              {role.highlights.map((h) => (
-                <li key={h}>{h}</li>
-              ))}
-            </ul>
           </article>
         ))}
       </section>

@@ -8,25 +8,25 @@ export const metadata: Metadata = {
   // Resolves the OpenGraph image and other relative URLs against the live site
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Tripp Horbinski — Platform Engineer',
+    default: 'Tripp Horbinski — Software Engineer',
     template: '%s | Tripp Horbinski'
   },
-  description: 'Platform engineer in Milwaukee: 8 years building cloud-native platforms, CI/CD and developer infrastructure. AWS Golden Jacket; runs marathons and backpacks.',
-  keywords: ['platform engineer', 'cloud engineer', 'AWS Golden Jacket', 'AWS', 'Terraform', 'Kubernetes', 'CI/CD', 'TypeScript', 'Python', 'Milwaukee'],
+  description: 'Software engineer in Milwaukee who builds beautiful, useful software: full stack since 2025, after six years in cloud and DevOps. AWS Golden Jacket; runs marathons and backpacks.',
+  keywords: ['software engineer', 'full stack', 'TypeScript', 'Next.js', 'Laravel', 'platform engineer', 'cloud engineer', 'AWS Golden Jacket', 'AWS', 'Terraform', 'Kubernetes', 'CI/CD', 'TypeScript', 'Python', 'Milwaukee'],
   authors: [{ name: 'Tripp Horbinski' }],
   creator: 'Tripp Horbinski',
   openGraph: {
     type: 'website',
     locale: 'en_US',
     images: [OG_IMAGE],
-    title: 'Tripp Horbinski — Platform Engineer',
-    description: 'Platform engineer in Milwaukee: 8 years building cloud-native platforms, CI/CD and developer infrastructure. AWS Golden Jacket; runs marathons and backpacks.',
+    title: 'Tripp Horbinski — Software Engineer',
+    description: 'Software engineer in Milwaukee who builds beautiful, useful software: full stack since 2025, after six years in cloud and DevOps. AWS Golden Jacket; runs marathons and backpacks.',
     siteName: 'Tripp Horbinski',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tripp Horbinski — Platform Engineer',
-    description: 'Platform engineer in Milwaukee: 8 years building cloud-native platforms, CI/CD and developer infrastructure. AWS Golden Jacket; runs marathons and backpacks.',
+    title: 'Tripp Horbinski — Software Engineer',
+    description: 'Software engineer in Milwaukee who builds beautiful, useful software: full stack since 2025, after six years in cloud and DevOps. AWS Golden Jacket; runs marathons and backpacks.',
     images: [OG_IMAGE.url],
   },
   robots: {
