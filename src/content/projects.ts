@@ -20,7 +20,7 @@ export const PROJECTS: Project[] = [
     year: '2026',
     summary:
       'The site you’re on. The meadow is generated, not drawn: USGS lidar lit by the sun’s real position for any hour, every tree where aerial imagery shows canopy, and the figures of me screen-printed from my photos.',
-    stack: ['Next.js', 'TypeScript', 'Canvas', 'Node', 'Swift', 'USGS 3DEP', 'OpenStreetMap'],
+    stack: ['Claude Code', 'Next.js', 'TypeScript', 'Canvas', 'Node', 'Swift', 'USGS 3DEP', 'OpenStreetMap'],
     link: { href: `${GITHUB}/horbin.ski`, text: 'Source on GitHub' },
   },
   {

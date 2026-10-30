@@ -311,11 +311,24 @@
   }
 
   /* The meadow: a full-screen scene with routed-wood park signs for controls */
-  /* The scene, fixed behind the homepage as it scrolls over it */
+  /* The homepage: the meadow for its opening screen, then the page under it,
+     which scrolls the meadow away */
+  main:has(.home) {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .home-hero {
+    position: relative;
+    height: 100svh;
+    min-height: 480px;
+    overflow: hidden;
+  }
+
   .meadow {
-    position: fixed;
+    position: absolute;
     inset: 0;
-    z-index: 0;
     overflow: hidden;
     background: #3C76C6;
     color: #F3EAD6;
@@ -338,6 +351,7 @@
   .meadow-guide button,
   .meadow-now,
   .meadow-play {
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.18em;
@@ -381,18 +395,22 @@
     pointer-events: auto;
   }
 
-  /* His name, his line, his role and the buttons to his resume and to him,
-     fixed over the sky while everything else scrolls */
+  /* His name, his line and the button to his resume, over the sky */
   .home-head {
-    position: fixed;
+    position: absolute;
     top: 18px;
     left: 50%;
     z-index: 2;
-    width: calc(100vw - 32px);
+    width: calc(100% - 32px);
     transform: translateX(-50%);
     text-align: center;
     pointer-events: none;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
     text-shadow: 0 1px 2px rgba(18, 22, 36, 0.4), 0 0 28px rgba(18, 22, 36, 0.3);
+  }
+
+  .home-head a {
+    pointer-events: auto;
   }
 
   .home-head h1 {
@@ -428,54 +446,18 @@
     outline-offset: 2px;
   }
 
-  /* The homepage over the scene: a full screen to open on, then the career
-     walk, a stop at a time. The page itself lets the pointer through to the
-     meadow; only what's on it takes it */
-  main:has(.home) {
-    max-width: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .home {
-    position: relative;
-    z-index: 1;
-    pointer-events: none;
-    font-family: 'Josefin Sans', 'Futura', sans-serif;
-    color: #F3EAD6;
-  }
-
-  .home a,
-  .home button,
-  .home-card {
-    pointer-events: auto;
-  }
-
-  .home-hero {
-    position: relative;
-    height: 100svh;
-  }
-
-  /* His own line, in the body face so it reads as him talking */
+  /* His line, in the body face's italic, the way an old shop's sign says
+     what it sells under its name */
   .home-tagline {
-    margin-top: 0.9rem;
+    margin-top: 0.85rem;
     font-family: 'Lora', Georgia, serif;
     font-style: italic;
-    font-size: clamp(0.95rem, 1.9vw, 1.25rem);
-    color: #FBF6EA;
-  }
-
-  .home-role {
-    margin-top: 0.6rem;
-    font-weight: 600;
-    font-size: clamp(0.62rem, 1.4vw, 0.8rem);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
+    font-size: clamp(1.05rem, 2.2vw, 1.5rem);
     color: #FBF6EA;
   }
 
   .home-actions,
-  .home-card-actions {
+  .page-actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -484,19 +466,17 @@
   }
 
   .home-actions .meadow-sign,
-  .home-card-actions .meadow-sign {
-    font-weight: 600;
+  .page-actions .meadow-sign {
     letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #F3EAD6;
     text-shadow: none;
   }
 
-  /* A round button with a chevron down: scroll on to the walk */
+  /* A round button with a chevron down: on to his work */
   .home-cue {
     position: absolute;
     left: 50%;
     bottom: calc(22px + env(safe-area-inset-bottom));
+    z-index: 2;
     translate: -50% 0;
     display: grid;
     place-items: center;
@@ -504,6 +484,7 @@
     height: 40px;
     border-radius: 50%;
     background: rgba(27, 30, 34, 0.55);
+    color: #F3EAD6;
     animation: home-nudge 2.4s ease-in-out infinite;
   }
 
@@ -516,122 +497,74 @@
     50% { transform: translateY(4px); }
   }
 
-  /* Each stop a screen and a bit of scrolling, its card held in place while
-     the hour moves on behind it */
-  .home-step {
-    position: relative;
-    min-height: 115svh;
-  }
-
-  .home-step-today {
-    min-height: 100svh;
-  }
-
-  /* Held on the grass, just below the meadow's far edge (--grass, from the
-     engine's horizon), as tall as the grass leaves room for */
-  .home-card {
-    position: sticky;
-    top: calc(var(--grass, 56svh) + 16px);
-    width: min(600px, calc(100vw - 32px));
-    max-height: calc(100svh - var(--grass, 56svh) - 32px);
-    margin: 0 auto;
-    overflow: auto;
-    border-radius: 5px;
+  /* The page under the meadow, on the paper the Vitruvian Man is printed on */
+  .page {
     background: #F3EAD6;
     color: #3B3A33;
-    box-shadow: 0 3px 0 #C9B996, 0 18px 40px rgba(20, 14, 8, 0.35);
-    -webkit-user-select: text;
-    user-select: text;
+    font-family: 'Lora', Georgia, serif;
   }
 
-  .home-card header {
+  .page-section {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 5.5rem max(20px, 5vw) 0;
+    scroll-margin-top: 0;
+  }
+
+  .page-section:last-child {
+    padding-bottom: 6rem;
+  }
+
+  .page-head {
+    max-width: 660px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* A section's name, between rules */
+  .page-label {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.6rem 1rem 0.45rem;
-    background: #3D5E45;
-    font-weight: 600;
-    font-size: 0.62rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #F3EAD6;
-  }
-
-  .home-card h2 {
-    padding: 0.85rem 1rem 0;
-    font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #2B2A25;
-  }
-
-  .home-card p,
-  .home-card dl {
-    padding: 0 1rem;
-    font-family: 'Lora', Georgia, serif;
-    font-size: 0.88rem;
-    line-height: 1.55;
-  }
-
-  .home-card h2 + p,
-  .home-card .home-org + p {
-    margin-top: 0.45rem;
-  }
-
-  .home-card .home-org {
-    margin-top: 0.15rem;
-    font-style: italic;
-    color: #6B675A;
-  }
-
-  .home-facts {
-    margin-top: 0.75rem;
-  }
-
-  .home-facts div + div {
-    margin-top: 0.3rem;
-  }
-
-  .home-facts dt {
-    font-family: 'Josefin Sans', 'Futura', sans-serif;
-    font-weight: 600;
-    font-size: 0.6rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #8F5F4A;
-  }
-
-  .home-impact {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
-    gap: 0.7rem 1rem;
-    margin-top: 0.75rem;
-  }
-
-  .home-impact dt {
-    font-family: 'Josefin Sans', 'Futura', sans-serif;
-    font-weight: 700;
-    font-size: 1.3rem;
-    line-height: 1.1;
-    color: #2B2A25;
-  }
-
-  .home-impact dd {
-    margin-top: 0.1rem;
+    justify-content: center;
+    gap: 0.9rem;
     font-size: 0.78rem;
-    line-height: 1.4;
-    color: #5A5649;
+    letter-spacing: 0.3em;
+    color: #3D5E45;
   }
 
-  .home-card-actions {
-    justify-content: flex-start;
-    padding: 0 1rem;
+  .page-label::before,
+  .page-label::after {
+    content: '';
+    width: 2.5rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
   }
 
-  .home-more {
+  .page-lead {
+    margin-top: 1.1rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #4A473E;
+  }
+
+  .page-lead a,
+  .contact-list a,
+  .numbers-figure figcaption span a {
+    text-decoration: underline;
+    text-decoration-color: #B88C77;
+    text-underline-offset: 2px;
+  }
+
+  .page-actions {
+    margin-top: 2rem;
+  }
+
+  .page-more,
+  .numbers-figure figcaption > a {
     display: inline-block;
-    margin: 0.85rem 1rem 0;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-style: normal;
     font-weight: 600;
     font-size: 0.62rem;
     letter-spacing: 0.16em;
@@ -639,274 +572,441 @@
     color: #8F5F4A;
   }
 
-  .home-more:hover {
+  .page-more:hover,
+  .numbers-figure figcaption > a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
 
-  .home-card > :last-child {
-    margin-bottom: 1rem;
+  /* By the numbers: his career's numbers round the Vitruvian Man, the way
+     Leonardo's notes are round him on the page, in two chapters, before on
+     the left and now on the right. Each goes to its project */
+  .numbers-plate {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 520px) minmax(0, 1fr);
+    align-items: start;
+    gap: 2.5rem;
+    margin-top: 2.5rem;
   }
 
-  .home-card .home-hint {
-    margin-top: 0.85rem;
-    font-style: italic;
-    color: #6B675A;
-  }
-
-  /* What he builds on his own time, as the evening comes on: a slim heading
-     and a card for each side by side, held on the grass like a stop's card */
-  .home-projects {
-    position: relative;
-    min-height: 130svh;
-    padding: 0 max(16px, 6vw);
-  }
-
-  .home-projects-hold {
-    position: sticky;
-    top: calc(var(--grass, 56svh) + 16px);
-    text-align: center;
-  }
-
-  .home-projects-head {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.2rem 0.75rem;
-    padding: 0.5rem 0.9rem 0.4rem;
-    border-radius: 5px;
-    background: rgba(27, 30, 34, 0.55);
-    color: #FBF6EA;
-  }
-
-  .home-projects-head h2 {
-    color: #FBF6EA;
-    font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-  }
-
-  .home-projects-head p {
+  /* A chapter of his career: when, and what he was doing, then its numbers
+     in the order they happened */
+  .numbers-chapter h3 {
+    margin-bottom: 1.4rem;
     font-family: 'Lora', Georgia, serif;
     font-style: italic;
-    font-size: 0.85rem;
-  }
-
-  .home-projects-list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
-    max-width: 1100px;
-    margin: 0.6rem auto 0;
-    text-align: left;
-  }
-
-  .home-card.home-project {
-    position: static;
-    width: auto;
-    max-height: none;
-    margin: 0;
-  }
-
-  .home-project h3 {
-    padding: 0.85rem 1rem 0;
-    font-weight: 700;
-    font-size: 1.05rem;
-    letter-spacing: 0.08em;
+    font-weight: 500;
+    font-size: 1.2rem;
+    line-height: 1.35;
+    letter-spacing: 0;
+    text-transform: none;
     color: #2B2A25;
   }
 
-  .home-project h3 + p {
-    margin-top: 0.4rem;
+  .numbers-chapter h3 span {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #3D5E45;
   }
 
-  .home-card .home-stack {
-    margin-top: 0.6rem;
+  .numbers-list {
+    display: grid;
+    gap: 1.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .numbers-left {
+    text-align: right;
+  }
+
+  .numbers-list a {
+    display: block;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(92, 50, 26, 0.25);
+  }
+
+  .numbers-list strong {
+    display: block;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 3.4vw, 2.9rem);
+    line-height: 1;
+    color: #5C321A;
+    transition: color 0.2s;
+  }
+
+  .numbers-list span {
+    display: block;
+    margin-top: 0.45rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .numbers-list small,
+  .work-when,
+  .cv-when,
+  .project-kind {
+    display: block;
     font-family: 'Josefin Sans', 'Futura', sans-serif;
     font-weight: 600;
-    font-size: 0.58rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #8F5F4A;
+  }
+
+  .numbers-list small {
+    margin-top: 0.4rem;
+    color: #8A8473;
+  }
+
+  .numbers-list a:hover strong {
+    color: #A0703A;
+  }
+
+  .numbers-figure {
+    align-self: center;
+    margin: 0;
+  }
+
+  .numbers-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .numbers-figure figcaption {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 0.88rem;
+    font-style: italic;
+    line-height: 1.55;
+    color: #5A5649;
+  }
+
+  .numbers-figure figcaption > a {
+    margin-left: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .numbers-figure small {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: #8A8473;
+  }
+
+  /* Selected work: each project led by its numbers */
+  .work-list {
+    max-width: 980px;
+    margin: 2.5rem auto 0;
+  }
+
+  .work {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 2.5rem;
+    padding: 2.25rem 0;
+    border-top: 1px solid #DCCDAE;
+    scroll-margin-top: 1rem;
+  }
+
+  .work:last-child {
+    border-bottom: 1px solid #DCCDAE;
+  }
+
+  .work-who {
+    margin-top: 0.35rem;
+    font-style: italic;
+    font-size: 0.92rem;
+    color: #5A5649;
+  }
+
+  .work-impact {
+    display: grid;
+    gap: 0.9rem;
+    margin: 1.1rem 0 0;
+  }
+
+  .work-impact dt {
+    font-weight: 500;
+    font-size: 1.9rem;
+    line-height: 1;
+    color: #5C321A;
+  }
+
+  .work-impact dd {
+    margin: 0.3rem 0 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: #5A5649;
+  }
+
+  .work-body h3,
+  .project h3 {
+    font-size: 1.05rem;
+    line-height: 1.35;
+    letter-spacing: 0.1em;
+    color: #2B2A25;
+  }
+
+  .work-body p {
+    margin-top: 0.75rem;
+    font-size: 0.98rem;
+    line-height: 1.7;
+  }
+
+  .work-body .work-stack,
+  .project .work-stack {
+    margin-top: 1rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.6rem;
     letter-spacing: 0.14em;
+    line-height: 1.7;
     text-transform: uppercase;
     color: #8A8473;
   }
 
-  .home-project-links {
+  /* The career journey's fold, under the numbers, and its end */
+  .journey-toggle,
+  .journey-end {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0 1rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 4rem max(20px, 5vw) 0;
+    text-align: center;
   }
 
-  .home-project-links .home-more {
-    margin-right: 0;
+  .journey-toggle p {
+    font-style: italic;
+    color: #5A5649;
   }
 
-  .home-project-links .home-more:last-child {
-    margin-right: 1rem;
+  .journey-end {
+    padding-top: 3rem;
   }
 
-  /* Getting in touch, under the stars: the last stop, its card held on the
-     grass like the others, each way to reach him on a line */
-  .home-step.home-contact {
-    min-height: 115svh;
+  .journey-toggle svg,
+  .journey-end svg {
+    transition: transform 0.2s;
   }
 
-  /* Each way to reach him on a line, its mark beside it */
-  .home-contact-list {
-    display: grid;
-    gap: 0.45rem;
-    margin: 0.8rem 0 0;
-    padding: 0 1rem;
+  .journey-toggle [aria-expanded='true'] svg,
+  .journey-end svg {
+    transform: rotate(180deg);
+  }
+
+  /* Experience: a line for each step, and his resume one click on */
+  .cv {
+    max-width: 760px;
+    margin: 2.25rem auto 0;
+    padding: 0;
     list-style: none;
-    font-family: 'Lora', Georgia, serif;
-    font-size: 0.88rem;
   }
 
-  .home-contact-list li {
+  .cv li {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 0.95rem 0;
+    border-top: 1px solid #DCCDAE;
+  }
+
+  .cv li:last-child {
+    border-bottom: 1px solid #DCCDAE;
+  }
+
+  .cv-when {
+    padding-top: 0.3rem;
+  }
+
+  .cv-what {
+    font-weight: 600;
+    color: #2B2A25;
+  }
+
+  .cv-what span {
+    font-weight: 400;
+    font-style: italic;
+    color: #5A5649;
+  }
+
+  .cv-phase {
+    margin-top: 0.2rem;
+    font-size: 0.88rem;
+    color: #6B675A;
+  }
+
+  /* What he builds on his own time */
+  .projects {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: 2.5rem;
+  }
+
+  .project {
+    padding: 1.4rem 1.4rem 1.3rem;
+    border: 1px solid #DCCDAE;
+    border-radius: 6px;
+    background: #FAF4E6;
+    box-shadow: 0 2px 0 #DCCDAE;
+  }
+
+  .project-kind {
+    color: #3D5E45;
+  }
+
+  .project h3 {
+    margin-top: 0.55rem;
+    letter-spacing: 0.08em;
+  }
+
+  .project p {
+    margin-top: 0.6rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .project .page-more {
+    margin-top: 1rem;
+  }
+
+  /* Getting in touch */
+  .contact-title {
+    margin-top: 0.9rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #2B2A25;
+  }
+
+  .contact-list {
+    display: grid;
+    gap: 0.6rem;
+    width: fit-content;
+    max-width: 100%;
+    margin: 2rem auto 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contact-list li {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.7rem;
     min-width: 0;
   }
 
-  .home-contact-list svg {
+  .contact-list svg {
     flex: none;
     width: 16px;
     height: 16px;
     color: #6B4D3A;
   }
 
-  .home-card p a,
-  .home-contact-list a {
-    text-decoration: underline;
-    text-decoration-color: #B88C77;
-    text-underline-offset: 2px;
-  }
-
-  .home-contact-list a {
+  .contact-list a {
     min-width: 0;
     overflow-wrap: anywhere;
   }
 
-  /* On a phone the card sits at the bottom, over the grass, leaving the sky,
-     the mountain and Tripp on the trail above it in view. A stop's card is at
-     its end so it holds at the bottom of the screen while its stop scrolls
-     by. Everything's a little tighter */
+  /* Narrower: the numbers under the figure in two columns, and each project's
+     numbers over its story */
+  @media (max-width: 1023px) {
+    .numbers-plate {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 2rem 1.5rem;
+    }
+
+    .numbers-figure {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .numbers-left {
+      text-align: left;
+    }
+
+    .projects {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .work {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.1rem;
+      padding: 1.75rem 0;
+    }
+
+    .work-impact {
+      grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    }
+  }
+
   @media (max-width: 640px) {
-    .home-step {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
+    .page-section {
+      padding-top: 4rem;
     }
 
-    .home-card {
-      top: auto;
-      bottom: calc(10px + env(safe-area-inset-bottom));
-      width: auto;
-      max-height: calc(100svh - var(--grass, 44svh) - 20px);
-      margin: 0 10px;
+    .page-lead {
+      font-size: 0.98rem;
     }
 
-    .home-card header {
-      padding: 0.5rem 0.85rem 0.4rem;
+    /* On a phone the chapters stack, before then now, two numbers to a row */
+    .numbers-plate {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2.25rem;
     }
 
-    .home-card h2,
-    .home-project h3 {
-      padding: 0.65rem 0.85rem 0;
-      font-size: 0.82rem;
+    .numbers-list {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.25rem 1rem;
     }
 
-    .home-card p,
-    .home-card dl,
-    .home-card-actions,
-    .home-contact-list {
-      padding: 0 0.85rem;
+    .numbers-chapter h3 {
+      margin-bottom: 1rem;
+      font-size: 1.02rem;
     }
 
-    .home-card p,
-    .home-card dl {
-      font-size: 0.82rem;
-      line-height: 1.5;
+    .numbers-list strong {
+      font-size: 1.9rem;
     }
 
-    .home-impact {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.5rem 0.75rem;
-      margin-top: 0.55rem;
+    .numbers-list span {
+      font-size: 0.84rem;
     }
 
-    .home-impact dt {
-      font-size: 1.05rem;
+    .cv li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.3rem;
     }
-
-    .home-impact dd {
-      font-size: 0.68rem;
-    }
-
-    .home-more {
-      margin: 0.6rem 0.85rem 0;
-    }
-
-    .home-card > :last-child {
-      margin-bottom: 0.75rem;
-    }
-
-    .home-tagline {
-      font-size: 0.9rem;
-    }
-
-    /* The projects held at the bottom, swiped through sideways */
-    .home-projects {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 0;
-    }
-
-    .home-projects-hold {
-      top: auto;
-      bottom: calc(10px + env(safe-area-inset-bottom));
-    }
-
-    .home-projects-list {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      gap: 10px;
-      padding: 0 10px;
-      scrollbar-width: none;
-    }
-
-    .home-projects-list::-webkit-scrollbar {
-      display: none;
-    }
-
-    .home-card.home-project {
-      flex: 0 0 84%;
-      max-height: calc(100svh - var(--grass, 44svh) - 64px);
-      scroll-snap-align: center;
-    }
-  }
-
-  /* The time of day is the walk's to set once you're on it */
-  .meadow-top {
-    transition: opacity 0.25s;
-  }
-
-  .meadow-top-away {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.25s, visibility 0s 0.25s;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .home-cue {
-      animation: none;
+    html {
+      scroll-behavior: auto;
     }
 
-    .meadow-top {
-      transition: none;
+    .home-cue {
+      animation: none;
     }
   }
 
