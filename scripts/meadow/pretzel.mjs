@@ -43,18 +43,13 @@ const FEATHERS = [[505, 565], [700, 565], [700, 730], [590, 730], [505, 610]]
 const FACE = [[790, 100], [860, 92], [910, 110], [940, 150], [955, 200], [968, 235], [955, 270], [920, 292], [870, 300], [830, 290], [800, 260], [785, 210], [780, 150]]
 // The coat is white at the collar, blaze and legs, so it can print white anywhere
 const EVERYWHERE = [[0, 0], [1239, 0], [1239, 929], [0, 929]]
-// Closer to the photo than the runner figures, like Stella: more inks, smoothed
-// less, keeping smaller patches, the face finest of all, and with no outline,
-// so the coat reads as fur
-const DETAIL = {
-  ...POSTER,
-  inks: { body: 18, head: 22 },
-  smooth: { body: [[3, 2, 20], [3, 2, 16]], head: [[2, 1, 10]] },
-  majority: { radius: 1, passes: 1 },
-  islands: { body: 12, head: 1 },
-  turd: { body: 8, head: 1 },
-  outline: false,
-}
+// Printed like Tripp's figures, in a few flat inks inside a thin outline, to
+// match the meadow's flat colors
+const DETAIL = POSTER
+// That outline would trace every wisp the peeled edge of the coat leaves, so
+// the edge is rounded off first, blurred by this much and cut at half, only
+// ever taking pixels away
+const ROUND = 3
 // There's no tattoo to find, so its search is pointed at the floor in front
 const NOWHERE = [[540, 860], [556, 860], [556, 876], [540, 876]]
 // Where Pretzel stands: between the near hind paw and the near forepaw
@@ -129,6 +124,13 @@ function peel(mask, px, W, H) {
   return out
 }
 
+// The mask with its spikes rounded off: blurred by `sigma`, cut at half, and
+// kept only where it was already
+async function round(mask, W, H, sigma) {
+  const px = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(sigma).extractChannel(0).raw().toBuffer()
+  return Uint8Array.from(px, (v, i) => (v > 127 && mask[i] ? 1 : 0))
+}
+
 async function main() {
   const photo = process.argv[2]
   if (!photo) throw new Error('usage: npm run meadow:pretzel -- pretzel.jpg')
@@ -142,6 +144,7 @@ async function main() {
   const [santa, wisps, feathers] = await Promise.all([repair.poly(SANTA), repair.poly(WISPS), repair.poly(FEATHERS)])
   for (let i = 0; i < W * H; i++) if (santa[i]) mask[i] = 0
   mask.set(peel(mask, photoPx, W, H))
+  mask.set(await round(mask, W, H, ROUND))
   const red = new Uint8Array(W * H)
   for (let i = 0; i < W * H; i++) {
     if (!mask[i]) continue

@@ -38,19 +38,9 @@ const SHAVE = 3
 const FACE = [[850, 560], [930, 540], [1010, 545], [1080, 580], [1090, 650], [1075, 730], [1060, 820], [1060, 930], [1000, 990], [940, 990], [900, 930], [885, 820], [855, 730], [840, 640]]
 // She's black and white all over, so she can print white anywhere
 const EVERYWHERE = [[0, 0], [WIDTH, 0], [WIDTH, 2000], [0, 2000]]
-// Closer to the photo than the runner figures, as Pretzel's is: more inks,
-// keeping smaller patches, her face finest of all, and with no outline, so
-// her coat reads as fur; smoothed a little more than Pretzel's, since her
-// black is all shading, which would otherwise take a great many paths
-const DETAIL = {
-  ...POSTER,
-  inks: { body: 18, head: 22 },
-  smooth: { body: [[3, 2, 24], [3, 2, 20]], head: [[2, 1, 10]] },
-  majority: { radius: 1, passes: 1 },
-  islands: { body: 16, head: 1 },
-  turd: { body: 10, head: 1 },
-  outline: false,
-}
+// Printed like Tripp's figures, in a few flat inks inside a thin outline, to
+// match the meadow's flat colors
+const DETAIL = POSTER
 // There's no tattoo to find, so its search is pointed at the carpet in front
 // of her
 const NOWHERE = [[900, 1700], [916, 1700], [916, 1716], [900, 1716]]
@@ -68,6 +58,10 @@ const TIP = [966, 856, 36, 30]
 // would print as a white speck, so whatever isn't the dark of her mouth in
 // here is tongue.
 const TONGUE = [[935, 788], [1002, 778], [1006, 852], [944, 852]]
+// A tuft of fur standing up where her left ear meets her head, which the sun
+// behind her lights, and which prints as a bump on the ear: everything above
+// a line from her head to her ear is cut away
+const TUFT = [[995, 552], [1035, 532], [1072, 519], [1072, 480], [995, 480]]
 // Where she stands: between her near hind paw and her near forepaw. She's
 // turned toward the camera, so the forepaw is lower in the photo.
 const FEET = [[465, 1318], [760, 1428]]
@@ -166,6 +160,7 @@ async function main() {
   const img = Float32Array.from(photoPx)
   const cut = Uint8Array.from(fg, (v) => (v > 127 ? 1 : 0))
   unball(img, cut, W, H)
+  for (let i = 0; i < W * H; i++) if (inPoly(TUFT, i % W, (i / W) | 0)) cut[i] = 0
   const mask = shave(cut, W, H, SHAVE)
 
   const rgb = Buffer.alloc(W * H * 3, 255)

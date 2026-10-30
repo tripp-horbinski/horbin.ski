@@ -1,6 +1,7 @@
 // Tripp's dogs, screen prints traced from his photos by
 // scripts/meadow/pretzel.mjs and stella.mjs, standing beside him in the
-// meadow. Like his figures, each ink is multiplied by the light.
+// meadow, where they link to puppe.rs. Like his figures, each ink is
+// multiplied by the light.
 
 import { PRETZEL_ART } from './pretzel-art'
 import { PRETZEL_SPOT, STELLA_SPOT } from './scene'

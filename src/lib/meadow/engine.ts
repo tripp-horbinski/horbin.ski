@@ -8,7 +8,8 @@ import { Grass, gustiness, type Pointer } from './grass'
 import { blend, lightAt, lit, paletteAt, rgba, smooth, type Palette } from './palette'
 import { drawPost } from './post'
 import { DOGS } from './dogs'
-import { drawFigure, drawRunner, onFigure, onRunner, RUNNER, STANCE } from './runner'
+import { drawFigure, drawRunner, onFigure, onRunner, RUNNER, STANCE, type Art } from './runner'
+import { RUNNER_ART } from './runner-art'
 import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Pt, type Scene } from './scene'
 import { depth, facing, FOCAL, moonAt, pointAt, project, sideways, sunDirection } from './sun'
 import { TERRAIN } from './terrain'
@@ -45,7 +46,8 @@ const DEPTH = { sky: 0.02, clouds: 0.06, mountain: 0.18, forest: 0.28 }
 // Climbers' headlamps: which slab, and where each route starts relative to its tip
 const HEADLAMPS: [FeatureId, number, number][] = [['third', -70, 80], ['third', -52, 72], ['first', -42, 100]]
 
-type Hit = FeatureId | 'sky'
+// What the pointer is on: a feature, the sky, or his dogs, a link with no note
+type Hit = FeatureId | 'sky' | 'dogs'
 
 interface Cloud {
   x: number
@@ -73,11 +75,20 @@ interface Bird {
 
 export interface Callbacks {
   onHover(id: FeatureId | null): void
-  onSelect(id: FeatureId): void
+  onSelect(id: FeatureId | 'dogs'): void
   onHour(hour: number): void
   onAnchors(hover: Pt | null, pinned: Pt | null): void
   // Where Tripp is on screen, every frame, for the link laid over him
   onTripp(box: Box): void
+  // Where his dogs are on screen, every frame, for the link laid over them
+  onDogs(box: Box): void
+}
+
+// A figure's white silhouette, for its outline, and the glow that breathes
+// round it
+interface Halo {
+  mask: HTMLCanvasElement
+  glow: HTMLCanvasElement
 }
 
 export interface Box {
@@ -151,10 +162,9 @@ export class MeadowEngine {
   private hover: Hit = 'sky'
   private pinned: FeatureId | null = null
   private trippBox: Box = { x: 0, y: 0, w: 0, h: 0 }
-  // His silhouette in white at the size he's drawn, made when first needed after a resize
-  private trippMask: HTMLCanvasElement | null = null
-  // And blurred into the glow round him
-  private trippGlow: HTMLCanvasElement | null = null
+  // His halo and each dog's, made when first needed after a resize
+  private trippHalo: Halo | null = null
+  private dogHalos = new Map<Dog, Halo>()
 
 
   private clouds: Cloud[]
@@ -291,8 +301,8 @@ export class MeadowEngine {
     const count = Math.round(Math.min(6500, Math.max(1200, (this.W * this.H * (1 - this.hy)) / 105)))
     this.grass.generate(this.ax - half, this.ax + half, y1, count)
     this.paintStars()
-    this.trippMask = null
-    this.trippGlow = null
+    this.trippHalo = null
+    this.dogHalos.clear()
   }
 
 
@@ -354,9 +364,9 @@ export class MeadowEngine {
     if (hit === 'meadow' && Math.abs(dx) > 0) this.brush = Math.min(1, this.brush + Math.abs(dx) / 60)
     if (hit !== this.hover) {
       this.hover = hit
-      const named = hit === 'sky' || hit === 'meadow' ? null : hit
+      const named = hit === 'sky' || hit === 'meadow' || hit === 'dogs' ? null : hit
       this.cb.onHover(named)
-      this.canvas.style.cursor = named ? 'pointer' : 'default'
+      this.canvas.style.cursor = named || hit === 'dogs' ? 'pointer' : 'default'
     }
   }
 
@@ -389,11 +399,10 @@ export class MeadowEngine {
     const X = x * this.dpr
     const Y = y * this.dpr
     let hit: Hit = 'sky'
-    // His dogs aren't links: a tap on one ripples the grass round it, like a
-    // tap anywhere in the meadow. Whichever of them and him is nearer wins.
-    if (this.onDog(X, Y, true)) hit = 'meadow'
+    // Whichever of his dogs and him is nearer wins
+    if (this.onDog(X, Y, true)) hit = 'dogs'
     else if (this.onTripp(X, Y)) hit = 'tripp'
-    else if (this.onDog(X, Y, false)) hit = 'meadow'
+    else if (this.onDog(X, Y, false)) hit = 'dogs'
     else {
       this.ground()
       if (ctx.isPointInPath(scene.trailHit, X, Y)) hit = 'trail'
@@ -479,9 +488,10 @@ export class MeadowEngine {
     this.update(dt)
     this.draw()
 
-    const hovered = this.hover !== 'sky' && this.hover !== 'meadow' ? this.anchorOf(this.hover) : null
+    const hovered = this.hover !== 'sky' && this.hover !== 'meadow' && this.hover !== 'dogs' ? this.anchorOf(this.hover) : null
     this.cb.onAnchors(hovered, this.pinned ? this.anchorOf(this.pinned) : null)
     this.cb.onTripp(this.trippBox)
+    this.cb.onDogs(this.dogsBox())
   }
 
   private update(dt: number) {
@@ -664,34 +674,14 @@ export class MeadowEngine {
     ctx.ellipse(RUNNER.footX, RUNNER.footY, STANCE.length / 2 + 30, 16, STANCE.angle, 0, Math.PI * 2)
     ctx.fill()
 
-    // A soft white glow breathes round him so he reads as something to click,
-    // held at its brightest while you point at him and held still for reduced
-    // motion. It's dimmer at night, when the dark meadow would make it glare
-    this.trippGlow ??= this.glowTripp()
-    const breath = this.hover === 'tripp' ? 1 : this.reduced ? 0.5 : 0.5 - 0.5 * Math.cos((this.t * Math.PI * 2) / GLOW_PERIOD)
-    const pad = (this.trippGlow.width - this.trippMask!.width) / 2
-    ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.globalAlpha = (0.3 + 0.65 * breath) * (1 - 0.5 * light.stars)
-    ctx.drawImage(this.trippGlow, left * dpr - pad, top * dpr - pad)
-    ctx.globalAlpha = 1
+    this.trippHalo ??= this.haloOf(RUNNER_ART, TRIPP_K * this.s * dpr, false)
+    this.drawHalo(this.trippHalo, left, top, this.hover === 'tripp')
     this.trippTransform()
-
-    // Outlined in white while you point at him, like the rocks: his white
-    // silhouette nudged out all around, then him on top
-    if (this.hover === 'tripp') {
-      this.trippMask ??= this.maskTripp()
-      const w = 1.2 * this.s * dpr
-      ctx.setTransform(1, 0, 0, 1, 0, 0)
-      for (let i = 0; i < 12; i++) {
-        const a = (i / 12) * Math.PI * 2
-        ctx.drawImage(this.trippMask, left * dpr + Math.cos(a) * w, top * dpr + Math.sin(a) * w)
-      }
-      this.trippTransform()
-    }
     drawRunner(ctx, pal.light, 'white')
   }
 
-  // One of his dogs beside him, with a shadow under all four paws
+  // One of his dogs beside him, with a shadow under all four paws, glowing
+  // like him since they're a link too
   private drawDog(dog: Dog) {
     const { ctx, pal, light } = this
     const { x0, x1, footX, footY } = dog.art
@@ -700,7 +690,48 @@ export class MeadowEngine {
     ctx.beginPath()
     ctx.ellipse(footX, footY, 0.35 * (x1 - x0), 0.05 * (x1 - x0), dog.stance, 0, Math.PI * 2)
     ctx.fill()
+    let halo = this.dogHalos.get(dog)
+    if (!halo) this.dogHalos.set(dog, (halo = this.haloOf(dog.art, dog.k * this.s * this.dpr, dog.flip)))
+    const box = this.dogBox(dog)
+    this.drawHalo(halo, box.x, box.y, this.hover === 'dogs')
+    this.dogTransform(dog)
     drawFigure(ctx, dog.art, pal.light)
+  }
+
+  // Where a dog's box is on screen
+  private dogBox({ art, at: [x, y], depth, k, flip }: Dog): Box {
+    const [left, top] = this.toScreen(x + (flip ? art.footX - art.x1 : art.x0 - art.footX) * k, y - (art.footY - art.y0) * k, depth)
+    return { x: left, y: top, w: (art.x1 - art.x0) * k * this.s, h: (art.y1 - art.y0) * k * this.s }
+  }
+
+  // Where both of them are on screen, for the link laid over them
+  private dogsBox(): Box {
+    const boxes = PACK.map((dog) => this.dogBox(dog))
+    const x = Math.min(...boxes.map((b) => b.x))
+    const y = Math.min(...boxes.map((b) => b.y))
+    return { x, y, w: Math.max(...boxes.map((b) => b.x + b.w)) - x, h: Math.max(...boxes.map((b) => b.y + b.h)) - y }
+  }
+
+  // A soft white glow breathes round a figure that's a link, so it reads as
+  // something to click, held at its brightest while you point at it and held
+  // still for reduced motion. It's dimmer at night, when the dark meadow would
+  // make it glare. While you point at it, it's outlined in white too, like the
+  // rocks: its white silhouette nudged out all around, to be drawn over. The
+  // figure's box is at (left, top) on screen.
+  private drawHalo({ mask, glow }: Halo, left: number, top: number, lit: boolean) {
+    const { ctx, dpr, light } = this
+    const breath = lit ? 1 : this.reduced ? 0.5 : 0.5 - 0.5 * Math.cos((this.t * Math.PI * 2) / GLOW_PERIOD)
+    const pad = (glow.width - mask.width) / 2
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.globalAlpha = (0.3 + 0.65 * breath) * (1 - 0.5 * light.stars)
+    ctx.drawImage(glow, left * dpr - pad, top * dpr - pad)
+    ctx.globalAlpha = 1
+    if (!lit) return
+    const w = 1.2 * this.s * dpr
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2
+      ctx.drawImage(mask, left * dpr + Math.cos(a) * w, top * dpr + Math.sin(a) * w)
+    }
   }
 
   private dogTransform({ art, at: [x, y], depth, k, flip }: Dog) {
@@ -731,38 +762,35 @@ export class MeadowEngine {
     this.ctx.transform(TRIPP_K, 0, 0, TRIPP_K, x - RUNNER.footX * TRIPP_K, y - RUNNER.footY * TRIPP_K)
   }
 
-  private maskTripp() {
-    const z = TRIPP_K * this.s * this.dpr
-    const c = document.createElement('canvas')
-    c.width = Math.ceil((RUNNER.x1 - RUNNER.x0) * z)
-    c.height = Math.ceil((RUNNER.y1 - RUNNER.y0) * z)
-    const g = c.getContext('2d')!
-    g.setTransform(z, 0, 0, z, -RUNNER.x0 * z, -RUNNER.y0 * z)
-    drawRunner(g, '#FFFFFF')
+  // A figure's silhouette in white at the size it's drawn, `z` device pixels
+  // to its photo's pixel, turned round with `flip`
+  private haloOf(art: Art, z: number, flip: boolean): Halo {
+    const mask = document.createElement('canvas')
+    mask.width = Math.ceil((art.x1 - art.x0) * z)
+    mask.height = Math.ceil((art.y1 - art.y0) * z)
+    const g = mask.getContext('2d')!
+    g.setTransform(flip ? -z : z, 0, 0, z, (flip ? art.x1 : -art.x0) * z, -art.y0 * z)
+    drawFigure(g, art, '#FFFFFF')
     g.setTransform(1, 0, 0, 1, 0, 0)
     g.globalCompositeOperation = 'source-in'
     g.fillStyle = 'rgba(255,248,232,0.95)'
-    g.fillRect(0, 0, c.width, c.height)
-    return c
-  }
+    g.fillRect(0, 0, mask.width, mask.height)
 
-  // That silhouette blurred into a halo, with a margin for it to spread into.
-  // It's drawn off the canvas so only its shadow lands, and twice, so the
-  // halo is bright at his edge
-  private glowTripp() {
-    const mask = (this.trippMask ??= this.maskTripp())
+    // That silhouette blurred into a halo, with a margin for it to spread
+    // into. It's drawn off the canvas so only its shadow lands, and twice, so
+    // the halo is bright at the figure's edge
     const blur = GLOW * this.s * this.dpr
     const pad = Math.ceil(blur * 1.5)
-    const c = document.createElement('canvas')
-    c.width = mask.width + pad * 2
-    c.height = mask.height + pad * 2
-    const g = c.getContext('2d')!
-    g.shadowColor = 'rgba(255,248,232,1)'
-    g.shadowBlur = blur
-    g.shadowOffsetX = c.width
-    g.drawImage(mask, pad - c.width, pad)
-    g.drawImage(mask, pad - c.width, pad)
-    return c
+    const glow = document.createElement('canvas')
+    glow.width = mask.width + pad * 2
+    glow.height = mask.height + pad * 2
+    const h = glow.getContext('2d')!
+    h.shadowColor = 'rgba(255,248,232,1)'
+    h.shadowBlur = blur
+    h.shadowOffsetX = glow.width
+    h.drawImage(mask, pad - glow.width, pad)
+    h.drawImage(mask, pad - glow.width, pad)
+    return { mask, glow }
   }
 
   // Stars and the Milky Way, painted once per resize; late summer puts the core low in the south

@@ -7,7 +7,7 @@ import { lit } from './palette'
 import { RUNNER_ART } from './runner-art'
 import { RUNNER_BRIDGE_ART } from './runner-bridge-art'
 
-type Art = typeof RUNNER_ART
+export type Art = typeof RUNNER_ART
 
 // Where the figure sits in the photo's pixels: everything is inside this box,
 // and it stands at (footX, footY), between its feet

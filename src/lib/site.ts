@@ -20,5 +20,9 @@ export const LINKEDIN = 'https://www.linkedin.com/in/tripp-horbinski/'
 // His resume as a PDF: the homepage's print-only resume, printed by scripts/resume-pdf.mjs
 export const RESUME_PDF = '/tripp-horbinski-resume.pdf'
 
+// puppe.rs, his app for whoever's watching your pets, which his dogs in the
+// meadow link to
+export const PUPPERS = 'https://puppe.rs'
+
 // His AWS certifications, verified by AWS's badge issuer
 export const CREDLY = 'https://www.credly.com/users/tripp-horbinski.8ee6f493/badges/credly'
