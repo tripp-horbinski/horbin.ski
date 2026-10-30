@@ -16,6 +16,7 @@
     "meadow:runner": "node scripts/meadow/runner.mjs",
     "meadow:og": "node scripts/meadow/og.mjs",
     "meadow:stella": "node scripts/meadow/stella.mjs",
+    "meadow:pretzel": "node scripts/meadow/pretzel.mjs",
     "meadow:runner-bridge": "node scripts/meadow/runner-bridge.mjs",
     "meadow:vitruvian": "node scripts/meadow/vitruvian.mjs",
     "resume:pdf": "node scripts/resume-pdf.mjs"

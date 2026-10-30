@@ -7,7 +7,8 @@ import { featureById, type FeatureId } from './features'
 import { Grass, gustiness, type Pointer } from './grass'
 import { blend, lightAt, lit, paletteAt, rgba, smooth, type Palette } from './palette'
 import { drawPost } from './post'
-import { drawRunner, onRunner, RUNNER, STANCE } from './runner'
+import { DOGS } from './dogs'
+import { drawFigure, drawRunner, onFigure, onRunner, RUNNER, STANCE } from './runner'
 import { buildScene, HORIZON, POST_Y, rng, RUNNER_SPOT, X0, X1, type Pt, type Scene } from './scene'
 import { depth, facing, FOCAL, moonAt, pointAt, project, sideways, sunDirection } from './sun'
 import { TERRAIN } from './terrain'
@@ -23,6 +24,20 @@ const POST_X = 103
 const RUNNER_DEPTH = GROUND_DEPTH + (RUNNER_SPOT[1] - HORIZON) * K
 // Photo pixels to meadow units for Tripp, which puts his eyes on the horizon
 const TRIPP_K = (RUNNER_SPOT[1] - HORIZON) / (RUNNER.footY - RUNNER.eyeY)
+// And for each of his dogs: the horizon is at eye height wherever you stand,
+// so a dog's withers come as far up to it as they do to his eyes. Nearest
+// first, so the pointer finds the dog in front.
+const PACK = DOGS.map((dog) => ({
+  ...dog,
+  depth: GROUND_DEPTH + (dog.at[1] - HORIZON) * K,
+  k: ((dog.at[1] - HORIZON) * dog.withers) / (dog.art.footY - dog.withersY),
+})).sort((a, b) => b.at[1] - a.at[1])
+type Dog = (typeof PACK)[number]
+// The right edge of Tripp and his dogs, which tall screens keep in the picture
+const RIGHT = Math.max(
+  RUNNER_SPOT[0] + (RUNNER.x1 - RUNNER.footX) * TRIPP_K,
+  ...PACK.map(({ art, at, k, flip }) => at[0] + (flip ? art.footX - art.x0 : art.x1 - art.footX) * k),
+)
 // How far the glow round him spreads, in meadow units, and how long one breath of it takes in seconds
 const GLOW = 9
 const GLOW_PERIOD = 2.8
@@ -259,13 +274,14 @@ export class MeadowEngine {
     this.canvas.height = Math.round(this.H * dpr)
 
     const portrait = Math.min(1, Math.max(0, (1.3 - this.W / this.H) / 0.7))
-    // Tall screens pull back a little and look past the slabs to the right,
-    // so Tripp on the trail stays in the picture
-    this.s = Math.max(this.W / 1250, Math.min(this.H / 850, this.W / (700 + 80 * portrait)))
-    this.ax = 600 + 100 * portrait
-    this.hy = 0.56 - 0.12 * portrait
     this.P = this.reduced ? 0 : Math.min(60, this.W * 0.035)
     this.Py = this.reduced ? 0 : Math.min(24, this.H * 0.025)
+    // Tall screens pull back a little and look past the slabs to the right,
+    // as far as it takes for Tripp and his dogs on the trail to stay in the
+    // picture, however the camera drifts
+    this.s = Math.max(this.W / 1250, Math.min(this.H / 850, this.W / (700 + 80 * portrait)))
+    this.ax = Math.max(600 + 100 * portrait, RIGHT - (this.W / 2 - this.P - 12) / this.s)
+    this.hy = 0.56 - 0.12 * portrait
     // The trail post keeps its spot unless that's off the left edge; then it
     // stands just inside it
     this.postX = Math.max(POST_X, this.ax - (this.W / 2 - 24 - this.P) / this.s + 16)
@@ -373,8 +389,11 @@ export class MeadowEngine {
     const X = x * this.dpr
     const Y = y * this.dpr
     let hit: Hit = 'sky'
-    this.trippTransform()
-    if (onRunner(ctx, X, Y)) hit = 'tripp'
+    // His dogs aren't links: a tap on one ripples the grass round it, like a
+    // tap anywhere in the meadow. Whichever of them and him is nearer wins.
+    if (this.onDog(X, Y, true)) hit = 'meadow'
+    else if (this.onTripp(X, Y)) hit = 'tripp'
+    else if (this.onDog(X, Y, false)) hit = 'meadow'
     else {
       this.ground()
       if (ctx.isPointInPath(scene.trailHit, X, Y)) hit = 'trail'
@@ -597,7 +616,7 @@ export class MeadowEngine {
     ctx.fillStyle = pal.talus
     ctx.fill(scene.stones)
 
-    // Grass, with the trail post and Tripp standing in it
+    // Grass, with the trail post, Tripp and his dogs standing in it
     this.screen()
     this.grass.draw(ctx, pal, this.groundPt, this.s, at, this.reduced ? 0 : 1, this.pointer, [
       [POST_Y, () => {
@@ -610,6 +629,10 @@ export class MeadowEngine {
         this.drawTripp()
         this.screen()
       }],
+      ...PACK.map((dog): [number, () => void] => [dog.at[1], () => {
+        this.drawDog(dog)
+        this.screen()
+      }]),
     ])
 
     this.drawSeeds()
@@ -666,6 +689,39 @@ export class MeadowEngine {
       this.trippTransform()
     }
     drawRunner(ctx, pal.light, 'white')
+  }
+
+  // One of his dogs beside him, with a shadow under all four paws
+  private drawDog(dog: Dog) {
+    const { ctx, pal, light } = this
+    const { x0, x1, footX, footY } = dog.art
+    this.dogTransform(dog)
+    ctx.fillStyle = rgba(pal.pineDark, 0.16 + 0.18 * light.sun)
+    ctx.beginPath()
+    ctx.ellipse(footX, footY, 0.35 * (x1 - x0), 0.05 * (x1 - x0), dog.stance, 0, Math.PI * 2)
+    ctx.fill()
+    drawFigure(ctx, dog.art, pal.light)
+  }
+
+  private dogTransform({ art, at: [x, y], depth, k, flip }: Dog) {
+    const kx = flip ? -k : k
+    this.layer(depth)
+    this.ctx.transform(kx, 0, 0, k, x - art.footX * kx, y - art.footY * k)
+  }
+
+  // Whether a point lands on one of his dogs standing nearer than him, or
+  // with `nearer` false, farther
+  private onDog(X: number, Y: number, nearer: boolean) {
+    return PACK.some((dog) => {
+      if (dog.at[1] > RUNNER_SPOT[1] !== nearer) return false
+      this.dogTransform(dog)
+      return onFigure(this.ctx, dog.art, X, Y)
+    })
+  }
+
+  private onTripp(X: number, Y: number) {
+    this.trippTransform()
+    return onRunner(this.ctx, X, Y)
   }
 
   // From the photo's pixels to the meadow, where he stands
