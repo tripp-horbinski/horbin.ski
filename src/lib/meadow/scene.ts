@@ -19,6 +19,11 @@ export const POST_Y = 632
 // Where Tripp stands, on the trail where it bends: his feet, with the grass in
 // front of them drawn over him
 export const RUNNER_SPOT: Pt = [1000, 642]
+// Where his dogs stand, between their near paws, at his left hand: Pretzel on
+// the trail a step nearer than him, nose to his knee, and Stella behind,
+// her head over Pretzel's back
+export const PRETZEL_SPOT: Pt = [1064, 652]
+export const STELLA_SPOT: Pt = [1108, 634]
 
 export function rng(seed: number) {
   return () => {

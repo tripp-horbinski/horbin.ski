@@ -7,7 +7,7 @@ import { lit } from './palette'
 import { RUNNER_ART } from './runner-art'
 import { RUNNER_BRIDGE_ART } from './runner-bridge-art'
 
-type Art = typeof RUNNER_ART
+export type Art = typeof RUNNER_ART
 
 // Where the figure sits in the photo's pixels: everything is inside this box,
 // and it stands at (footX, footY), between its feet
@@ -59,8 +59,12 @@ export function drawRunner(ctx: CanvasRenderingContext2D, light: string, shoes: 
   drawFigure(ctx, RUNNER_ART, light, shoes)
 }
 
-// Whether a point, in the transform he's drawn with, lands on him rather than
-// on the meadow around him
+// Whether a point, in the transform a figure's drawn with, lands on it rather
+// than on the meadow around it
+export function onFigure(ctx: CanvasRenderingContext2D, art: Art, x: number, y: number) {
+  return inksOf(art).some((ink) => ctx.isPointInPath(ink, x, y, 'evenodd'))
+}
+
 export function onRunner(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  return inksOf(RUNNER_ART).some((ink) => ctx.isPointInPath(ink, x, y, 'evenodd'))
+  return onFigure(ctx, RUNNER_ART, x, y)
 }

@@ -7,7 +7,7 @@ import { PROFILE } from '@/content/career'
 import { MeadowEngine, type Box } from '@/lib/meadow/engine'
 import { featureById, type FeatureId } from '@/lib/meadow/features'
 import { formatHour, paletteAt, phaseName } from '@/lib/meadow/palette'
-import { RESUME_PDF } from '@/lib/site'
+import { PUPPERS, RESUME_PDF } from '@/lib/site'
 
 const GUIDE: FeatureId[] = ['first', 'second', 'third', 'fourth', 'fifth', 'green', 'meadow', 'trail', 'tripp']
 
@@ -67,6 +67,7 @@ export default function Meadow() {
   const pinRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const trippRef = useRef<HTMLAnchorElement>(null)
+  const dogsRef = useRef<HTMLAnchorElement>(null)
   const [hour, setHour] = useState(START_HOUR)
   const [playing, setPlaying] = useState(false)
   const [sound, setSound] = useState(false)
@@ -76,8 +77,9 @@ export default function Meadow() {
   const [panel, setPanel] = useState(false)
   const [touch, setTouch] = useState(false)
 
-  const select = useRef<(id: FeatureId) => void>(() => {})
+  const select = useRef<(id: FeatureId | 'dogs') => void>(() => {})
   select.current = (id) => {
+    if (id === 'dogs') return void window.open(PUPPERS, '_blank', 'noopener,noreferrer')
     const f = featureById(id)
     if (f.href) router.push(f.href)
     else setPinned((p) => (p === id ? null : id))
@@ -94,6 +96,7 @@ export default function Meadow() {
         placeNote(noteRef.current, pinRef.current, p)
       },
       onTripp: (box) => placeLink(trippRef.current, box),
+      onDogs: (box) => placeLink(dogsRef.current, box),
     })
     engineRef.current = engine
 
@@ -179,6 +182,10 @@ export default function Meadow() {
             is for the keyboard and the screen reader */}
         <a ref={trippRef} href="#contact" className="meadow-tripp">
           Get in touch with Tripp
+        </a>
+        {/* And his dogs, the same way */}
+        <a ref={dogsRef} href={PUPPERS} target="_blank" rel="noopener noreferrer" className="meadow-dogs">
+          Tripp&apos;s dogs, on puppe.rs, his app for pet sitters
         </a>
 
         {panel && (

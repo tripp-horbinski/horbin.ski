@@ -428,7 +428,8 @@
 
   /* Link over Tripp: the canvas picks him out for the pointer, and the link
      takes the keyboard focus */
-  .meadow-tripp {
+  .meadow-tripp,
+  .meadow-dogs {
     position: absolute;
     top: 0;
     left: 0;
@@ -441,7 +442,8 @@
     pointer-events: none;
   }
 
-  .meadow-tripp:focus-visible {
+  .meadow-tripp:focus-visible,
+  .meadow-dogs:focus-visible {
     outline: 2px solid #FBF6EA;
     outline-offset: 2px;
   }
