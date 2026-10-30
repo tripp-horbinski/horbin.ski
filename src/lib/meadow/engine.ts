@@ -237,10 +237,13 @@ export class MeadowEngine {
     this.pinned = id
   }
 
-  // Where the horizon is on screen, in CSS pixels: the meadow's far edge,
-  // with the treeline and the mountain above it
-  horizon() {
-    return this.H * this.hy
+  // Scrolled out of sight, the scene stops drawing until it's back
+  setVisible(on: boolean) {
+    cancelAnimationFrame(this.raf)
+    this.raf = 0
+    if (!on) return
+    this.last = 0
+    this.raf = requestAnimationFrame(this.frame)
   }
 
   // --- View ---
