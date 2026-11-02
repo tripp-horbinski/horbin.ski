@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { CSSProperties } from 'react'
 import { PROFILE } from '@/content/career'
 import { MeadowEngine, type Box } from '@/lib/meadow/engine'
@@ -57,6 +57,8 @@ function placeLink(el: HTMLElement | null, b: Box) {
   el.style.transform = `translate(${b.x}px, ${b.y}px)`
 }
 
+const noSubscription = () => () => {}
+
 export default function Meadow() {
   const router = useRouter()
   const heroRef = useRef<HTMLElement>(null)
@@ -75,21 +77,24 @@ export default function Meadow() {
   const [pinned, setPinned] = useState<FeatureId | null>(null)
   // The time of day, sound and field guide wait in one panel, so the scene has the screen
   const [panel, setPanel] = useState(false)
-  const [touch, setTouch] = useState(false)
+  // False on the server, which can't know; the client's answer follows once it hydrates
+  const touch = useSyncExternalStore(
+    noSubscription,
+    () => window.matchMedia('(hover: none)').matches,
+    () => false,
+  )
 
-  const select = useRef<(id: FeatureId | 'dogs') => void>(() => {})
-  select.current = (id) => {
+  const select = useEffectEvent((id: FeatureId | 'dogs') => {
     if (id === 'dogs') return void window.open(PUPPERS, '_blank', 'noopener,noreferrer')
     const f = featureById(id)
     if (f.href) router.push(f.href)
     else setPinned((p) => (p === id ? null : id))
-  }
+  })
 
   useEffect(() => {
-    setTouch(window.matchMedia('(hover: none)').matches)
     const engine = new MeadowEngine(canvasRef.current!, START_HOUR, {
       onHover: setHover,
-      onSelect: (id) => select.current(id),
+      onSelect: (id) => select(id),
       onHour: setHour,
       onAnchors: (h, p) => {
         placeLabel(labelRef.current, h)

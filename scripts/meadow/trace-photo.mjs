@@ -83,7 +83,7 @@ async function main() {
   if (!path) throw new Error('usage: trace-photo.mjs photo.jpg [--out file.ts]')
 
   const photo = await loadPhoto(path)
-  const { width, height, data } = photo
+  const { width, height } = photo
   const cls = classMap(photo)
   const skyline = skylineOf(cls, width, height)
   await writeFile(new URL('photo-skyline.json', CACHE), JSON.stringify({ width, height, skyline: [...skyline] }))
