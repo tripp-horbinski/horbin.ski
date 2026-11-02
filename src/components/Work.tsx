@@ -141,9 +141,22 @@ export default function Work() {
             <h2 id="numbers-title" className="page-label">
               About me
             </h2>
-            <p className="page-lead">
-              {PROFILE.intro} {PROFILE.openTo}
-            </p>
+            <p className="walk-intro-thesis">{PROFILE.thesis}</p>
+            <p className="page-lead">{PROFILE.intro}</p>
+            <dl className="walk-intro-facts">
+              <div>
+                <dt>Looking for</dt>
+                <dd>{PROFILE.lookingFor}</dd>
+              </div>
+              <div>
+                <dt>Works in</dt>
+                <dd>{PROFILE.worksIn}</dd>
+              </div>
+              <div>
+                <dt>Based in</dt>
+                <dd>{PROFILE.basedIn}</dd>
+              </div>
+            </dl>
           </div>
         </section>
         <div className="walk-stop">

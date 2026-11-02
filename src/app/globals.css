@@ -1311,9 +1311,44 @@
     max-width: 680px;
   }
 
+  /* The one thing to take away, then how he got there, then the facts to scan for */
+  .walk-intro-thesis {
+    margin-top: 0.9rem;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.45rem;
+    line-height: 1.25;
+    text-wrap: balance;
+    color: #FBF6EA;
+  }
+
   .walk-intro .page-lead {
-    font-size: 1.08rem;
-    line-height: 1.7;
+    margin-top: 0.8rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(251, 246, 234, 0.86);
+  }
+
+  .walk-intro-facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(237, 230, 210, 0.22);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: #FBF6EA;
+  }
+
+  .walk-intro-facts dt {
+    margin-bottom: 0.3rem;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #E0BE6E;
   }
 
   .walk-chapter {
@@ -1413,6 +1448,33 @@
       line-height: 1.6;
     }
 
+    .walk-intro {
+      padding-block: 1rem;
+    }
+
+    .walk-intro-thesis {
+      margin-top: 0.6rem;
+      font-size: 1.25rem;
+    }
+
+    .walk-intro .page-lead {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .walk-intro-facts {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding-top: 0.7rem;
+      font-size: 0.86rem;
+    }
+
+    .walk-intro-facts dt {
+      margin-bottom: 0.15rem;
+    }
+
     .walk-sign .numbers-list strong {
       font-size: 1.6rem;
     }
@@ -1423,6 +1485,47 @@
 
     .walk-on .walk-stop {
       padding: 0 0.6rem 3.6rem;
+    }
+
+    /* On a short phone the signs tighten to stay under the résumé button */
+    @media (max-height: 700px) {
+      .walk-intro .page-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+
+      .walk-intro-thesis {
+        margin-top: 0;
+        font-size: 1.15rem;
+      }
+
+      .walk-intro .page-lead {
+        font-size: 0.86rem;
+      }
+
+      .walk-intro-facts {
+        gap: 0.35rem;
+        font-size: 0.82rem;
+      }
+
+      .walk-sign .numbers-chapter h3 {
+        margin-bottom: 0.6rem;
+      }
+
+      .walk-chapter {
+        padding-block: 0.9rem;
+      }
+
+      .walk-chapter .numbers-list {
+        gap: 0.7rem 1rem;
+      }
+
+      .walk-sign .numbers-list span {
+        font-size: 0.74rem;
+      }
     }
 
     /* On a phone the markers are dots */
