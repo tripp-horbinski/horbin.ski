@@ -319,8 +319,26 @@
     padding: 0;
   }
 
-  .home-hero {
+  /* The meadow holds still while the page rises over it; .home-spot spans the
+     scroll until it's covered, for the observer that stops it drawing */
+  .home {
+    --edge: 300px;
     position: relative;
+  }
+
+  .home-spot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: calc(max(100svh, 480px) + var(--walk-len, 0px) + var(--edge));
+    pointer-events: none;
+  }
+
+  .home-hero {
+    position: sticky;
+    top: 0;
+    z-index: 0;
     height: 100svh;
     min-height: 480px;
     overflow: hidden;
@@ -344,7 +362,8 @@
     display: block;
     width: 100%;
     height: 100%;
-    touch-action: none;
+    /* A swipe up or down on the meadow scrolls the page */
+    touch-action: pan-y;
   }
 
   .meadow-sign,
@@ -502,6 +521,8 @@
 
   /* The page under the meadow, on the paper the Vitruvian Man is printed on */
   .page {
+    position: relative;
+    z-index: 1;
     background: #F3EAD6;
     color: #3B3A33;
     font-family: 'Lora', Georgia, serif;
@@ -514,7 +535,7 @@
     scroll-margin-top: 0;
   }
 
-  .page-section:last-child {
+  .contact {
     padding-bottom: 6rem;
   }
 
@@ -552,8 +573,7 @@
   }
 
   .page-lead a,
-  .contact-list a,
-  .numbers-figure figcaption span a {
+  .contact-list a {
     text-decoration: underline;
     text-decoration-color: #B88C77;
     text-underline-offset: 2px;
@@ -563,8 +583,7 @@
     margin-top: 2rem;
   }
 
-  .page-more,
-  .numbers-figure figcaption > a {
+  .page-more {
     display: inline-block;
     font-family: 'Josefin Sans', 'Futura', sans-serif;
     font-style: normal;
@@ -575,21 +594,9 @@
     color: #8F5F4A;
   }
 
-  .page-more:hover,
-  .numbers-figure figcaption > a:hover {
+  .page-more:hover:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
-  }
-
-  /* By the numbers: his career's numbers round the Vitruvian Man, the way
-     Leonardo's notes are round him on the page, in two chapters, before on
-     the left and now on the right. Each goes to its project */
-  .numbers-plate {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 520px) minmax(0, 1fr);
-    align-items: start;
-    gap: 2.5rem;
-    margin-top: 2.5rem;
   }
 
   /* A chapter of his career: when, and what he was doing, then its numbers
@@ -624,10 +631,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-  }
-
-  .numbers-left {
-    text-align: right;
   }
 
   .numbers-list a {
@@ -672,38 +675,6 @@
 
   .numbers-list a:hover strong {
     color: #A0703A;
-  }
-
-  .numbers-figure {
-    align-self: center;
-    margin: 0;
-  }
-
-  .numbers-figure img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .numbers-figure figcaption {
-    margin-top: 0.5rem;
-    text-align: center;
-    font-size: 0.88rem;
-    font-style: italic;
-    line-height: 1.55;
-    color: #5A5649;
-  }
-
-  .numbers-figure figcaption > a {
-    margin-left: 0.25rem;
-    white-space: nowrap;
-  }
-
-  .numbers-figure small {
-    display: block;
-    margin-top: 0.35rem;
-    font-size: 0.72rem;
-    color: #8A8473;
   }
 
   /* Selected work: each project led by its numbers */
@@ -822,7 +793,7 @@
   /* What he builds on his own time */
   .projects {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
     margin-top: 2.5rem;
   }
@@ -833,6 +804,19 @@
     border-radius: 6px;
     background: #FAF4E6;
     box-shadow: 0 2px 0 #DCCDAE;
+  }
+
+  .project-head {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .project-icon {
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 22%;
   }
 
   .project-kind {
@@ -852,6 +836,133 @@
 
   .project .page-more {
     margin-top: 1rem;
+  }
+
+  /* A project's screenshots, as on its store listing */
+  .shots {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .shot {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(43, 42, 37, 0.3);
+    cursor: zoom-in;
+    transition: transform 0.15s ease-out;
+  }
+
+  .shot:hover {
+    transform: translateY(-2px);
+  }
+
+  .shot:focus-visible,
+  .shot-button:focus-visible {
+    outline: 2px solid #8F5F4A;
+    outline-offset: 2px;
+  }
+
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* One of them full size, over the page */
+  .shot-view {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  .shot-view::backdrop {
+    background: rgba(24, 26, 22, 0.9);
+  }
+
+  html:has(.shot-view[open]) {
+    overflow: hidden;
+  }
+
+  .shot-track {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .shot-track li {
+    flex: 0 0 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 1rem;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+
+  .shot-track img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 12px;
+  }
+
+  .shot-button {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: rgba(24, 26, 22, 0.7);
+    color: #FAF4E6;
+  }
+
+  .shot-button:hover {
+    background: rgba(24, 26, 22, 0.95);
+  }
+
+  .shot-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .shot-close {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .shot-prev,
+  .shot-next {
+    top: calc(50% - 1.375rem);
+  }
+
+  .shot-prev {
+    left: 0.5rem;
+  }
+
+  .shot-next {
+    right: 0.5rem;
   }
 
   /* Getting in touch */
@@ -894,31 +1005,29 @@
     overflow-wrap: anywhere;
   }
 
-  /* Narrower: the numbers under the figure in two columns, and each project's
-     numbers over its story */
+  /* Narrower: the projects one to a row */
   @media (max-width: 1023px) {
-    .numbers-plate {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 2rem 1.5rem;
-    }
-
-    .numbers-figure {
-      grid-column: 1 / -1;
-      grid-row: 1;
-      width: 100%;
-      max-width: 560px;
-      margin: 0 auto;
-    }
-
-    .numbers-left {
-      text-align: left;
-    }
-
     .projects {
       grid-template-columns: minmax(0, 1fr);
       max-width: 600px;
       margin-left: auto;
       margin-right: auto;
+    }
+
+    /* The screenshots don't fit in a row now, so they're a strip to swipe,
+       running to the card's edges so the next one shows there is more */
+    .shots {
+      display: flex;
+      overflow-x: auto;
+      margin-inline: -1.4rem;
+      padding: 0.25rem 1.4rem 0.5rem;
+      scroll-padding-inline: 1.4rem;
+      scroll-snap-type: x proximity;
+    }
+
+    .shots li {
+      flex: 0 0 10.5rem;
+      scroll-snap-align: start;
     }
   }
 
@@ -944,11 +1053,6 @@
     }
 
     /* On a phone the chapters stack, platform then product, two numbers to a row */
-    .numbers-plate {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 2.25rem;
-    }
-
     .numbers-list {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 1.25rem 1rem;
@@ -981,6 +1085,370 @@
     .home-cue {
       animation: none;
     }
+
+    .shot {
+      transition: none;
+    }
+
+    .shot:hover {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .shot-track {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* The walk ends in the woods: pines rise over the meadow, and the page is
+     one flat color so nothing competes with the words */
+  .page {
+    background: #1E3826;
+  }
+
+  /* The edge where the page rises over the meadow */
+  .page-edge {
+    position: relative;
+    z-index: 1;
+    height: var(--edge);
+    margin-bottom: -1px;
+    background: url('/backdrop/edge.svg') center bottom / cover no-repeat;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .home {
+      --edge: 190px;
+    }
+  }
+
+  #work {
+    padding-top: 2.5rem;
+  }
+
+  /* The page ends back at the mountain */
+  .contact {
+    padding-bottom: 3rem;
+  }
+
+  .page-foot {
+    height: clamp(210px, 25vw, 360px);
+    background: url('/backdrop/foot.svg') center bottom / cover no-repeat;
+  }
+
+  .page {
+    color: #EDE6D2;
+  }
+
+  .page-label,
+  .numbers-chapter h3 span,
+  .work-when,
+  .cv-when,
+  .page-more,
+  .contact-list svg {
+    color: #E0BE6E;
+  }
+
+  .page-lead,
+  .numbers-chapter h3,
+  .work-body h3,
+  .cv-what,
+  .contact-title {
+    color: #FBF6EA;
+  }
+
+  .numbers-list strong,
+  .work-impact dt {
+    color: #F2CF7A;
+  }
+
+  .numbers-list a:hover strong {
+    color: #FBF6EA;
+  }
+
+  .numbers-list a,
+  .work,
+  .work:last-child,
+  .cv li,
+  .cv li:last-child {
+    border-color: rgba(233, 214, 160, 0.26);
+  }
+
+  .numbers-list small,
+  .work-body .work-stack {
+    color: #A9B098;
+  }
+
+  .work-who,
+  .work-impact dd,
+  .cv-what span,
+  .cv-phase {
+    color: #C9CDB6;
+  }
+
+  /* His projects stay on paper */
+  .project {
+    color: #3B3A33;
+  }
+
+  .project .page-more {
+    color: #8F5F4A;
+  }
+
+  /* The sideways walk: signs standing in the meadow, carried across the screen
+     by the page's ordinary scroll */
+  .walk {
+    position: relative;
+    z-index: 1;
+    padding: 3rem max(20px, 5vw);
+    background: #1E3826;
+    color: #EDE6D2;
+    font-family: 'Lora', Georgia, serif;
+  }
+
+  .walk-track {
+    display: grid;
+    gap: 2.5rem;
+    justify-items: center;
+  }
+
+  .walk-nav {
+    display: none;
+  }
+
+  .walk.walk-on {
+    height: calc(max(100svh, 480px) + var(--walk-len));
+    margin-top: calc(-1 * max(100svh, 480px));
+    padding: 0;
+    background: none;
+  }
+
+  .walk-on .walk-view {
+    position: sticky;
+    top: 0;
+    height: max(100svh, 480px);
+    /* clip, not hidden: focusing a link on a far sign mustn't scroll this
+       sideways. Up and down stays open, so the posts run down behind the pines */
+    overflow-x: clip;
+    overflow-y: visible;
+    pointer-events: none;
+  }
+
+  .walk-on .walk-track {
+    display: flex;
+    gap: 0;
+    height: 100%;
+    will-change: transform;
+  }
+
+  .walk-on .walk-stop {
+    flex: 0 0 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-width: 0;
+    padding: 0 1rem 4.5rem;
+  }
+
+  .walk-sign {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    padding: 1.9rem 2.1rem;
+    border-radius: 5px;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3), 0 16px 34px rgba(20, 14, 8, 0.28);
+    pointer-events: auto;
+  }
+
+  .walk-sign:not(.project) {
+    background: #1E3826;
+  }
+
+  /* The posts it stands on */
+  .walk-on .walk-sign::before,
+  .walk-on .walk-sign::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    width: 14px;
+    height: 100vh;
+    background: #4A3324;
+  }
+
+  .walk-on .walk-sign::before {
+    left: 16%;
+  }
+
+  .walk-on .walk-sign::after {
+    right: 16%;
+  }
+
+  .walk-sign .page-label {
+    justify-content: flex-start;
+  }
+
+  .walk-sign .page-label::before {
+    display: none;
+  }
+
+  .walk-sign .page-lead {
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+
+  .walk-sign .numbers-chapter h3 {
+    margin-bottom: 1rem;
+  }
+
+  .walk-sign .numbers-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem 1.5rem;
+  }
+
+  .walk-intro {
+    max-width: 680px;
+  }
+
+  .walk-intro .page-lead {
+    font-size: 1.08rem;
+    line-height: 1.7;
+  }
+
+  .walk-chapter {
+    max-width: 880px;
+  }
+
+  .walk-chapter .numbers-list {
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  }
+
+  .walk-on .walk-sign.project {
+    padding: 1.4rem 1.6rem 1.3rem;
+  }
+
+  /* The trail markers, always a click from any stop */
+  .walk-on .walk-nav {
+    position: absolute;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(24, 34, 26, 0.86);
+    opacity: min(calc(var(--walk, 0) * 30), var(--leave, 1));
+    pointer-events: auto;
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: #EDE6D2;
+  }
+
+  .walk-nav button,
+  .walk-nav a {
+    padding: 0.5rem 0.65rem 0.4rem;
+    border-radius: 999px;
+    text-transform: inherit;
+    letter-spacing: inherit;
+  }
+
+  .walk-nav [aria-current] {
+    background: #E0BE6E;
+    color: #1E3826;
+  }
+
+  .walk-nav button:hover,
+  .walk-nav a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .walk-nav-resume {
+    display: none;
+  }
+
+  @media (max-width: 760px), (max-height: 800px) {
+    .home[data-last] .walk-nav-resume {
+      display: inline;
+    }
+  }
+
+  /* His name and line stay in the sky until the last sign rises and pushes them off */
+  .home-head {
+    translate: 0 calc(-1 * var(--exit, 0px));
+  }
+
+  .home[data-gone] .home-head a {
+    visibility: hidden;
+  }
+
+  .home-cue {
+    opacity: calc(1 - var(--walk, 0) * 30);
+  }
+
+  @media (max-width: 760px) {
+    .walk-sign {
+      padding: 1.2rem 1.25rem;
+    }
+
+    .walk-chapter .numbers-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .walk-sign .page-lead {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .walk-sign .numbers-list strong {
+      font-size: 1.6rem;
+    }
+
+    .walk-sign .numbers-list span {
+      font-size: 0.78rem;
+    }
+
+    .walk-on .walk-stop {
+      padding: 0 0.6rem 3.6rem;
+    }
+
+    /* On a phone the markers are dots */
+    .walk-nav button {
+      width: 1.5rem;
+      height: 1.5rem;
+      padding: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .walk-nav button span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    .walk-nav button::before {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .walk-nav [aria-current] {
+      background: none;
+      color: #E0BE6E;
+    }
+
   }
 
   /* The one panel, opened from the top right: time of day, sound, field guide */

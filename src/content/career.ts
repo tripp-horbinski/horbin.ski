@@ -234,10 +234,10 @@ export const CERTIFICATIONS = [
     month: '2023-12',
     note: 'Every AWS certification, the last of them earned in December 2023. The gold jacket is how AWS marks it.',
     href: CREDLY,
-    // For the numbers round the Vitruvian Man, who's wearing it. Twelve, though
+    // For the numbers on the walk. Twelve, though
     // Credly shows 13 badges: Solutions Architect – Associate is there twice, from
     // 2018 and its 2023 renewal
-    impact: [{ value: '12', label: 'AWS certifications, all of them, for the Golden Jacket he’s wearing' }],
+    impact: [{ value: '12', label: 'AWS certifications, all of them, which earned me the Golden Jacket' }],
   },
 ]
 
