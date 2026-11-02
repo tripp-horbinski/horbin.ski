@@ -30,6 +30,9 @@ export type Role = {
   phases?: Phase[]
 }
 
+const LOOKING_FOR = 'Senior/Staff roles, platform or full stack'
+const BASED_IN = 'Milwaukee, open to remote or relocating'
+
 export const PROFILE = {
   name: 'Tripp Horbinski',
   headline: 'Senior Software Engineer',
@@ -39,15 +42,20 @@ export const PROFILE = {
   // His range is for his intro and his numbers to show
   tagline: 'Senior Software Engineer',
   // What he's looking for and where he's based (the meadow is in Colorado, he
-  // isn't), closing his intro and again in getting in touch. Both lanes on
-  // purpose: his tailored resumes do the steering, application by application
-  openTo: 'Looking for Senior/Staff software engineering roles, platform or full stack. Based in Milwaukee, open to remote or relocating.',
+  // isn't), set apart on the About sign and a sentence in getting in touch. Both
+  // lanes on purpose: his tailored resumes do the steering, application by application
+  lookingFor: LOOKING_FOR,
+  basedIn: BASED_IN,
+  openTo: `Looking for ${LOOKING_FOR}. Based in ${BASED_IN}.`,
   // Leading his selected work, in his voice: how he builds now, in a line
   practice:
     'The projects behind those numbers, newest first. These days I build with Claude Code across the whole lifecycle, from PRDs and scoping to QA.',
-  // The homepage's summary, in his voice
+  // The About sign, in his voice: the one thing to take away, then how he got there
+  thesis: 'I spent six years making software ship. Then I started shipping it.',
   intro:
-    'I’m a software engineer who has built both the platform and the product on top of it. I spent six years on how software ships, CI/CD and cloud infrastructure, at Northwestern Mutual, Veda, Cardless and GoFundMe. In 2025 I moved to building GoFundMe Pro itself, full stack, on the platform I’d helped build, so I know what each side needs from the other.',
+    'That meant CI/CD and cloud infrastructure, at four companies. In 2025 I went full stack on GoFundMe Pro, the product on top of the platform I’d helped build.',
+  // The stack he works in, as the resume's summary has it, for whoever's scanning for it
+  worksIn: 'TypeScript, Next.js, Laravel, AWS',
   // The resume's
   summary:
     'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js, Laravel and AWS. AWS Golden Jacket recipient.',
@@ -91,7 +99,7 @@ export const ROLES: Role[] = [
         end: '2024-12',
         highlights: [
           'Built reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, across 8 engineering teams.',
-          'Led the migration of a sharded MongoDB cluster from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and of the Kong API platform from EC2 to ECS.',
+          'Led the migration of the sharded MongoDB cluster behind donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and of the Kong API platform from EC2 to ECS.',
           'Mentored engineers through GoFundMe’s mentorship program.',
         ],
       },
@@ -118,7 +126,7 @@ export const ROLES: Role[] = [
     end: '2022-08',
     highlights: [
       'Led the company-wide migration from GitHub to GitLab, with shared CI/CD pipelines on an autoscaling EC2 runner platform.',
-      'Built cloud-native applications in Python and TypeScript on AWS CDK and Terraform, and brought Datadog observability to AWS infrastructure and workloads.',
+      'Built 12 reusable AWS CDK constructs and Terraform modules for cloud-native applications in Python and TypeScript, and brought Datadog observability to AWS infrastructure and workloads.',
     ],
   },
   {
@@ -129,7 +137,7 @@ export const ROLES: Role[] = [
     start: '2018-06',
     end: '2021-01',
     highlights: [
-      'Designed and maintained a shared GitLab CI/CD platform for 3,000+ engineers, standardizing security, testing and deployment.',
+      'Developed and maintained reusable GitLab CI templates for 3,000+ engineers, standardizing security, testing and deployment.',
       'An early contributor to the company’s adoption of AWS CDK, and built the Python and Redshift data collection leadership used to measure DORA metrics.',
     ],
   },
@@ -181,6 +189,18 @@ export const WORK: Work[] = [
     stack: ['ECS Fargate', 'AWS'],
   },
   {
+    id: 'atlas',
+    title: 'The database behind donation pages',
+    role: 'Cloud and platform',
+    org: 'GoFundMe',
+    dates: '2023 – 2024',
+    impact: [{ value: 'Zero', label: 'customer-facing downtime moving our donation pages’ database to Atlas' }],
+    summary:
+      'I led moving the sharded MongoDB cluster behind our donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas, with zero customer-facing downtime.',
+    detail: 'I also led moving the Kong API platform from EC2 to ECS.',
+    stack: ['MongoDB Atlas', 'Kong', 'ECS'],
+  },
+  {
     id: 'actions',
     title: 'GitHub Actions for GoFundMe Pro',
     role: 'Cloud and platform',
@@ -189,26 +209,38 @@ export const WORK: Work[] = [
     impact: [{ value: '8', label: 'engineering teams moved onto shared GitHub Actions' }],
     summary:
       'I built the reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, across 8 engineering teams.',
-    detail:
-      'I also led moving a sharded MongoDB cluster from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and the Kong API platform from EC2 to ECS, and mentored engineers through GoFundMe’s mentorship program.',
-    stack: ['GitHub Actions', 'MongoDB Atlas', 'Kong', 'ECS'],
+    detail: 'I also mentored engineers through GoFundMe’s mentorship program.',
+    stack: ['GitHub Actions', 'Self-hosted runners'],
   },
   {
     id: 'cardless',
-    title: 'Cardless’s cloud, in code',
+    title: 'Cardless’s deployments, cut in half',
     role: 'Lead Cloud Platform Engineer',
     org: 'Cardless',
     dates: '2022 – 2023',
     impact: [
+      { value: '50%', label: 'shorter deployment times, on one CI/CD platform' },
       { value: '100%', label: 'of production AWS infrastructure codified in Terraform' },
       { value: '99.9%', label: 'uptime moving production Kubernetes to a new VPC' },
-      { value: '50%', label: 'shorter deployment times, on one CI/CD platform' },
     ],
     summary:
-      'I codified all of Cardless’s production AWS infrastructure in Terraform, and wrote, and drove adoption of, the company’s first infrastructure roadmap.',
+      'I cut deployment times in half by consolidating DevOps tools into one CI/CD platform, and wrote, and drove adoption of, the company’s first infrastructure roadmap.',
     detail:
-      'I moved production Kubernetes to a new VPC at 99.9% uptime for critical services, and cut deployment times in half by consolidating DevOps tools into one CI/CD platform.',
+      'I codified all of Cardless’s production AWS infrastructure in Terraform, and moved production Kubernetes to a new VPC at 99.9% uptime for critical services.',
     stack: ['Terraform', 'Kubernetes', 'AWS'],
+  },
+  {
+    id: 'veda',
+    title: 'Reusable infrastructure as code',
+    role: 'Cloud Engineer',
+    org: 'Veda',
+    dates: '2021 – 2022',
+    impact: [{ value: '12', label: 'reusable AWS CDK constructs and Terraform modules I built' }],
+    summary:
+      'I built 12 reusable AWS CDK constructs and Terraform modules for cloud-native applications in Python and TypeScript.',
+    detail:
+      'I also led the company-wide migration from GitHub to GitLab, with shared CI/CD pipelines on an autoscaling EC2 runner platform, and brought Datadog observability to our AWS infrastructure and workloads.',
+    stack: ['AWS CDK', 'Terraform', 'Python', 'TypeScript', 'Datadog', 'GitLab CI/CD'],
   },
   {
     id: 'gitlab',
@@ -216,9 +248,9 @@ export const WORK: Work[] = [
     role: 'Software Engineer',
     org: 'Northwestern Mutual',
     dates: '2018 – 2021',
-    impact: [{ value: '3,000+', label: 'engineers on the GitLab CI/CD platform I designed' }],
+    impact: [{ value: '3,000+', label: 'engineers using the reusable GitLab CI templates I developed' }],
     summary:
-      'I designed and maintained the shared GitLab CI/CD platform that 3,000+ engineers shipped through, standardizing security, testing and deployment.',
+      'I developed and maintained the reusable GitLab CI templates that 3,000+ engineers shipped through, standardizing security, testing and deployment.',
     detail:
       'I was an early contributor to the company’s adoption of AWS CDK, and built the Python and Redshift data collection leadership used to measure DORA metrics.',
     stack: ['GitLab CI/CD', 'AWS CDK', 'Python', 'Redshift'],
@@ -272,7 +304,7 @@ export const CHAPTERS: { title: string; when: string; numbers: [string, string][
   {
     title: 'Platform: making software ship',
     when: '2018 – 2024',
-    numbers: [['gitlab', '3,000+'], ['cardless', '100%'], ['cardless', '50%'], ['jacket', '12']],
+    numbers: [['gitlab', '3,000+'], ['veda', '12'], ['cardless', '50%'], ['atlas', 'Zero']],
   },
   {
     title: 'Product: shipping on the platform',
