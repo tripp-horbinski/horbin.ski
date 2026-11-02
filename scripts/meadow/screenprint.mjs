@@ -534,9 +534,13 @@ export async function shrink({ W, H, rgb, mask, paint, photoPx }, [bx0, by0, bx1
 // regions are polygons in the photo's pixels: `head` gets its own finer inks,
 // white is only allowed in `whiteOk`, and the tattoo is found in `tattoo.box`
 // and traced from the photo in `tattoo.area`. A photo passed through shrink()
-// gives its `origin` and `unit` to map everything back. `detail` trades the
-// screen print's flat inks for a closer likeness of the photo; its defaults,
-// POSTER, are the runner figures' print.
+// gives its `origin` and `unit` to map everything back. `trim` takes regions off
+// the figure after its inks are chosen, and `heal` gives the near-black in a
+// region back to the lighter inks beside it, for touching up a figure without
+// changing any color: k-means samples the pixels by their place in the list, so
+// even a few pixels more or fewer before it would shift every ink. `detail`
+// trades the screen print's flat inks for a closer likeness of the photo; its
+// defaults, POSTER, are the runner figures' print.
 export const POSTER = {
   inks: { body: 14, head: 10 },
   // Bilateral passes before separating: radius, spatial and color spread
@@ -546,7 +550,7 @@ export const POSTER = {
   turd: { body: 10, head: 3 },
   outline: true, // the silhouette in the darkest ink, showing as a thin rim
 }
-export async function separate({ W: PW, H, rgb, mask: pmask, paint, photoPx }, { scale: SCALE = 3, head: HEAD, whiteOk: WHITE_OK = [], tattoo: { box: TATTOO, area: MOOSE }, origin: [ox, oy] = [0, 0], unit = 1, detail = POSTER }) {
+export async function separate({ W: PW, H, rgb, mask: pmask, paint, photoPx }, { scale: SCALE = 3, head: HEAD, whiteOk: WHITE_OK = [], tattoo: { box: TATTOO, area: MOOSE }, trim = [], heal = [], origin: [ox, oy] = [0, 0], unit = 1, detail = POSTER }) {
   let x0 = PW, y0 = H, x1 = 0, y1 = 0
   for (let i = 0; i < PW * H; i++) {
     if (!pmask[i]) continue
@@ -634,6 +638,7 @@ export async function separate({ W: PW, H, rgb, mask: pmask, paint, photoPx }, {
   for (let i = 0; i < N; i++) if (mask[i] && painted[i] < 0) (head[i] ? headPix : bodyPix).push(i)
   const B = kmeans(Lbody, bodyPix, detail.inks.body, 2.2)
   const Hd = kmeans(Lhead, headPix, detail.inks.head, 1.4)
+  for (const p of trim) (await region(p)).forEach((v, i) => v && (mask[i] = 0))
   const inks = [
     ...B.centers.map((c) => ({ rgb: rgbOf(c), lum: c[0] })),
     ...Hd.centers.map((c) => ({ rgb: rgbOf(c), lum: c[0], head: true })),
@@ -645,6 +650,7 @@ export async function separate({ W: PW, H, rgb, mask: pmask, paint, photoPx }, {
   const neutralLight = (c) => c[0] > 80 && Math.hypot(c[1], c[2]) < 9
   const label = new Int16Array(N).fill(-1)
   for (const i of bodyPix) {
+    if (!mask[i]) continue
     let best = -1
     B.centers.forEach((c, k) => {
       if (neutralLight(c) && !whiteOk[i]) return
@@ -653,6 +659,7 @@ export async function separate({ W: PW, H, rgb, mask: pmask, paint, photoPx }, {
     label[i] = best
   }
   for (const i of headPix) {
+    if (!mask[i]) continue
     let best = 0
     for (let k = 1; k < Hd.centers.length; k++) if (Hd.d2(i, Hd.centers[k]) < Hd.d2(i, Hd.centers[best])) best = k
     label[i] = B.centers.length + best
@@ -716,6 +723,25 @@ export async function separate({ W: PW, H, rgb, mask: pmask, paint, photoPx }, {
   majority(1, (i) => head[i])
   for (let pass = 0; pass < 2; pass++) islands(detail.islands.body * SCALE * SCALE, detail.islands.head * SCALE * SCALE)
   restamp()
+
+  // The near-black in each `heal` region, filled in from the lighter inks beside it
+  const light = (k) => k >= 0 && k < N && label[k] >= 0 && inks[label[k]].lum >= 20
+  for (const p of heal) {
+    const patch = await region(p)
+    let open = []
+    for (let i = 0; i < N; i++) {
+      if (!patch[i] || label[i] < 0 || inks[label[i]].lum >= 20) continue
+      label[i] = -2
+      open.push(i)
+    }
+    while (open.length) {
+      const fills = open.map((i) => [i, [i - 1, i + 1, i - W, i + W].find(light)])
+      const found = fills.filter(([, k]) => k !== undefined)
+      if (!found.length) break
+      found.map(([i, k]) => [i, label[k]]).forEach(([i, l]) => (label[i] = l))
+      open = fills.filter(([, k]) => k === undefined).map(([i]) => i)
+    }
+  }
 
   // The tattoo as it is in the photo: wherever the untouched photo, enlarged,
   // is gray and clearly darker than the skin right around it, which a closing
