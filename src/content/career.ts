@@ -50,7 +50,7 @@ export const PROFILE = {
     'I’m a software engineer who has built both the platform and the product on top of it. I spent six years on how software ships, CI/CD and cloud infrastructure, at Northwestern Mutual, Veda, Cardless and GoFundMe. In 2025 I moved to building GoFundMe Pro itself, full stack, on the platform I’d helped build, so I know what each side needs from the other.',
   // The resume's
   summary:
-    'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js, Laravel and AWS. AWS Certified Golden Jacket recipient.',
+    'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js, Laravel and AWS. AWS Golden Jacket recipient.',
   contact: [
     { label: 'Email', href: `mailto:${EMAIL}`, text: EMAIL },
     { label: 'LinkedIn', href: LINKEDIN, text: 'in/tripp-horbinski' },
