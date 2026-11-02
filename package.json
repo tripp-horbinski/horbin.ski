@@ -20,6 +20,7 @@
     "meadow:runner-bridge": "node scripts/meadow/runner-bridge.mjs",
     "meadow:vitruvian": "node scripts/meadow/vitruvian.mjs",
     "resume:pdf": "node scripts/resume-pdf.mjs",
+    "meadow:backdrop": "node scripts/meadow/backdrop.mjs",
     "esker:shots": "node scripts/esker-shots.mjs"
   },
   "repository": {

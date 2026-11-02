@@ -3,6 +3,7 @@ import { CERTIFICATIONS, CHAPTERS, EDUCATION, PROFILE, ROLES, WORK } from '@/con
 import { PROJECTS } from '@/content/projects'
 import { CREDLY, EMAIL, GITHUB, LINKEDIN, RESUME_PDF } from '@/lib/site'
 import Screenshots from './Screenshots'
+import Walk from './Walk'
 
 // A project's years, short: 2018–21, or 2025
 const years = (dates: string) => {
@@ -10,7 +11,7 @@ const years = (dates: string) => {
   return first === last ? first : `${first}–${last.slice(2)}`
 }
 
-// The two chapters round the Vitruvian Man, each number with where and when
+// The two chapters on the walk, each number with where and when
 // it's from and where to see more: its project below, or for the Golden
 // Jacket's, Credly
 const STORY = CHAPTERS.map((c) => ({
@@ -22,7 +23,6 @@ const STORY = CHAPTERS.map((c) => ({
     return { ...cert.impact.find((n) => n.value === value)!, href: cert.href, from: `${cert.name} · ${cert.month.slice(0, 4)}` }
   }),
 }))
-const JACKET = CERTIFICATIONS[0]
 
 // The ways to reach him, each with its mark
 const ICON = { width: 16, height: 16, viewBox: '0 0 16 16', 'aria-hidden': true } as const
@@ -88,11 +88,10 @@ function Stat({ n }: { n: (typeof STORY)[number]['numbers'][number] }) {
   )
 }
 
-// A chapter of his career, its numbers in the order they happened. (Its
-// side's class is written out whole, or Tailwind drops it)
-function Chapter({ c, side }: { c: (typeof STORY)[number]; side: 'left' | 'right' }) {
+// A chapter of his career, its numbers in the order they happened
+function Chapter({ c }: { c: (typeof STORY)[number] }) {
   return (
-    <div className={side === 'left' ? 'numbers-chapter numbers-left' : 'numbers-chapter numbers-right'}>
+    <div className="numbers-chapter">
       <h3>
         <span>{c.when}</span>
         {c.title}
@@ -106,46 +105,65 @@ function Chapter({ c, side }: { c: (typeof STORY)[number]; side: 'left' | 'right
   )
 }
 
-// The page under the meadow: his career by the numbers round Leonardo's
-// Vitruvian Man in his Golden Jacket, the projects behind the numbers, where
-// he's worked, what he builds on his own time, and how to reach him
+function ProjectCard({ p, className }: { p: (typeof PROJECTS)[number]; className: string }) {
+  return (
+    <article className={className}>
+      <div className="project-head">
+        {p.icon && <Image className="project-icon" src={p.icon} width={128} height={128} sizes="56px" alt="" />}
+        <div>
+          <p className="project-kind">
+            {p.kind} &middot; {p.year}
+          </p>
+          <h3>{p.name}</h3>
+        </div>
+      </div>
+      <p>{p.summary}</p>
+      <p className="work-stack">{p.stack.join(' · ')}</p>
+      {p.shots && <Screenshots name={p.name} shots={p.shots} />}
+      {p.link && (
+        <a href={p.link.href} className="page-more" {...external(p.link.href)}>
+          {p.link.text} &rarr;
+        </a>
+      )}
+    </article>
+  )
+}
+
+// The walk's signs over the meadow: about him, the two chapters of his career
+// and Esker. Then the page under them: the projects behind the numbers, where
+// he's worked, what else he builds on his own time, and how to reach him
 export default function Work() {
   return (
-    <div className="page">
-      <section id="numbers" className="page-section numbers" aria-labelledby="numbers-title">
-        <header className="page-head">
-          <h2 id="numbers-title" className="page-label">
-            By the numbers
-          </h2>
-          <p className="page-lead">
-            {PROFILE.intro} {PROFILE.openTo}
-          </p>
-        </header>
-
-        <div className="numbers-plate">
-          <Chapter c={STORY[0]} side="left" />
-          <figure className="numbers-figure">
-            <Image
-              src="/vitruvian.webp"
-              width={1200}
-              height={1206}
-              sizes="(min-width: 1024px) 520px, 92vw"
-              alt="Leonardo da Vinci’s Vitruvian Man in his circle and square, the man with his arms out level wearing a gold AWS jacket."
-            />
-            <figcaption>
-              <span>
-                Leonardo&apos;s Vitruvian Man in my {JACKET.name}: {JACKET.note.split('. ')[0]}.
-              </span>{' '}
-              <a href={JACKET.href} {...external(JACKET.href)}>
-                Verify on Credly &rarr;
-              </a>
-              <small>After Leonardo da Vinci, c. 1490. Photograph of the drawing by Luc Viatour.</small>
-            </figcaption>
-          </figure>
-          <Chapter c={STORY[1]} side="right" />
+    <>
+      <Walk labels={['About', 'Platform', 'Product', 'Esker']}>
+        <section id="numbers" className="walk-stop" aria-labelledby="numbers-title">
+          <div className="walk-sign walk-intro">
+            <h2 id="numbers-title" className="page-label">
+              About me
+            </h2>
+            <p className="page-lead">
+              {PROFILE.intro} {PROFILE.openTo}
+            </p>
+          </div>
+        </section>
+        <div className="walk-stop">
+          <div className="walk-sign walk-chapter">
+            <Chapter c={STORY[0]} />
+          </div>
         </div>
-      </section>
-
+        <div className="walk-stop">
+          <div className="walk-sign walk-chapter">
+            <Chapter c={STORY[1]} />
+          </div>
+        </div>
+        <div className="walk-stop">
+          {PROJECTS.filter((p) => p.shots).map((p) => (
+            <ProjectCard key={p.id} p={p} className="project walk-sign" />
+          ))}
+        </div>
+      </Walk>
+      <div className="page-edge" aria-hidden="true" />
+      <div className="page">
       <section id="work" className="page-section" aria-labelledby="work-title">
         <header className="page-head">
           <h2 id="work-title" className="page-label">
@@ -238,26 +256,8 @@ export default function Work() {
           <p className="page-lead">Things I&apos;ve built because I love building them.</p>
         </header>
         <div className="projects">
-          {PROJECTS.map((p) => (
-            <article key={p.id} className={p.shots ? 'project project-wide' : 'project'}>
-              <div className="project-head">
-                {p.icon && <Image className="project-icon" src={p.icon} width={128} height={128} sizes="56px" alt="" />}
-                <div>
-                  <p className="project-kind">
-                    {p.kind} &middot; {p.year}
-                  </p>
-                  <h3>{p.name}</h3>
-                </div>
-              </div>
-              <p>{p.summary}</p>
-              <p className="work-stack">{p.stack.join(' · ')}</p>
-              {p.shots && <Screenshots name={p.name} shots={p.shots} />}
-              {p.link && (
-                <a href={p.link.href} className="page-more" {...external(p.link.href)}>
-                  {p.link.text} &rarr;
-                </a>
-              )}
-            </article>
+          {PROJECTS.filter((p) => !p.shots).map((p) => (
+            <ProjectCard key={p.id} p={p} className="project" />
           ))}
         </div>
       </section>
@@ -299,6 +299,8 @@ export default function Work() {
           </a>
         </div>
       </section>
-    </div>
+      <div className="page-foot" aria-hidden="true" />
+      </div>
+    </>
   )
 }

@@ -62,6 +62,7 @@ const noSubscription = () => () => {}
 export default function Meadow() {
   const router = useRouter()
   const heroRef = useRef<HTMLElement>(null)
+  const spotRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<MeadowEngine | null>(null)
   const labelRef = useRef<HTMLDivElement>(null)
@@ -87,7 +88,8 @@ export default function Meadow() {
   const select = useEffectEvent((id: FeatureId | 'dogs') => {
     if (id === 'dogs') return void window.open(PUPPERS, '_blank', 'noopener,noreferrer')
     const f = featureById(id)
-    if (f.href) router.push(f.href)
+    if (f.href === '/#numbers') window.dispatchEvent(new Event('walk-to'))
+    else if (f.href) router.push(f.href)
     else setPinned((p) => (p === id ? null : id))
   })
 
@@ -105,9 +107,13 @@ export default function Meadow() {
     })
     engineRef.current = engine
 
-    // The page scrolls the meadow away; out of sight, it stops drawing
-    const seen = new IntersectionObserver(([entry]) => engine.setVisible(entry.isIntersecting))
-    seen.observe(heroRef.current!)
+    // The meadow holds still while the page rises over it. Once it's covered it
+    // stops drawing and hides, so the keyboard can't land on anything under the page
+    const seen = new IntersectionObserver(([entry]) => {
+      engine.setVisible(entry.isIntersecting)
+      if (heroRef.current) heroRef.current.style.visibility = entry.isIntersecting ? '' : 'hidden'
+    })
+    seen.observe(spotRef.current!)
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
@@ -158,156 +164,159 @@ export default function Meadow() {
   return (
     // The opening screen: the meadow, and over its sky his name, his line and
     // his resume a click away. The page scrolls it away
-    <section ref={heroRef} className="home-hero" aria-labelledby="home-name">
-      <div className="meadow">
-        <canvas
-          ref={canvasRef}
-          className="meadow-canvas"
-          role="img"
-          aria-label="Illustration of the Flatirons above Chautauqua Meadow in Boulder, Colorado, with golden late-summer grass and a trail post in the foreground."
-        />
+    <>
+      <div ref={spotRef} className="home-spot" aria-hidden="true" />
+      <section ref={heroRef} className="home-hero" aria-labelledby="home-name">
+        <div className="meadow">
+          <canvas
+            ref={canvasRef}
+            className="meadow-canvas"
+            role="img"
+            aria-label="Illustration of the Flatirons above Chautauqua Meadow in Boulder, Colorado, with golden late-summer grass and a trail post in the foreground."
+          />
 
-        <header className="meadow-top">
-          <button
-            type="button"
-            className="meadow-sign"
-            onClick={() => setPanel((p) => !p)}
-            aria-expanded={panel}
-            aria-controls="meadow-panel"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="4" fill="currentColor" />
-              <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" />
-            </svg>
-            <span className="hidden sm:inline">Options</span>
-          </button>
-        </header>
-
-        {/* The canvas picks Tripp out by his outline for the pointer; this link
-            is for the keyboard and the screen reader */}
-        <a ref={trippRef} href="#contact" className="meadow-tripp">
-          Get in touch with Tripp
-        </a>
-        {/* And his dogs, the same way */}
-        <a ref={dogsRef} href={PUPPERS} target="_blank" rel="noopener noreferrer" className="meadow-dogs">
-          Tripp&apos;s dogs, on puppe.rs, his app for pet sitters
-        </a>
-
-        {panel && (
-          <div id="meadow-panel" className="meadow-panel">
-            <div className="meadow-clock">
-              <button
-                type="button"
-                className="meadow-play"
-                onClick={() => setPlaying((p) => !p)}
-                aria-label={playing ? 'Pause the day' : 'Let the day pass'}
-              >
-                {playing ? (
-                  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                    <rect x="2.5" y="2" width="3" height="10" fill="currentColor" />
-                    <rect x="8.5" y="2" width="3" height="10" fill="currentColor" />
-                  </svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                    <path d="M3.5 2L12 7L3.5 12Z" fill="currentColor" />
-                  </svg>
-                )}
-              </button>
-              <label htmlFor="meadow-time" className="sr-only">
-                Time of day
-              </label>
-              <input
-                id="meadow-time"
-                className="meadow-range"
-                type="range"
-                min={0}
-                max={24}
-                step={1 / 12}
-                value={hour}
-                onChange={(e) => changeHour(Number(e.target.value))}
-                aria-valuetext={`${formatHour(hour)}, ${phaseName(hour)}`}
-                style={{ '--track': track } as CSSProperties}
-              />
-              <button type="button" className="meadow-now" onClick={() => changeHour(boulderHour())}>
-                Now
-              </button>
-              <output htmlFor="meadow-time" className="meadow-readout">
-                <strong>{formatHour(hour)}</strong>
-                <span>{phaseName(hour)}</span>
-              </output>
-            </div>
-
-            <button type="button" className="meadow-sign" onClick={toggleSound} aria-pressed={sound}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor" />
-                {sound ? <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" /> : <path d="M17 9l5 6M22 9l-5 6" />}
+          <header className="meadow-top">
+            <button
+              type="button"
+              className="meadow-sign"
+              onClick={() => setPanel((p) => !p)}
+              aria-expanded={panel}
+              aria-controls="meadow-panel"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" fill="currentColor" />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" />
               </svg>
-              Sound {sound ? 'on' : 'off'}
+              <span className="hidden sm:inline">Options</span>
             </button>
+          </header>
 
-            <nav className="meadow-guide" aria-label="Field guide">
-              <h2>Field guide</h2>
-              <ol>
-                {GUIDE.map((id) => {
-                  const f = featureById(id)
-                  return (
-                    <li key={id}>
-                      <button type="button" onClick={() => openFromGuide(id)}>
-                        <span>{f.name}</span>
-                        <small>{f.meta}</small>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ol>
-            </nav>
-
-            <p className="meadow-hint">
-              {touch ? 'Drag to look around' : 'Move to look around'} &middot; Point at the rocks &middot; Tap the grass
-            </p>
-          </div>
-        )}
-
-        <div ref={labelRef} className="meadow-label" aria-hidden="true">
-          {hover && hover !== pinned && <span>{featureById(hover).name}</span>}
-        </div>
-        <div ref={pinRef} className="meadow-pin" aria-hidden="true" hidden={!note} />
-        <section
-          ref={noteRef}
-          className="meadow-note"
-          hidden={!note}
-          aria-labelledby="meadow-note-title"
-          aria-live="polite"
-        >
-          {note && (
-            <>
-              <header>
-                <h2 id="meadow-note-title">{note.name}</h2>
-                <button ref={closeRef} type="button" onClick={() => setPinned(null)} aria-label="Close note">
-                  &times;
-                </button>
-              </header>
-              <p className="meadow-note-meta">{note.meta}</p>
-              <p>{note.note}</p>
-            </>
-          )}
-        </section>
-      </div>
-
-      <div className="home-head">
-        <h1 id="home-name">Tripp Horbinski</h1>
-        <p className="home-tagline">{PROFILE.tagline}</p>
-        <div className="home-actions">
-          <a href={RESUME_PDF} className="meadow-sign" target="_blank" rel="noopener noreferrer">
-            Résumé
+          {/* The canvas picks Tripp out by his outline for the pointer; this link
+              is for the keyboard and the screen reader */}
+          <a ref={trippRef} href="#contact" className="meadow-tripp">
+            Get in touch with Tripp
           </a>
+          {/* And his dogs, the same way */}
+          <a ref={dogsRef} href={PUPPERS} target="_blank" rel="noopener noreferrer" className="meadow-dogs">
+            Tripp&apos;s dogs, on puppe.rs, his app for pet sitters
+          </a>
+
+          {panel && (
+            <div id="meadow-panel" className="meadow-panel">
+              <div className="meadow-clock">
+                <button
+                  type="button"
+                  className="meadow-play"
+                  onClick={() => setPlaying((p) => !p)}
+                  aria-label={playing ? 'Pause the day' : 'Let the day pass'}
+                >
+                  {playing ? (
+                    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                      <rect x="2.5" y="2" width="3" height="10" fill="currentColor" />
+                      <rect x="8.5" y="2" width="3" height="10" fill="currentColor" />
+                    </svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                      <path d="M3.5 2L12 7L3.5 12Z" fill="currentColor" />
+                    </svg>
+                  )}
+                </button>
+                <label htmlFor="meadow-time" className="sr-only">
+                  Time of day
+                </label>
+                <input
+                  id="meadow-time"
+                  className="meadow-range"
+                  type="range"
+                  min={0}
+                  max={24}
+                  step={1 / 12}
+                  value={hour}
+                  onChange={(e) => changeHour(Number(e.target.value))}
+                  aria-valuetext={`${formatHour(hour)}, ${phaseName(hour)}`}
+                  style={{ '--track': track } as CSSProperties}
+                />
+                <button type="button" className="meadow-now" onClick={() => changeHour(boulderHour())}>
+                  Now
+                </button>
+                <output htmlFor="meadow-time" className="meadow-readout">
+                  <strong>{formatHour(hour)}</strong>
+                  <span>{phaseName(hour)}</span>
+                </output>
+              </div>
+
+              <button type="button" className="meadow-sign" onClick={toggleSound} aria-pressed={sound}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor" />
+                  {sound ? <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" /> : <path d="M17 9l5 6M22 9l-5 6" />}
+                </svg>
+                Sound {sound ? 'on' : 'off'}
+              </button>
+
+              <nav className="meadow-guide" aria-label="Field guide">
+                <h2>Field guide</h2>
+                <ol>
+                  {GUIDE.map((id) => {
+                    const f = featureById(id)
+                    return (
+                      <li key={id}>
+                        <button type="button" onClick={() => openFromGuide(id)}>
+                          <span>{f.name}</span>
+                          <small>{f.meta}</small>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ol>
+              </nav>
+
+              <p className="meadow-hint">
+                {touch ? 'Drag to look around' : 'Move to look around'} &middot; Point at the rocks &middot; Tap the grass
+              </p>
+            </div>
+          )}
+
+          <div ref={labelRef} className="meadow-label" aria-hidden="true">
+            {hover && hover !== pinned && <span>{featureById(hover).name}</span>}
+          </div>
+          <div ref={pinRef} className="meadow-pin" aria-hidden="true" hidden={!note} />
+          <section
+            ref={noteRef}
+            className="meadow-note"
+            hidden={!note}
+            aria-labelledby="meadow-note-title"
+            aria-live="polite"
+          >
+            {note && (
+              <>
+                <header>
+                  <h2 id="meadow-note-title">{note.name}</h2>
+                  <button ref={closeRef} type="button" onClick={() => setPinned(null)} aria-label="Close note">
+                    &times;
+                  </button>
+                </header>
+                <p className="meadow-note-meta">{note.meta}</p>
+                <p>{note.note}</p>
+              </>
+            )}
+          </section>
         </div>
-      </div>
-      <a href="#numbers" className="home-cue" aria-label="Scroll to my work, by the numbers">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M4.5 5l4.5 4.5L13.5 5M4.5 9.5L9 14l4.5-4.5" />
-        </svg>
-      </a>
-    </section>
+
+        <div className="home-head">
+          <h1 id="home-name">Tripp Horbinski</h1>
+          <p className="home-tagline">{PROFILE.tagline}</p>
+          <div className="home-actions">
+            <a href={RESUME_PDF} className="meadow-sign" target="_blank" rel="noopener noreferrer">
+              Résumé
+            </a>
+          </div>
+        </div>
+        <a href="#numbers" className="home-cue" aria-label="Scroll to my work, by the numbers">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4.5 5l4.5 4.5L13.5 5M4.5 9.5L9 14l4.5-4.5" />
+          </svg>
+        </a>
+      </section>
+    </>
   )
 }
