@@ -1222,6 +1222,8 @@
     margin-top: calc(-1 * max(100svh, 480px));
     padding: 0;
     background: none;
+    /* It lies over the meadow, so only its signs and markers may catch the pointer */
+    pointer-events: none;
   }
 
   .walk-on .walk-view {
@@ -1232,7 +1234,6 @@
        sideways. Up and down stays open, so the posts run down behind the pines */
     overflow-x: clip;
     overflow-y: visible;
-    pointer-events: none;
   }
 
   .walk-on .walk-track {
@@ -1348,6 +1349,11 @@
     text-transform: uppercase;
     white-space: nowrap;
     color: #EDE6D2;
+  }
+
+  /* Out of the way on the open meadow, where it would sit unseen over the chevron */
+  .home:not([data-walking]) .walk-nav {
+    visibility: hidden;
   }
 
   .walk-nav button,
