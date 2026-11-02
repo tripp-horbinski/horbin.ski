@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import { CERTIFICATIONS, CHAPTERS, EDUCATION, PROFILE, ROLES, WORK } from '@/content/career'
 import { PROJECTS } from '@/content/projects'
-import Journey from '@/components/Journey'
 import { CREDLY, EMAIL, GITHUB, LINKEDIN, RESUME_PDF } from '@/lib/site'
 
 // A project's years, short: 2018–21, or 2025
@@ -107,9 +106,8 @@ function Chapter({ c, side }: { c: (typeof STORY)[number]; side: 'left' | 'right
 }
 
 // The page under the meadow: his career by the numbers round Leonardo's
-// Vitruvian Man in his Golden Jacket, then, folded away until it's asked for,
-// the projects behind the numbers and where he's worked; what he builds on
-// his own time, and how to reach him
+// Vitruvian Man in his Golden Jacket, the projects behind the numbers, where
+// he's worked, what he builds on his own time, and how to reach him
 export default function Work() {
   return (
     <div className="page">
@@ -118,7 +116,9 @@ export default function Work() {
           <h2 id="numbers-title" className="page-label">
             By the numbers
           </h2>
-          <p className="page-lead">{PROFILE.intro}</p>
+          <p className="page-lead">
+            {PROFILE.intro} {PROFILE.openTo}
+          </p>
         </header>
 
         <div className="numbers-plate">
@@ -145,93 +145,89 @@ export default function Work() {
         </div>
       </section>
 
-      {/* The career journey: the projects behind the numbers, and where he's
-          worked, folded away for whoever wants more */}
-      <Journey>
-        <section id="work" className="page-section" aria-labelledby="work-title">
-          <header className="page-head">
-            <h2 id="work-title" className="page-label">
-              Selected work
-            </h2>
-            <p className="page-lead">{PROFILE.practice}</p>
-          </header>
-          <div className="work-list">
-            {WORK.map((w) => (
-              <article key={w.id} id={w.id} className="work">
-                <div className="work-side">
-                  <p className="work-when">{w.dates}</p>
-                  <p className="work-who">
-                    {w.role}, {w.org}
-                  </p>
-                  <dl className="work-impact">
-                    {w.impact.map((n) => (
-                      <div key={n.value}>
-                        <dt>{n.value}</dt>
-                        <dd>{n.label}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-                <div className="work-body">
-                  <h3>{w.title}</h3>
-                  <p>{w.summary}</p>
-                  <p>{w.detail}</p>
-                  <p className="work-stack">{w.stack.join(' · ')}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section id="experience" className="page-section" aria-labelledby="experience-title">
-          <header className="page-head">
-            <h2 id="experience-title" className="page-label">
-              Experience
-            </h2>
-          </header>
-          <ol className="cv">
-            {ROLES.map((r) => (
-              <li key={r.org}>
-                <span className="cv-when">{r.dates}</span>
-                <div>
-                  <p className="cv-what">
-                    {r.title}, <span>{r.org}</span>
-                  </p>
-                  {r.phases?.map((p) => (
-                    <p key={p.label} className="cv-phase">
-                      {p.label} &middot; {p.dates}
-                    </p>
+      <section id="work" className="page-section" aria-labelledby="work-title">
+        <header className="page-head">
+          <h2 id="work-title" className="page-label">
+            Selected work
+          </h2>
+          <p className="page-lead">{PROFILE.practice}</p>
+        </header>
+        <div className="work-list">
+          {WORK.map((w) => (
+            <article key={w.id} id={w.id} className="work">
+              <div className="work-side">
+                <p className="work-when">{w.dates}</p>
+                <p className="work-who">
+                  {w.role}, {w.org}
+                </p>
+                <dl className="work-impact">
+                  {w.impact.map((n) => (
+                    <div key={n.value}>
+                      <dt>{n.value}</dt>
+                      <dd>{n.label}</dd>
+                    </div>
                   ))}
-                </div>
-              </li>
-            ))}
-            {CERTIFICATIONS.map((c) => (
-              <li key={c.name}>
-                <span className="cv-when">{c.date}</span>
+                </dl>
+              </div>
+              <div className="work-body">
+                <h3>{w.title}</h3>
+                <p>{w.summary}</p>
+                <p>{w.detail}</p>
+                <p className="work-stack">{w.stack.join(' · ')}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="experience" className="page-section" aria-labelledby="experience-title">
+        <header className="page-head">
+          <h2 id="experience-title" className="page-label">
+            Experience
+          </h2>
+        </header>
+        <ol className="cv">
+          {ROLES.map((r) => (
+            <li key={r.org}>
+              <span className="cv-when">{r.dates}</span>
+              <div>
                 <p className="cv-what">
-                  {c.name}, <span>{c.issuer}</span>
+                  {r.title}, <span>{r.org}</span>
                 </p>
-              </li>
-            ))}
-            {EDUCATION.map((e) => (
-              <li key={e.school}>
-                <span className="cv-when">{e.dates}</span>
-                <p className="cv-what">
-                  {e.degree}, <span>{e.school}</span>
-                </p>
-              </li>
-            ))}
-          </ol>
-          <div className="page-actions">
-            <a href={RESUME_PDF} className="meadow-sign" target="_blank" rel="noopener noreferrer">
-              View résumé
-            </a>
-            <a href={RESUME_PDF} className="meadow-sign" download>
-              Download PDF
-            </a>
-          </div>
-        </section>
-      </Journey>
+                {r.phases?.map((p) => (
+                  <p key={p.label} className="cv-phase">
+                    {p.label} &middot; {p.dates}
+                  </p>
+                ))}
+              </div>
+            </li>
+          ))}
+          {CERTIFICATIONS.map((c) => (
+            <li key={c.name}>
+              <span className="cv-when">{c.date}</span>
+              <p className="cv-what">
+                {c.name}, <span>{c.issuer}</span>
+              </p>
+            </li>
+          ))}
+          {EDUCATION.map((e) => (
+            <li key={e.school}>
+              <span className="cv-when">{e.dates}</span>
+              <p className="cv-what">
+                {e.degree}, <span>{e.school}</span>
+              </p>
+            </li>
+          ))}
+        </ol>
+        <div className="page-actions">
+          <a href={RESUME_PDF} className="meadow-sign" target="_blank" rel="noopener noreferrer">
+            View résumé
+          </a>
+          <a href={RESUME_PDF} className="meadow-sign" download>
+            Download PDF
+          </a>
+        </div>
+      </section>
 
       <section id="projects" className="page-section" aria-labelledby="projects-title">
         <header className="page-head">
@@ -267,6 +263,7 @@ export default function Work() {
           <p className="contact-title">
             I&apos;d like to hear from you
           </p>
+          <p className="page-lead">{PROFILE.openTo}</p>
           <p className="page-lead">
             Off the keyboard I run marathons and backpack: in August 2025 I walked the Arctic Circle Trail, 167 km across
             Greenland. My long trail at home is the Ice Age Trail, and I&apos;m a dog dad to two{' '}

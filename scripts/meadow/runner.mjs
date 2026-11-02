@@ -51,7 +51,8 @@ async function repair(photo, shoes) {
   //    goes, the strap is filled black up to it, and the deltoid is filled in
   //    by carrying his arm straight up from below the fingers and the sunlit
   //    patch around them, so its lit outer edge and shaded inside run on to
-  //    the top of the shoulder.
+  //    the top of the shoulder. This line stands a few pixels proud of his arm
+  //    where the fingers end, and LEFT_SHOULDER trims it back once the inks are chosen.
   const line = [[426, 304], [446, 310], [466, 318], [485, 324], [502, 332], [513, 347], [519, 364], [521, 382], [523, 392]]
   const above = await poly([[426, 280], [530, 280], [530, 392], ...line.slice().reverse()])
   for (let i = 0; i < W * H; i++) if (above[i]) mask[i] = 0
@@ -329,6 +330,12 @@ const WHITE_OK = [
 const TATTOO = [[355, 694], [408, 694], [408, 750], [355, 750]]
 // Tight around the moose, below the hem of his shorts
 const MOOSE = [[358, 700], [372, 698], [398, 698], [406, 706], [406, 748], [358, 748]]
+// Outside his left shoulder: the curve from where it rounds over down onto his
+// arm's own edge where the fingers end, so the two meet without a step
+const LEFT_SHOULDER = [[510.3, 344], [511.4, 348], [512.2, 352], [512.9, 356], [513.5, 360], [530, 360], [530, 344]]
+// The crease inside his left arm is too dark to read as skin, so it stamps as
+// the singlet, a hook of black into his arm; the jersey's edge runs straight here
+const LEFT_CREASE = [[478.2, 385], [484, 385], [484, 402], [480.4, 402]]
 
 // ---------------------------------------------------------------------------
 
@@ -338,7 +345,7 @@ async function main() {
   await mkdir(WORK, { recursive: true })
   const prepared = await repair(photo, SHOES.atps)
   await sharp(prepared.rgb, { raw: { width: prepared.W, height: H, channels: 3 } }).png().toFile(fileURLToPath(new URL('repaired.png', WORK)))
-  const print = await separate(prepared, { head: HEAD, whiteOk: WHITE_OK, tattoo: { box: TATTOO, area: MOOSE } })
+  const print = await separate(prepared, { head: HEAD, whiteOk: WHITE_OK, tattoo: { box: TATTOO, area: MOOSE }, trim: [LEFT_SHOULDER], heal: [LEFT_CREASE] })
 
   // Where he stands: between his feet, which the shadow is drawn under
   const [[lx, ly], [rx, ry]] = prepared.feet

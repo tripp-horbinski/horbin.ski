@@ -20,7 +20,7 @@ export const PROJECTS: Project[] = [
     year: '2026',
     summary:
       'The site you’re on. The meadow is generated, not drawn: USGS lidar lit by the sun’s real position for any hour, every tree where aerial imagery shows canopy, and the figures of me screen-printed from my photos.',
-    stack: ['Claude Code', 'Next.js', 'TypeScript', 'Canvas', 'Node', 'Swift', 'USGS 3DEP', 'OpenStreetMap'],
+    stack: ['Claude Code', 'Next.js', 'TypeScript', 'Canvas', 'Node', 'Swift', 'USGS 3DEP', 'NAIP', 'Terraform', 'GitHub Actions'],
     link: { href: `${GITHUB}/horbin.ski`, text: 'Source on GitHub' },
   },
   {
@@ -38,8 +38,7 @@ export const PROJECTS: Project[] = [
     kind: 'Web and mobile app',
     year: '2026',
     summary:
-      'Field guides for whoever’s watching your pets: owners fill in their pets, routine, commands and contacts, then share one link with the sitter.',
+      'Field guides for whoever’s watching your pets: owners fill in their pets, routine, commands and contacts, then share one link with the sitter. In development.',
     stack: ['Next.js', 'Expo', 'TypeScript', 'Drizzle', 'Turso', 'Bun'],
-    link: { href: 'https://puppe.rs', text: 'Visit puppe.rs' },
   },
 ]
