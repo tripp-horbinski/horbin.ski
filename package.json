@@ -19,7 +19,8 @@
     "meadow:pretzel": "node scripts/meadow/pretzel.mjs",
     "meadow:runner-bridge": "node scripts/meadow/runner-bridge.mjs",
     "meadow:vitruvian": "node scripts/meadow/vitruvian.mjs",
-    "resume:pdf": "node scripts/resume-pdf.mjs"
+    "resume:pdf": "node scripts/resume-pdf.mjs",
+    "esker:shots": "node scripts/esker-shots.mjs"
   },
   "repository": {
     "type": "git",

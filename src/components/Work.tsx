@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { CERTIFICATIONS, CHAPTERS, EDUCATION, PROFILE, ROLES, WORK } from '@/content/career'
 import { PROJECTS } from '@/content/projects'
 import { CREDLY, EMAIL, GITHUB, LINKEDIN, RESUME_PDF } from '@/lib/site'
+import Screenshots from './Screenshots'
 
 // A project's years, short: 2018–21, or 2025
 const years = (dates: string) => {
@@ -238,13 +239,19 @@ export default function Work() {
         </header>
         <div className="projects">
           {PROJECTS.map((p) => (
-            <article key={p.id} className="project">
-              <p className="project-kind">
-                {p.kind} &middot; {p.year}
-              </p>
-              <h3>{p.name}</h3>
+            <article key={p.id} className={p.shots ? 'project project-wide' : 'project'}>
+              <div className="project-head">
+                {p.icon && <Image className="project-icon" src={p.icon} width={128} height={128} sizes="56px" alt="" />}
+                <div>
+                  <p className="project-kind">
+                    {p.kind} &middot; {p.year}
+                  </p>
+                  <h3>{p.name}</h3>
+                </div>
+              </div>
               <p>{p.summary}</p>
               <p className="work-stack">{p.stack.join(' · ')}</p>
+              {p.shots && <Screenshots name={p.name} shots={p.shots} />}
               {p.link && (
                 <a href={p.link.href} className="page-more" {...external(p.link.href)}>
                   {p.link.text} &rarr;
