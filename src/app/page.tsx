@@ -1,12 +1,14 @@
 import Meadow from '@/components/Meadow'
 import Resume from '@/components/Resume'
 import Work from '@/components/Work'
+import { SITE_URL } from '@/lib/site'
 import { generatePersonStructuredData } from '@/lib/structured-data'
 
 export const metadata = {
-  title: 'Tripp Horbinski — Software Engineer',
+  title: 'Tripp Horbinski — Senior Software Engineer',
   description:
-    'Tripp Horbinski builds beautiful, useful software that people use every day: his work by the numbers, from GoFundMe Pro’s move to pro.gofundme.com to CI/CD for 3,000 engineers.',
+    'Tripp Horbinski builds platforms and the products on top of them: his work by the numbers, from CI/CD for 3,000+ engineers to GoFundMe Pro’s move to pro.gofundme.com.',
+  alternates: { canonical: `${SITE_URL}/` },
 }
 
 export default function Home() {

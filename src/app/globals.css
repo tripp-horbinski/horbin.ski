@@ -448,14 +448,15 @@
     outline-offset: 2px;
   }
 
-  /* His line, in the body face's italic, the way an old shop's sign says
-     what it sells under its name */
+  /* His line, in the body face's italic, with a little more shadow than the
+     rest since clouds drift behind it */
   .home-tagline {
     margin-top: 0.85rem;
     font-family: 'Lora', Georgia, serif;
     font-style: italic;
     font-size: clamp(1.05rem, 2.2vw, 1.5rem);
     color: #FBF6EA;
+    text-shadow: 0 1px 3px rgba(18, 22, 36, 0.65), 0 0 18px rgba(18, 22, 36, 0.45);
   }
 
   .home-actions,
@@ -777,36 +778,6 @@
     color: #8A8473;
   }
 
-  /* The career journey's fold, under the numbers, and its end */
-  .journey-toggle,
-  .journey-end {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.9rem;
-    padding: 4rem max(20px, 5vw) 0;
-    text-align: center;
-  }
-
-  .journey-toggle p {
-    font-style: italic;
-    color: #5A5649;
-  }
-
-  .journey-end {
-    padding-top: 3rem;
-  }
-
-  .journey-toggle svg,
-  .journey-end svg {
-    transition: transform 0.2s;
-  }
-
-  .journey-toggle [aria-expanded='true'] svg,
-  .journey-end svg {
-    transform: rotate(180deg);
-  }
-
   /* Experience: a line for each step, and his resume one click on */
   .cv {
     max-width: 760px;
@@ -972,7 +943,7 @@
       font-size: 0.98rem;
     }
 
-    /* On a phone the chapters stack, before then now, two numbers to a row */
+    /* On a phone the chapters stack, platform then product, two numbers to a row */
     .numbers-plate {
       grid-template-columns: minmax(0, 1fr);
       gap: 2.25rem;

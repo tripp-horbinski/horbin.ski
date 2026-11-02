@@ -32,19 +32,25 @@ export type Role = {
 
 export const PROFILE = {
   name: 'Tripp Horbinski',
-  headline: 'Software Engineer',
-  location: 'Milwaukee, Wisconsin',
-  // His line under his name, first on the page, like an old shop's sign
-  tagline: 'Purveyor of fine software',
-  // How he builds now, leading his selected work, in his voice
+  headline: 'Senior Software Engineer',
+  location: 'Milwaukee, Wisconsin (open to remote or relocation)',
+  // His line under his name, first on the page: the title he's held, which a
+  // recruiter knows at a glance, and short, so the meadow keeps the screen.
+  // His range is for his intro and his numbers to show
+  tagline: 'Senior Software Engineer',
+  // What he's looking for and where he's based (the meadow is in Colorado, he
+  // isn't), closing his intro and again in getting in touch. Both lanes on
+  // purpose: his tailored resumes do the steering, application by application
+  openTo: 'Looking for Senior/Staff software engineering roles, platform or full stack. Based in Milwaukee, open to remote or relocating.',
+  // Leading his selected work, in his voice: how he builds now, in a line
   practice:
-    'I build beautiful, useful software that people use every day, and these days I build it with Claude Code across the whole lifecycle: PRDs and documentation, ramping up in new repositories and their patterns, scoping work, keeping QA visible against the definition of done, and finding the improvements that matter most.',
+    'The projects behind those numbers, newest first. These days I build with Claude Code across the whole lifecycle, from PRDs and scoping to QA.',
   // The homepage's summary, in his voice
   intro:
-    'I’m a software engineer. I spent six years in cloud and DevOps learning how software ships, from commit to production, at Northwestern Mutual, Veda, Cardless and GoFundMe. In 2025 I moved to building the product itself, full stack. I want to keep delivering products people use every day.',
+    'I’m a software engineer who has built both the platform and the product on top of it. I spent six years on how software ships, CI/CD and cloud infrastructure, at Northwestern Mutual, Veda, Cardless and GoFundMe. In 2025 I moved to building GoFundMe Pro itself, full stack, on the platform I’d helped build, so I know what each side needs from the other.',
   // The resume's
   summary:
-    'Software engineer with 8 years of experience. Six years in cloud and DevOps, owning how software ships from commit to production; since 2025, a full-stack engineer building GoFundMe Pro in TypeScript, Next.js, Laravel and AWS. AWS Certified Golden Jacket recipient.',
+    'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js, Laravel and AWS. AWS Certified Golden Jacket recipient.',
   contact: [
     { label: 'Email', href: `mailto:${EMAIL}`, text: EMAIL },
     { label: 'LinkedIn', href: LINKEDIN, text: 'in/tripp-horbinski' },
@@ -70,11 +76,12 @@ export const ROLES: Role[] = [
         start: '2025-01',
         end: '2026-10',
         highlights: [
-          'Technical lead for four product areas in moving GoFundMe Pro from classy.org to pro.gofundme.com (Nov 2025 – Mar 2026), brought on by a senior staff engineer as the platform’s subject-matter expert: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site. The move touched 27 repositories and used a dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda for flag-driven rollout and safe rollback; it shipped with zero downtime for enterprise organizations, under millions of daily transactions.',
+          'Technical lead for four product areas in moving GoFundMe Pro from classy.org to pro.gofundme.com (Nov 2025 – Mar 2026), brought on by a senior staff engineer as the platform’s subject-matter expert: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site. The move touched 27 repositories, under millions of daily transactions, and used a dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda for flag-driven rollout and fast rollback, which proved out when a rollback restored service for an enterprise customer’s weekend live event without compromising the migration timeline.',
           'Led the redesign of the annual summary receipts, about 2 million generated each January: moved them from a Lambda workload that timed out and retried into an ECS Fargate task on the primary API, won buy-in from the architecture decision makers, and added what wasn’t possible before: receipts on demand, requested by donors or sent by nonprofit admins on their behalf, and year-to-date summaries. The January 2026 run had no issues or incidents.',
+          'Cut CI pipeline time from 17 to 10 minutes (about 41%) through dependency upgrades, a pnpm migration and selective test execution, and added ephemeral preview environments for AI-agent and developer iteration.',
           'Built reporting, data and onboarding features in the admin nonprofit administrators use to run their fundraising.',
           'On Post-Donate, worked on everything a donor sees after giving: the thank-you page, transactional emails, and the start of share attribution.',
-          'Used Claude across the development lifecycle: PRDs and documentation, ramping up in new repositories and their patterns, scoping work, keeping QA visible against the definition of done, and finding high-impact improvements.',
+          'Used Claude across the development lifecycle, from PRDs and scoping to QA.',
         ],
       },
       {
@@ -84,7 +91,7 @@ export const ROLES: Role[] = [
         end: '2024-12',
         highlights: [
           'Built reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, across 8 engineering teams.',
-          'Led the migration of a sharded MongoDB cluster from self-managed EC2 to MongoDB Atlas, and of the Kong API platform from EC2 to ECS.',
+          'Led the migration of a sharded MongoDB cluster from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and of the Kong API platform from EC2 to ECS.',
           'Mentored engineers through GoFundMe’s mentorship program.',
         ],
       },
@@ -151,13 +158,13 @@ export const WORK: Work[] = [
     org: 'GoFundMe',
     dates: 'Nov 2025 – Mar 2026',
     impact: [
-      { value: '27', label: 'repositories moved to pro.gofundme.com, with zero downtime' },
+      { value: '27', label: 'repositories moved to pro.gofundme.com, under millions of daily transactions' },
       { value: '4', label: 'product areas I led through the move' },
     ],
     summary:
       'A senior staff engineer brought me on as the platform’s subject-matter expert, and I led four of its product areas through the move from classy.org: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site.',
     detail:
-      'A dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda let us roll out behind flags and roll back safely. The move touched 27 repositories and shipped with zero downtime for enterprise organizations, under millions of daily transactions.',
+      'A dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda let us roll out behind flags and roll back fast. The move touched 27 repositories under millions of daily transactions, and the design proved out when a rollback restored service for an enterprise customer’s weekend live event, without compromising the migration timeline.',
     stack: ['Cloudflare', 'CloudFront', 'Route53', 'ECS', 'Lambda'],
   },
   {
@@ -166,7 +173,7 @@ export const WORK: Work[] = [
     role: 'Lead engineer',
     org: 'GoFundMe',
     dates: '2025',
-    impact: [{ value: '2M', label: 'or so annual receipts each January, with no incidents in 2026' }],
+    impact: [{ value: '~2M', label: 'annual receipts each January, with no incidents in 2026' }],
     summary:
       'About 2 million annual summary receipts go out each January, and they came from a Lambda workload that timed out and retried. I redesigned them as an ECS Fargate task on the primary API, and won buy-in from the architecture decision makers.',
     detail:
@@ -183,7 +190,7 @@ export const WORK: Work[] = [
     summary:
       'I built the reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, across 8 engineering teams.',
     detail:
-      'I also led moving a sharded MongoDB cluster from self-managed EC2 to MongoDB Atlas, and the Kong API platform from EC2 to ECS, and mentored engineers through GoFundMe’s mentorship program.',
+      'I also led moving a sharded MongoDB cluster from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and the Kong API platform from EC2 to ECS, and mentored engineers through GoFundMe’s mentorship program.',
     stack: ['GitHub Actions', 'MongoDB Atlas', 'Kong', 'ECS'],
   },
   {
@@ -225,10 +232,12 @@ export const CERTIFICATIONS = [
     issuer: 'Amazon Web Services',
     date: 'Dec 2023',
     month: '2023-12',
-    note: 'Every AWS certification, the last of them earned December 30, 2023. The gold jacket is how AWS marks it.',
+    note: 'Every AWS certification, the last of them earned in December 2023. The gold jacket is how AWS marks it.',
     href: CREDLY,
-    // For the numbers round the Vitruvian Man, who's wearing it
-    impact: [{ value: '13', label: 'AWS certifications, all of them, for the Golden Jacket he’s wearing' }],
+    // For the numbers round the Vitruvian Man, who's wearing it. Twelve, though
+    // Credly shows 13 badges: Solutions Architect – Associate is there twice, from
+    // 2018 and its 2023 renewal
+    impact: [{ value: '12', label: 'AWS certifications, all of them, for the Golden Jacket he’s wearing' }],
   },
 ]
 
@@ -254,19 +263,20 @@ export const SKILLS = [
 ]
 
 // The numbers round the Vitruvian Man, told as his career in two chapters, the
-// way his intro tells it: six years making software ship, then building the
-// product. Each is a number from a project in WORK, or the Golden Jacket's in
-// CERTIFICATIONS, by its id and value, oldest first, so the story runs left to
-// right and down each side
+// way his intro tells it: six years building the platform software ships on,
+// then shipping product on top of it, as two strengths rather than a move from
+// one to the other. Each is a number from a project in WORK, or the Golden
+// Jacket's in CERTIFICATIONS, by its id and value, oldest first, so the story
+// runs left to right and down each side
 export const CHAPTERS: { title: string; when: string; numbers: [string, string][] }[] = [
   {
-    title: 'First, making software ship',
+    title: 'Platform: making software ship',
     when: '2018 – 2024',
-    numbers: [['gitlab', '3,000+'], ['cardless', '100%'], ['cardless', '50%'], ['jacket', '13']],
+    numbers: [['gitlab', '3,000+'], ['cardless', '100%'], ['cardless', '50%'], ['jacket', '12']],
   },
   {
-    title: 'Now, building what people use',
+    title: 'Product: shipping on the platform',
     when: '2025 – 2026',
-    numbers: [['receipts', '2M'], ['migration', '27'], ['migration', '4']],
+    numbers: [['receipts', '~2M'], ['migration', '27'], ['migration', '4']],
   },
 ]
