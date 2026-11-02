@@ -41,6 +41,7 @@ export default function Walk({ labels, children }: { labels: string[]; children:
       const t = still.matches || !length ? 0 : Math.min(1, Math.max(0, (window.scrollY - top) / length))
       track.style.transform = still.matches ? '' : `translate3d(${(1 - t * stops) * view.clientWidth}px, 0, 0)`
       home.style.setProperty('--walk', String(t))
+      home.toggleAttribute('data-walking', t > 0)
       // Past the last stop the last sign rises with the page and pushes his name
       // and line up out of the sky at the same speed, while the markers fade. On
       // screens where it reaches up over the résumé button, that moves to the markers
