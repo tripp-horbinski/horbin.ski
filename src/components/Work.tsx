@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { CERTIFICATIONS, CHAPTERS, EDUCATION, PROFILE, ROLES, WORK } from '@/content/career'
+import { CERTIFICATIONS, CHAPTERS, PROFILE, ROLES, WORK } from '@/content/career'
 import { PROJECTS } from '@/content/projects'
 import { CREDLY, EMAIL, GITHUB, LINKEDIN, RESUME_PDF } from '@/lib/site'
 import Screenshots from './Screenshots'
@@ -12,7 +12,7 @@ const STORY = CHAPTERS.map((c) => ({
   ...c,
   numbers: c.numbers.map(([id, value]) => {
     const w = WORK.find((p) => p.id === id)
-    if (w) return { ...w.impact.find((n) => n.value === value)!, href: `#${id}`, from: w.org }
+    if (w) return { ...w.impact.find((n) => n.value === value)!, href: `#${id}`, from: c.oneCompany ? undefined : w.org }
     const cert = CERTIFICATIONS.find((p) => p.id === id)!
     return { ...cert.impact.find((n) => n.value === value)!, href: cert.href, from: cert.name }
   }),
@@ -76,7 +76,7 @@ function Stat({ n }: { n: (typeof STORY)[number]['numbers'][number] }) {
       <a href={n.href} {...external(n.href)}>
         <strong>{n.value}</strong>
         <span>{n.label}</span>
-        <small>{n.from}</small>
+        {n.from && <small>{n.from}</small>}
       </a>
     </li>
   )
@@ -86,10 +86,8 @@ function Stat({ n }: { n: (typeof STORY)[number]['numbers'][number] }) {
 function Chapter({ c }: { c: (typeof STORY)[number] }) {
   return (
     <div className="numbers-chapter">
-      <h3>
-        <span>{c.when}</span>
-        {c.title}
-      </h3>
+      <h2 className="page-label">{c.label}</h2>
+      <p className="walk-intro-thesis">{c.title}</p>
       <ul className="numbers-list">
         {c.numbers.map((n) => (
           <Stat key={n.value} n={n} />
@@ -102,7 +100,7 @@ function Chapter({ c }: { c: (typeof STORY)[number] }) {
 function ProjectCard({ p }: { p: (typeof PROJECTS)[number] }) {
   return (
     <article className="project walk-sign">
-      <h2 className="page-label">Side project</h2>
+      <h2 className="page-label">Spotlight</h2>
       <div className="project-head">
         {p.icon && <Image className="project-icon" src={p.icon} width={128} height={128} sizes="56px" alt="" />}
         <div>
@@ -128,14 +126,18 @@ function ProjectCard({ p }: { p: (typeof PROJECTS)[number] }) {
 export default function Work() {
   return (
     <>
-      <Walk labels={['About', 'Platform', 'Product', 'Side project']}>
+      <Walk labels={['About', 'Platform', 'Product', 'Spotlight']}>
         <section id="numbers" className="walk-stop" aria-labelledby="numbers-title">
           <div className="walk-sign walk-intro">
             <h2 id="numbers-title" className="page-label">
               About me
             </h2>
             <p className="walk-intro-thesis">{PROFILE.thesis}</p>
-            <p className="page-lead">{PROFILE.intro}</p>
+            <ul className="page-lead walk-intro-points">
+              {PROFILE.intro.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
             <dl className="walk-intro-facts">
               <div>
                 <dt>Looking for</dt>
@@ -214,7 +216,7 @@ export default function Work() {
                 ) : (
                   <>
                     <p>{w.summary}</p>
-                    <p>{w.detail}</p>
+                    {w.detail && <p>{w.detail}</p>}
                   </>
                 )}
                 <p className="work-stack">{w.stack.join(' · ')}</p>
@@ -247,31 +249,7 @@ export default function Work() {
               </div>
             </li>
           ))}
-          {CERTIFICATIONS.map((c) => (
-            <li key={c.name}>
-              <span className="cv-when">{c.date}</span>
-              <p className="cv-what">
-                {c.name}, <span>{c.issuer}</span>
-              </p>
-            </li>
-          ))}
-          {EDUCATION.map((e) => (
-            <li key={e.school}>
-              <span className="cv-when">{e.dates}</span>
-              <p className="cv-what">
-                {e.degree}, <span>{e.school}</span>
-              </p>
-            </li>
-          ))}
         </ol>
-        <div className="page-actions">
-          <a href={RESUME_PDF} className="meadow-sign" target="_blank" rel="noopener noreferrer">
-            View résumé
-          </a>
-          <a href={RESUME_PDF} className="meadow-sign" download>
-            Download PDF
-          </a>
-        </div>
       </section>
 
       <section id="contact" className="page-section contact" aria-labelledby="contact-title">
