@@ -50,18 +50,22 @@ export const PROFILE = {
   lookingFor: LOOKING_FOR,
   basedIn: BASED_IN,
   openTo: `Looking for ${LOOKING_FOR}. Based in ${BASED_IN}.`,
-  // Leading his selected work, in his voice: how he builds now, in a line
+  // Leading his selected work
   practice:
-    'The projects behind those numbers, newest first. These days I build with Claude Code across the whole lifecycle, from PRDs and scoping to QA.',
+    'Selected projects from eight years of engineering, newest first.',
   // The About sign, in his voice: the one thing to take away, then how he got there
-  thesis: 'I build the platform software ships on, and the product that ships on it.',
-  intro:
-    'Six years of CI/CD and cloud infrastructure, at four companies, then from 2025 full stack on GoFundMe Pro, the product on top of the platform I’d helped build, so I know what each side needs from the other.',
-  // The stack he works in, as the resume's summary has it, for whoever's scanning for it
-  worksIn: 'TypeScript, Next.js, Laravel, AWS, Terraform',
+  thesis: 'I run and I build things.',
+  intro: [
+    '8 years building software: 6 on CI/CD and cloud, and 2 full stack',
+    'Pre-AI: all 12 AWS certifications, on call everywhere, Stack Overflow scholar',
+    'Now I build with AI agents',
+  ],
+  // The stack he works in, for whoever's scanning for it, languages first: what
+  // he's deepest in, not everything he's touched
+  worksIn: 'TypeScript, Next.js, Python, AWS, IaC, Docker',
   // The resume's
   summary:
-    'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js, Laravel and AWS. On call at every company. AWS Golden Jacket recipient.',
+    'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js and AWS. On call at every company. AWS Golden Jacket recipient.',
   contact: [
     { label: 'Email', href: `mailto:${EMAIL}`, text: EMAIL },
     { label: 'LinkedIn', href: LINKEDIN, text: 'in/tripp-horbinski' },
@@ -87,9 +91,10 @@ export const ROLES: Role[] = [
         start: '2025-01',
         end: '2026-10',
         highlights: [
-          'Technical lead for four product areas in moving GoFundMe Pro from classy.org to pro.gofundme.com (Nov 2025 – Mar 2026), brought on by a senior staff engineer as the platform’s subject-matter expert: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site. The move touched 27 repositories, under millions of daily transactions, and used a dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda for flag-driven rollout and fast rollback, which proved out when a rollback restored service for an enterprise customer’s weekend live event without compromising the migration timeline.',
-          'Led the redesign of the annual summary receipts, about 2 million generated each January: moved them from a Lambda workload that timed out and retried into an ECS Fargate task on the primary API, won buy-in from the architecture decision makers, and added what wasn’t possible before: receipts on demand, requested by donors or sent by nonprofit admins on their behalf, and year-to-date summaries. The January 2026 run had no issues or incidents.',
+          'Technical lead for four product areas in migrating GoFundMe Pro from classy.org to pro.gofundme.com (Nov 2025 – Mar 2026), brought on by a senior staff engineer as the platform’s subject-matter expert: Campaign Studio and the rendering engine for new campaigns, the live events platform, GoFundMe Pro Services, which call centers use on behalf of enterprise nonprofits, and the developer documentation site. The migration touched 27 repositories, under millions of daily transactions, and used a dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda for flag-driven rollout and fast rollback, which proved out when a rollback restored service for an enterprise customer’s weekend live event without compromising the migration timeline.',
+          'Led the redesign of the annual summary receipts, about 2 million generated each January: migrated them from a Lambda workload that timed out and retried into an ECS Fargate task on the primary API, won buy-in from the architecture decision makers, and added what wasn’t possible before: receipts on demand, requested by donors or sent by nonprofit admins on their behalf, and year-to-date summaries. The January 2026 run had no issues or incidents.',
           'Cut CI pipeline time from 17 to 10 minutes (about 41%) through dependency upgrades, a pnpm migration and selective test execution, and added ephemeral preview environments for AI-agent and developer iteration.',
+          'As the only engineer on the project (Jul – Oct 2026), ported Pro Services, the 8-year-old application enterprise nonprofits and their call centers use to take donations by phone, from Create React App to Next.js in the front-end monolith and onto the new design system: 26 screens, with rewritten unit and Playwright tests, ready to release behind feature flags and a cookie toggle.',
           'Built reporting, data and onboarding features in the admin nonprofit administrators use to run their fundraising.',
           'On Post-Donate, worked on everything a donor sees after giving: the thank-you page, transactional emails, and the start of share attribution.',
           'Used Claude across the development lifecycle, from PRDs and scoping to QA.',
@@ -101,7 +106,7 @@ export const ROLES: Role[] = [
         start: '2023-04',
         end: '2024-12',
         highlights: [
-          'Set up the central GitHub Actions repository, two workflow templates built from shared jobs and steps, and the self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
+          'Set up the central GitHub Actions repository, two workflow templates built from shared jobs and steps, and the self-hosted runners that migrated GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
           'On call for the July 2024 AWS Kinesis outage in us-east-1: CloudWatch Logs failures kept new ECS tasks from starting during a scaling event and left only the old, overloaded tasks logging. We traced the cause, restored service by disabling CloudWatch logging, and added a logging check at container startup.',
           'Addressed flaky tests that kept recurring across PR and release pipelines, many of them tied to timestamps or live network requests.',
           'Led the migration of the sharded MongoDB cluster behind donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and of the Kong API platform from EC2 to ECS.',
@@ -120,7 +125,7 @@ export const ROLES: Role[] = [
     end: '2023-01',
     highlights: [
       'Codified 100% of production AWS infrastructure in Terraform, and wrote and drove adoption of the company’s first infrastructure roadmap.',
-      'Moved production Kubernetes to a new VPC at 99.9% uptime for critical services, and cut deployment times by 50% by consolidating DevOps tools into one CI/CD platform.',
+      'Migrated production Kubernetes to a new VPC at 99.9% uptime for critical services, and cut deployment times by 50% by consolidating DevOps tools into one CI/CD platform.',
     ],
   },
   {
@@ -163,30 +168,47 @@ export type Work = {
   // Its story in the same short steps, read at a glance, in place of the summary and detail
   story?: { job: string; did: string; result: string }
   summary: string
-  detail: string
+  detail?: string
   stack: string[]
 }
 
 export const WORK: Work[] = [
   {
+    id: 'payments',
+    title: 'The call-center donation app, modernized',
+    role: 'Only engineer on the project',
+    org: 'GoFundMe',
+    dates: 'Jul – Oct 2026',
+    impact: [
+      { value: '8', label: 'year-old enterprise payment application ported and modernized onto Next.js' },
+      { value: '26', label: 'screens ported, as the only engineer on the project' },
+    ],
+    story: {
+      job: 'Pro Services is how enterprise nonprofits and their call centers take donations over the phone and handle back-end tasks. Two company initiatives, one front-end monolith and a new design system, needed it migrated off Create React App and its custom components.',
+      did: 'I ported its 26 screens and their logic to Next.js in the monolith and onto the design system, rewrote its unit and Playwright tests, and used the existing end-to-end tests for regression.',
+      result: 'It was ready to release in October 2026, behind feature flags, with a cookie to switch between the old and new apps.',
+    },
+    summary: 'I ported the 8-year-old application call centers use to take donations by phone to Next.js and our new design system.',
+    stack: ['Next.js', 'React', 'Playwright'],
+  },
+  {
     id: 'migration',
-    title: 'Moving GoFundMe Pro to pro.gofundme.com',
+    title: 'Migrating GoFundMe Pro to pro.gofundme.com',
     role: 'Technical lead',
     org: 'GoFundMe',
     dates: 'Nov 2025 – Mar 2026',
     impact: [
-      { value: '27', label: 'repositories touched in the move to pro.gofundme.com, under millions of daily transactions' },
-      { value: '4', label: 'product areas I led through the move' },
+      { value: '27', label: 'repos covering 4 product surfaces in the migration to pro.gofundme.com, under millions of daily transactions' },
     ],
     story: {
-      job: 'Move GoFundMe Pro from classy.org to pro.gofundme.com, across 27 repositories, under millions of daily transactions.',
-      did: 'A senior staff engineer brought me on as the platform’s subject-matter expert. I led Campaign Studio, live events, the Pro Services backend and the developer docs through the move, on a dual-domain setup that let us roll out behind flags and roll back fast.',
-      result: 'A rollback restored service for an enterprise customer’s weekend live event, without compromising the migration timeline.',
+      job: 'Migrate GoFundMe Pro from classy.org to pro.gofundme.com, across 27 repositories, under millions of daily transactions.',
+      did: 'A senior staff engineer brought me on as the platform’s subject-matter expert. I led the migration effort of 4 product surfaces to safely roll out dual-domain support behind feature flags.',
+      result: 'The release was successful. We did have to use the feature flag gate for our live events platform, where it restored service for an enterprise customer’s weekend event.',
     },
     summary:
-      'A senior staff engineer brought me on as the platform’s subject-matter expert, and I led four of its product areas through the move from classy.org: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site.',
+      'A senior staff engineer brought me on as the platform’s subject-matter expert, and I led four of its product areas through the migration from classy.org: Campaign Studio and the rendering engine for new campaigns, the live events platform, GoFundMe Pro Services, which call centers use on behalf of enterprise nonprofits, and the developer documentation site.',
     detail:
-      'A dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda let us roll out behind flags and roll back fast. The move touched 27 repositories under millions of daily transactions, and the design proved out when a rollback restored service for an enterprise customer’s weekend live event, without compromising the migration timeline.',
+      'A dual-domain setup on Cloudflare, CloudFront, Route53, ECS and Lambda let us roll out behind flags and roll back fast. The migration touched 27 repositories under millions of daily transactions, and the design proved out when a rollback restored service for an enterprise customer’s weekend live event, without compromising the migration timeline.',
     stack: ['Cloudflare', 'CloudFront', 'Route53', 'ECS', 'Lambda'],
   },
   {
@@ -213,10 +235,10 @@ export const WORK: Work[] = [
     role: 'Cloud and platform',
     org: 'GoFundMe',
     dates: '2023 – 2024',
-    impact: [{ value: '0', label: 'customer-facing downtime moving our donation pages’ database to Atlas' }],
+    impact: [{ value: '0', label: 'customer-facing downtime migrating our donation pages’ database to Atlas' }],
     summary:
-      'I led moving the sharded MongoDB cluster behind our donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas, with zero customer-facing downtime.',
-    detail: 'I also led moving the Kong API platform from EC2 to ECS.',
+      'I led migrating the sharded MongoDB cluster behind our donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas, with zero customer-facing downtime.',
+    detail: 'I also led migrating the Kong API platform from EC2 to ECS.',
     stack: ['MongoDB Atlas', 'Kong', 'ECS'],
   },
   {
@@ -225,9 +247,9 @@ export const WORK: Work[] = [
     role: 'Cloud and platform',
     org: 'GoFundMe',
     dates: '2023 – 2024',
-    impact: [{ value: '8', label: 'engineering teams moved onto shared GitHub Actions' }],
+    impact: [{ value: '8', label: 'engineering teams migrated onto shared GitHub Actions' }],
     summary:
-      'I set up the central GitHub Actions repository, two workflow templates built from shared jobs and steps, and the self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
+      'I set up the central GitHub Actions repository, two workflow templates built from shared jobs and steps, and the self-hosted runners that migrated GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
     detail: 'It gave each repository its own settings for deployment and manual gates.',
     stack: ['GitHub Actions', 'Self-hosted runners'],
   },
@@ -240,12 +262,12 @@ export const WORK: Work[] = [
     impact: [
       { value: '50%', label: 'shorter deployment times, on one CI/CD platform' },
       { value: '100%', label: 'of production AWS infrastructure codified in Terraform' },
-      { value: '99.9%', label: 'uptime moving production Kubernetes to a new VPC' },
+      { value: '99.9%', label: 'uptime migrating production Kubernetes to a new VPC' },
     ],
     summary:
       'I cut deployment times in half by consolidating DevOps tools into one CI/CD platform, and wrote, and drove adoption of, the company’s first infrastructure roadmap.',
     detail:
-      'I codified all of Cardless’s production AWS infrastructure in Terraform, and moved production Kubernetes to a new VPC at 99.9% uptime for critical services.',
+      'I codified all of Cardless’s production AWS infrastructure in Terraform, and migrated production Kubernetes to a new VPC at 99.9% uptime for critical services.',
     stack: ['Terraform', 'Kubernetes', 'AWS'],
   },
   {
@@ -318,15 +340,17 @@ export const SKILLS = [
 // one to the other. Each is a number from a project in WORK, or the Golden
 // Jacket's in CERTIFICATIONS, by its id and value, oldest first, so the story
 // runs left to right and down each side
-export const CHAPTERS: { title: string; when: string; numbers: [string, string][] }[] = [
+export const CHAPTERS: { label: string; title: string; oneCompany?: boolean; numbers: [string, string][] }[] = [
   {
-    title: 'Platform: making software ship',
-    when: '2018 – 2024',
-    numbers: [['gitlab', '3,000+'], ['veda', '12'], ['cardless', '50%'], ['actions', '8']],
+    label: 'Platform',
+    title: 'CI/CD and cloud infrastructure',
+    numbers: [['gitlab', '3,000+'], ['veda', '12'], ['cardless', '50%'], ['atlas', '0']],
   },
   {
-    title: 'Product: shipping on the platform',
-    when: '2025 – 2026',
-    numbers: [['receipts', '~2M'], ['migration', '27'], ['migration', '4']],
+    label: 'Product',
+    title: 'Shipping on the GoFundMe Pro platform',
+    // Its title names the company, so its numbers don't
+    oneCompany: true,
+    numbers: [['receipts', '~2M'], ['migration', '27'], ['payments', '8']],
   },
 ]
