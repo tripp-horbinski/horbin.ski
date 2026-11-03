@@ -20,6 +20,9 @@ export type Phase = {
 export type Role = {
   title: string
   org: string
+  // A startup's stage while he was there and what it does, for a recruiter who
+  // doesn't know the name; a company they'd know goes without
+  stage?: string
   place: string
   // As printed, e.g. "Apr 2023 – Oct 2026", and as months for the timeline
   dates: string
@@ -30,13 +33,13 @@ export type Role = {
   phases?: Phase[]
 }
 
-const LOOKING_FOR = 'Senior/Staff roles, platform or full stack'
-const BASED_IN = 'Milwaukee, open to remote or relocating'
+const LOOKING_FOR = 'Senior roles, platform or full stack'
+const BASED_IN = 'Milwaukee, open to remote, Boulder or San Francisco'
 
 export const PROFILE = {
   name: 'Tripp Horbinski',
   headline: 'Senior Software Engineer',
-  location: 'Milwaukee, Wisconsin (open to remote or relocation)',
+  location: 'Milwaukee, Wisconsin (open to remote, Boulder or San Francisco)',
   // His line under his name, first on the page: the title he's held, which a
   // recruiter knows at a glance, and short, so the meadow keeps the screen.
   // His range is for his intro and his numbers to show
@@ -51,18 +54,18 @@ export const PROFILE = {
   practice:
     'The projects behind those numbers, newest first. These days I build with Claude Code across the whole lifecycle, from PRDs and scoping to QA.',
   // The About sign, in his voice: the one thing to take away, then how he got there
-  thesis: 'I spent six years making software ship. Then I started shipping it.',
+  thesis: 'I build the platform software ships on, and the product that ships on it.',
   intro:
-    'That meant CI/CD and cloud infrastructure, at four companies. In 2025 I went full stack on GoFundMe Pro, the product on top of the platform I’d helped build.',
+    'Six years of CI/CD and cloud infrastructure, at four companies, then from 2025 full stack on GoFundMe Pro, the product on top of the platform I’d helped build, so I know what each side needs from the other.',
   // The stack he works in, as the resume's summary has it, for whoever's scanning for it
-  worksIn: 'TypeScript, Next.js, Laravel, AWS',
+  worksIn: 'TypeScript, Next.js, Laravel, AWS, Terraform',
   // The resume's
   summary:
-    'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js, Laravel and AWS. AWS Golden Jacket recipient.',
+    'Senior software engineer with 8 years of experience across platform and product. Six years in cloud and DevOps, owning how software ships from commit to production, then nearly two building GoFundMe Pro full stack, on that platform, in TypeScript, Next.js, Laravel and AWS. On call at every company. AWS Golden Jacket recipient.',
   contact: [
     { label: 'Email', href: `mailto:${EMAIL}`, text: EMAIL },
     { label: 'LinkedIn', href: LINKEDIN, text: 'in/tripp-horbinski' },
-    { label: 'GitHub', href: GITHUB, text: 'tripp-horbinski' },
+    { label: 'GitHub', href: GITHUB, text: 'github.com/tripp-horbinski' },
     { label: 'Web', href: 'https://tripp.horbin.ski/', text: 'tripp.horbin.ski' },
   ],
 }
@@ -98,7 +101,9 @@ export const ROLES: Role[] = [
         start: '2023-04',
         end: '2024-12',
         highlights: [
-          'Built reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, across 8 engineering teams.',
+          'Built reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
+          'On call for the July 2024 AWS Kinesis outage in us-east-1: CloudWatch Logs failures kept new ECS tasks from starting during a scaling event and left only the old, overloaded tasks logging. We traced the cause, restored service by disabling CloudWatch logging, and added a logging check at container startup.',
+          'Addressed flaky tests that kept recurring across PR and release pipelines, many of them tied to timestamps or live network requests.',
           'Led the migration of the sharded MongoDB cluster behind donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and of the Kong API platform from EC2 to ECS.',
           'Mentored engineers through GoFundMe’s mentorship program.',
         ],
@@ -108,6 +113,7 @@ export const ROLES: Role[] = [
   {
     title: 'Lead Cloud Platform Engineer',
     org: 'Cardless',
+    stage: 'Series B fintech',
     place: 'Remote',
     dates: 'Aug 2022 – Jan 2023',
     start: '2022-08',
@@ -120,6 +126,7 @@ export const ROLES: Role[] = [
   {
     title: 'Cloud Engineer',
     org: 'Veda',
+    stage: 'Series A to B healthcare data startup',
     place: 'Remote',
     dates: 'Jan 2021 – Aug 2022',
     start: '2021-01',
@@ -153,6 +160,8 @@ export type Work = {
   org: string
   dates: string
   impact: Impact[]
+  // Its story in the same short steps, read at a glance, in place of the summary and detail
+  story?: { job: string; did: string; result: string }
   summary: string
   detail: string
   stack: string[]
@@ -166,9 +175,14 @@ export const WORK: Work[] = [
     org: 'GoFundMe',
     dates: 'Nov 2025 – Mar 2026',
     impact: [
-      { value: '27', label: 'repositories moved to pro.gofundme.com, under millions of daily transactions' },
+      { value: '27', label: 'repositories touched in the move to pro.gofundme.com, under millions of daily transactions' },
       { value: '4', label: 'product areas I led through the move' },
     ],
+    story: {
+      job: 'Move GoFundMe Pro from classy.org to pro.gofundme.com, across 27 repositories, under millions of daily transactions.',
+      did: 'A senior staff engineer brought me on as the platform’s subject-matter expert. I led Campaign Studio, live events, the Pro Services backend and the developer docs through the move, on a dual-domain setup that let us roll out behind flags and roll back fast.',
+      result: 'A rollback restored service for an enterprise customer’s weekend live event, without compromising the migration timeline.',
+    },
     summary:
       'A senior staff engineer brought me on as the platform’s subject-matter expert, and I led four of its product areas through the move from classy.org: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site.',
     detail:
@@ -182,6 +196,11 @@ export const WORK: Work[] = [
     org: 'GoFundMe',
     dates: '2025',
     impact: [{ value: '~2M', label: 'annual receipts each January, with no incidents in 2026' }],
+    story: {
+      job: 'About 2 million annual summary receipts go out each January, and they came from a Lambda workload that timed out and retried.',
+      did: 'I redesigned them as an ECS Fargate task on the primary API, and won buy-in from the architecture decision makers.',
+      result: 'The January 2026 run had no issues or incidents. Donors can now request receipts on demand, nonprofit admins can send them on donors’ behalf, and there are year-to-date summaries.',
+    },
     summary:
       'About 2 million annual summary receipts go out each January, and they came from a Lambda workload that timed out and retried. I redesigned them as an ECS Fargate task on the primary API, and won buy-in from the architecture decision makers.',
     detail:
@@ -194,7 +213,7 @@ export const WORK: Work[] = [
     role: 'Cloud and platform',
     org: 'GoFundMe',
     dates: '2023 – 2024',
-    impact: [{ value: 'Zero', label: 'customer-facing downtime moving our donation pages’ database to Atlas' }],
+    impact: [{ value: '0', label: 'customer-facing downtime moving our donation pages’ database to Atlas' }],
     summary:
       'I led moving the sharded MongoDB cluster behind our donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas, with zero customer-facing downtime.',
     detail: 'I also led moving the Kong API platform from EC2 to ECS.',
@@ -208,7 +227,7 @@ export const WORK: Work[] = [
     dates: '2023 – 2024',
     impact: [{ value: '8', label: 'engineering teams moved onto shared GitHub Actions' }],
     summary:
-      'I built the reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, across 8 engineering teams.',
+      'I built the reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
     detail: 'I also mentored engineers through GoFundMe’s mentorship program.',
     stack: ['GitHub Actions', 'Self-hosted runners'],
   },
@@ -263,8 +282,7 @@ export const CERTIFICATIONS = [
     name: 'AWS Golden Jacket',
     issuer: 'Amazon Web Services',
     date: 'Dec 2023',
-    month: '2023-12',
-    note: 'Every AWS certification, the last of them earned in December 2023. The gold jacket is how AWS marks it.',
+    note: 'All 12 AWS certifications, the last of them earned in December 2023. The gold jacket is how AWS marks it.',
     href: CREDLY,
     // For the numbers on the walk. Twelve, though
     // Credly shows 13 badges: Solutions Architect – Associate is there twice, from
@@ -304,7 +322,7 @@ export const CHAPTERS: { title: string; when: string; numbers: [string, string][
   {
     title: 'Platform: making software ship',
     when: '2018 – 2024',
-    numbers: [['gitlab', '3,000+'], ['veda', '12'], ['cardless', '50%'], ['atlas', 'Zero']],
+    numbers: [['gitlab', '3,000+'], ['veda', '12'], ['cardless', '50%'], ['atlas', '0']],
   },
   {
     title: 'Product: shipping on the platform',

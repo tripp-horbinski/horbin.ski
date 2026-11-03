@@ -293,13 +293,22 @@
       margin-top: 0.7rem;
     }
 
-    /* A job may run onto the next page between its bullets, but a heading
-       never ends a page */
+    /* Wide tracking prints its letters far enough apart that text extracted from
+       the PDF, as a resume parser reads it, comes out as "J A N 2 0 21" */
+    .resume .sheet-sub,
+    .resume .sheet-label,
+    .resume .trail-list-meta,
+    .resume-phase h4 {
+      letter-spacing: 0.04em;
+    }
+
+    /* A job stays whole on one page, and a heading never ends a page */
     .resume .sheet-label,
     .resume-entry h3 {
       break-after: avoid;
     }
 
+    .resume-entry,
     .resume-entry li {
       break-inside: avoid;
     }
@@ -366,10 +375,7 @@
     touch-action: pan-y;
   }
 
-  .meadow-sign,
-  .meadow-guide button,
-  .meadow-now,
-  .meadow-play {
+  .meadow-sign {
     font-family: 'Josefin Sans', 'Futura', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
@@ -392,26 +398,6 @@
 
   .meadow-sign:hover {
     background: #5A4031;
-  }
-
-  .meadow-sign[aria-pressed='true'],
-  .meadow-sign[aria-expanded='true'] {
-    background: #3F5B38;
-  }
-
-  .meadow-top {
-    position: absolute;
-    inset: 0 0 auto;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 16px;
-    pointer-events: none;
-  }
-
-  .meadow-top > * {
-    pointer-events: auto;
   }
 
   /* His name, his line and the button to his resume, over the sky */
@@ -737,6 +723,30 @@
     line-height: 1.7;
   }
 
+  /* A project's story in the same short steps, its labels to skim down */
+  .work-story {
+    margin: 0;
+  }
+
+  .work-story > div {
+    margin-top: 0.85rem;
+  }
+
+  .work-story dt {
+    font-family: 'Josefin Sans', 'Futura', sans-serif;
+    font-weight: 600;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #E0BE6E;
+  }
+
+  .work-story dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+
   .work-body .work-stack,
   .project .work-stack {
     margin-top: 1rem;
@@ -790,14 +800,7 @@
     color: #6B675A;
   }
 
-  /* What he builds on his own time */
-  .projects {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem;
-    margin-top: 2.5rem;
-  }
-
+  /* Esker's sign */
   .project {
     padding: 1.4rem 1.4rem 1.3rem;
     border: 1px solid #DCCDAE;
@@ -838,12 +841,57 @@
     margin-top: 1rem;
   }
 
-  /* A project's screenshots, as on its store listing */
+  /* A project's screenshots: one at a time, with arrows or a swipe to the rest */
   .shots {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    --shot: 9.5rem;
+    position: relative;
+    width: var(--shot);
+    margin: 1.25rem auto 0;
+  }
+
+  .shots-track {
+    display: flex;
     gap: 0.75rem;
-    margin-top: 1.25rem;
+    padding-block: 0.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .shots-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .shots-track {
+      scroll-behavior: smooth;
+    }
+  }
+
+  .shots-track li {
+    flex: 0 0 var(--shot);
+    scroll-snap-align: start;
+  }
+
+  .shots .shots-prev,
+  .shots .shots-next {
+    top: calc(50% - 0.8rem);
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  .shots .shots-prev svg,
+  .shots .shots-next svg {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .shots-prev {
+    left: -0.8rem;
+  }
+
+  .shots-next {
+    right: -0.8rem;
   }
 
   .shot {
@@ -1005,32 +1053,6 @@
     overflow-wrap: anywhere;
   }
 
-  /* Narrower: the projects one to a row */
-  @media (max-width: 1023px) {
-    .projects {
-      grid-template-columns: minmax(0, 1fr);
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    /* The screenshots don't fit in a row now, so they're a strip to swipe,
-       running to the card's edges so the next one shows there is more */
-    .shots {
-      display: flex;
-      overflow-x: auto;
-      margin-inline: -1.4rem;
-      padding: 0.25rem 1.4rem 0.5rem;
-      scroll-padding-inline: 1.4rem;
-      scroll-snap-type: x proximity;
-    }
-
-    .shots li {
-      flex: 0 0 10.5rem;
-      scroll-snap-align: start;
-    }
-  }
-
   @media (max-width: 760px) {
     .work {
       grid-template-columns: minmax(0, 1fr);
@@ -1187,15 +1209,6 @@
     color: #C9CDB6;
   }
 
-  /* His projects stay on paper */
-  .project {
-    color: #3B3A33;
-  }
-
-  .project .page-more {
-    color: #8F5F4A;
-  }
-
   /* The sideways walk: signs standing in the meadow, carried across the screen
      by the page's ordinary scroll */
   .walk {
@@ -1257,13 +1270,113 @@
     width: 100%;
     max-width: 1000px;
     padding: 1.9rem 2.1rem;
-    border-radius: 5px;
-    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3), 0 16px 34px rgba(20, 14, 8, 0.28);
+    border-radius: 14px;
+    /* Like a park sign: a wooden frame in the posts' color with a thin gold line
+       routed inside it. Inset shadows, so they take no room from the words */
+    box-shadow:
+      inset 0 0 0 5px #4A3324,
+      inset 0 0 0 9px #1E3826,
+      inset 0 0 0 10px rgba(224, 190, 110, 0.6),
+      0 3px 0 rgba(0, 0, 0, 0.3),
+      0 16px 34px rgba(20, 14, 8, 0.28);
     pointer-events: auto;
   }
 
-  .walk-sign:not(.project) {
+  .walk-sign {
     background: #1E3826;
+  }
+
+  /* The small lines, big and bright enough to read over the scene */
+  .walk-sign .project-kind,
+  .walk-sign .work-stack,
+  .walk-intro-facts dt {
+    font-size: 0.73rem;
+    letter-spacing: 0.08em;
+  }
+
+  .walk-sign.project .work-stack {
+    color: #DDE0CC;
+  }
+
+  /* Whose number it is, there if you look for it */
+  .walk-sign .numbers-list small {
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    color: rgba(251, 246, 234, 0.55);
+  }
+
+  .walk-sign .numbers-list span,
+  .walk-sign .page-lead,
+  .walk-intro .page-lead {
+    color: #FBF6EA;
+  }
+
+  /* Esker's sign matches the others */
+  .walk-sign.project {
+    max-width: 640px;
+    border: 0;
+    color: #FBF6EA;
+  }
+
+  .walk-sign.project h3 {
+    color: #FBF6EA;
+  }
+
+  .walk-sign.project .project-head {
+    margin-top: 0.8rem;
+  }
+
+  .walk-sign.project .project-kind,
+  .walk-sign.project .page-more {
+    color: #E0BE6E;
+  }
+
+  /* Its words beside its screenshots, where there's room */
+  @media (min-width: 761px) {
+    .walk-sign.project {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto auto auto auto 1fr;
+      column-gap: 2.25rem;
+    }
+
+    .walk-sign.project > * {
+      grid-column: 1;
+      justify-self: start;
+    }
+
+    .walk-sign.project > .shots {
+      grid-column: 2;
+      grid-row: 1 / -1;
+      align-self: center;
+      margin: 0;
+    }
+  }
+
+  /* On a phone they sit under its words, a little smaller, arrows beside them */
+  @media (max-width: 760px) {
+    .shots {
+      --shot: 7.5rem;
+      margin-top: 0.8rem;
+    }
+
+    .shots-prev {
+      left: -2rem;
+    }
+
+    .shots-next {
+      right: -2rem;
+    }
+  }
+
+  @media (max-width: 760px) and (max-height: 700px) {
+    .shots {
+      --shot: 5.75rem;
+    }
+
+    .walk-sign.project .work-stack {
+      display: none;
+    }
   }
 
   /* The posts it stands on */
@@ -1326,7 +1439,6 @@
     margin-top: 0.8rem;
     font-size: 1rem;
     line-height: 1.6;
-    color: rgba(251, 246, 234, 0.86);
   }
 
   .walk-intro-facts {
@@ -1489,7 +1601,8 @@
 
     /* On a short phone the signs tighten to stay under the résumé button */
     @media (max-height: 700px) {
-      .walk-intro .page-label {
+      .walk-intro .page-label,
+      .walk-sign.project .page-label {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -1560,155 +1673,8 @@
 
   }
 
-  /* The one panel, opened from the top right: time of day, sound, field guide */
-  .meadow-panel {
-    position: absolute;
-    top: 64px;
-    right: 16px;
-    width: min(320px, calc(100vw - 32px));
-    max-height: calc(100% - 80px);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 5px;
-    background: #F3EAD6;
-    color: #3B3A33;
-    box-shadow: 0 3px 0 #C9B996, 0 18px 40px rgba(20, 14, 8, 0.35);
-  }
-
-  .meadow-hint {
-    padding: 0 0.6rem 0.2rem;
-    font-family: 'Lora', Georgia, serif;
-    font-style: italic;
-    font-size: 0.78rem;
-    color: #8A8473;
-  }
-
-  /* Wooden board holding the time of day */
-  .meadow-clock {
-    width: 100%;
-    color: #F3EAD6;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: 'play range now' 'read read read';
-    align-items: center;
-    gap: 6px 10px;
-    padding: 10px;
-    border-radius: 6px;
-    background:
-      repeating-linear-gradient(178deg, rgba(0, 0, 0, 0) 0 9px, rgba(40, 26, 18, 0.18) 9px 10px, rgba(0, 0, 0, 0) 10px 23px),
-      #5E4434;
-    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.14), 0 3px 0 #3A291F, 0 12px 28px rgba(20, 14, 8, 0.3);
-  }
-
-  .meadow-play,
-  .meadow-now {
-    display: grid;
-    place-items: center;
-    height: 34px;
-    border-radius: 4px;
-    background: #3F5B38;
-    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.16);
-    transition: background-color 0.2s;
-  }
-
-  .meadow-play {
-    grid-area: play;
-    width: 34px;
-  }
-
-  .meadow-now {
-    grid-area: now;
-    padding: 0.1rem 0.8rem 0;
-    font-size: 0.64rem;
-  }
-
-  .meadow-play:hover,
-  .meadow-now:hover {
-    background: #4D6B45;
-  }
-
-  .meadow-readout {
-    grid-area: read;
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 10px;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .meadow-readout strong {
-    font-size: 0.95rem;
-    letter-spacing: 0.08em;
-  }
-
-  .meadow-readout span {
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #D9C9AC;
-  }
-
-  .meadow-range {
-    grid-area: range;
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 28px;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .meadow-range::-webkit-slider-runnable-track {
-    height: 10px;
-    border-radius: 5px;
-    background: var(--track);
-    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.3), 0 1px 0 rgba(255, 255, 255, 0.08);
-  }
-
-  .meadow-range::-moz-range-track {
-    height: 10px;
-    border-radius: 5px;
-    background: var(--track);
-    box-shadow: inset 0 0 0 1px rgba(243, 234, 214, 0.3);
-  }
-
-  .meadow-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
-    margin-top: -6px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #FFF8E6 0 45%, #F7D98A 70%);
-    border: 2px solid #F3EAD6;
-    box-shadow: 0 0 0 1px #3A291F, 0 0 14px rgba(255, 214, 140, 0.75);
-  }
-
-  .meadow-range::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #FFF8E6 0 45%, #F7D98A 70%);
-    border: 2px solid #F3EAD6;
-    box-shadow: 0 0 0 1px #3A291F, 0 0 14px rgba(255, 214, 140, 0.75);
-  }
-
-  .meadow-range:focus-visible {
-    outline: none;
-  }
-
-  .meadow-range:focus-visible::-webkit-slider-thumb {
-    outline: 2px solid #F3EAD6;
-    outline-offset: 3px;
-  }
-
-  /* Name tag over whatever you're pointing at */
-  .meadow-label,
-  .meadow-pin {
+  /* The tag naming Tripp while he's pointed at */
+  .meadow-label {
     position: absolute;
     top: 0;
     left: 0;
@@ -1742,160 +1708,6 @@
     height: 10px;
     background: #6B4D3A;
     transform: translateX(-50%) rotate(45deg);
-  }
-
-  .meadow-pin::before {
-    content: '';
-    position: absolute;
-    left: -6px;
-    top: -6px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid #FBF6EA;
-    background: #3F5B38;
-    box-shadow: 0 0 0 4px rgba(251, 246, 234, 0.25);
-    animation: meadow-pulse 2.2s ease-out infinite;
-  }
-
-  @keyframes meadow-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(251, 246, 234, 0.55); }
-    100% { box-shadow: 0 0 0 14px rgba(251, 246, 234, 0); }
-  }
-
-  /* Field note, like an interpretive sign at the trailhead */
-  .meadow-note {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: min(310px, calc(100vw - 32px));
-    visibility: hidden;
-    border-radius: 5px;
-    overflow: hidden;
-    color: #3B3A33;
-    background: #F3EAD6;
-    box-shadow: 0 3px 0 #C9B996, 0 18px 40px rgba(20, 14, 8, 0.35);
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  .meadow-note[hidden] {
-    display: none;
-  }
-
-  .meadow-note header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 0.7rem 0.6rem 0.55rem 1rem;
-    background: #3F5B38;
-  }
-
-  .meadow-note h2 {
-    color: #F3EAD6;
-    font-size: 0.82rem;
-    letter-spacing: 0.18em;
-  }
-
-  .meadow-note header button {
-    width: 26px;
-    height: 26px;
-    border-radius: 3px;
-    font-size: 1.25rem;
-    line-height: 1;
-    color: #F3EAD6;
-  }
-
-  .meadow-note header button:hover {
-    background: rgba(243, 234, 214, 0.15);
-  }
-
-  .meadow-note p {
-    padding: 0 1rem;
-    font-family: 'Lora', Georgia, serif;
-    font-size: 0.92rem;
-    line-height: 1.6;
-  }
-
-  .meadow-note p:last-child {
-    padding-bottom: 1rem;
-  }
-
-  .meadow-note .meadow-note-meta {
-    padding-top: 0.8rem;
-    padding-bottom: 0.35rem;
-    font-family: 'Josefin Sans', 'Futura', sans-serif;
-    font-weight: 600;
-    font-size: 0.64rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #8F5F4A;
-  }
-
-  .meadow-guide {
-    width: 100%;
-    padding-top: 0.3rem;
-  }
-
-  .meadow-guide h2 {
-    padding: 0 0.6rem 0.5rem;
-    font-size: 0.72rem;
-    letter-spacing: 0.22em;
-    color: #8F5F4A;
-  }
-
-  .meadow-guide ol {
-    list-style: none;
-    padding: 0;
-  }
-
-  .meadow-guide button {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 0.15rem;
-    padding: 0.5rem 0.6rem 0.4rem;
-    border-radius: 3px;
-    font-size: 0.7rem;
-    text-align: left;
-    color: #3B3A33;
-  }
-
-  .meadow-guide button small {
-    font-family: 'Lora', Georgia, serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 0.78rem;
-    letter-spacing: 0;
-    text-transform: none;
-    color: #8A8473;
-  }
-
-  .meadow-guide button:hover {
-    background: #E6DCC4;
-  }
-
-  @media (max-width: 640px) {
-    .home-head {
-      top: 70px;
-    }
-
-    /* On small screens the note docks along the bottom instead of floating */
-    .meadow-note {
-      left: 16px !important;
-      right: 16px;
-      width: auto;
-      top: auto !important;
-      bottom: 16px;
-      transform: none !important;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .meadow-pin::before {
-      animation: none;
-    }
   }
 }
 

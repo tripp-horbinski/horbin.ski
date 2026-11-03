@@ -24,7 +24,9 @@ export default function Resume() {
           <div key={role.org} className="resume-entry">
             <h3>
               <span>
-                {role.org}, <span className="resume-org">{role.title}</span>
+                {role.org}
+                {role.stage && <span className="resume-org"> ({role.stage})</span>},{' '}
+                <span className="resume-org">{role.title}</span>
               </span>
               <span className="trail-list-meta">
                 {role.dates} &middot; {role.place}

@@ -1,14 +1,13 @@
 // Shape of the generated terrain module (src/lib/meadow/terrain.ts). Coordinates
 // are in the 1200×800 reference frame the rest of the scene is laid out in.
 
-import type { FeatureId } from './features'
 
 export interface Facet {
   // land, open and rock are the mountain; hill and wood the ground in front of it
   kind: 'land' | 'open' | 'rock' | 'hill' | 'wood'
   // SVG path data
   d: string
-  // Which way this area faces (east, north, up), so it can be lit for any hour;
+  // Which way this area faces (east, north, up), so the sun can light it;
   // traced photos give a fixed tone instead
   n?: number[]
   tone?: number
@@ -23,7 +22,6 @@ export interface TerrainData {
   step: number
   skyline: number[]
   facets: Facet[]
-  slabs: { id: FeatureId; d: string; top: number[] }[]
   // Which way each group of forest faces; trees are lit with their group
   groups: number[][]
   // Packed x, y, height, and the group the tree stands in
@@ -38,8 +36,6 @@ export interface TerrainData {
   // broadleaf, slant range in meters, and how much is hidden behind a rise
   woods?: number[]
   camera: { lat: number; lon: number; heading: number; pitch: number; roll: number; f: number; cx: number; cy: number } | null
-  // The day the scene is set on, and the hours the sun is actually on the meadow
-  // (clearing the plains in the morning, until the ridge cuts it off)
+  // The day the scene is set on
   day?: string
-  sunlit?: number[]
 }

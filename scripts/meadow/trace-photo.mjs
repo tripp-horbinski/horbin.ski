@@ -125,7 +125,6 @@ async function main() {
       { kind: 'rock', tone: 0.55, haze: 0, mask: layer((i) => cls[i] === CLASS.rock && lumAt(i) >= t1 && lumAt(i) < t2) },
       { kind: 'rock', tone: 0.95, haze: 0, mask: layer((i) => cls[i] === CLASS.rock && lumAt(i) >= t2) },
     ],
-    rock: layer((i) => cls[i] === CLASS.rock),
     trees: [],
     camera: null,
   })
