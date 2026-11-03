@@ -101,7 +101,7 @@ export const ROLES: Role[] = [
         start: '2023-04',
         end: '2024-12',
         highlights: [
-          'Built reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
+          'Set up the central GitHub Actions repository, two workflow templates built from shared jobs and steps, and the self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
           'On call for the July 2024 AWS Kinesis outage in us-east-1: CloudWatch Logs failures kept new ECS tasks from starting during a scaling event and left only the old, overloaded tasks logging. We traced the cause, restored service by disabling CloudWatch logging, and added a logging check at container startup.',
           'Addressed flaky tests that kept recurring across PR and release pipelines, many of them tied to timestamps or live network requests.',
           'Led the migration of the sharded MongoDB cluster behind donation campaign pages and email templates from self-managed EC2 to MongoDB Atlas with zero customer-facing downtime, and of the Kong API platform from EC2 to ECS.',
@@ -227,8 +227,8 @@ export const WORK: Work[] = [
     dates: '2023 – 2024',
     impact: [{ value: '8', label: 'engineering teams moved onto shared GitHub Actions' }],
     summary:
-      'I built the reusable GitHub Actions workflows and self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
-    detail: 'I also mentored engineers through GoFundMe’s mentorship program.',
+      'I set up the central GitHub Actions repository, two workflow templates built from shared jobs and steps, and the self-hosted runners that moved GoFundMe Pro off Bitbucket and AWS CodePipeline, used by about 40 repositories across 8 engineering teams.',
+    detail: 'It gave each repository its own settings for deployment and manual gates.',
     stack: ['GitHub Actions', 'Self-hosted runners'],
   },
   {
@@ -322,7 +322,7 @@ export const CHAPTERS: { title: string; when: string; numbers: [string, string][
   {
     title: 'Platform: making software ship',
     when: '2018 – 2024',
-    numbers: [['gitlab', '3,000+'], ['veda', '12'], ['cardless', '50%'], ['atlas', '0']],
+    numbers: [['gitlab', '3,000+'], ['veda', '12'], ['cardless', '50%'], ['actions', '8']],
   },
   {
     title: 'Product: shipping on the platform',
