@@ -34,7 +34,7 @@ export const PROJECTS: Project[] = [
     kind: 'Android app',
     year: '2026',
     summary:
-      'Tracks your progress along Wisconsin’s 1,200-mile Ice Age Trail: browse it on a map, mark the segments you’ve hiked, see how far you’ve come. Built in a week; now on Google Play.',
+      'An app for hiking Wisconsin’s 1,200-mile Ice Age Trail: browse it on a map, mark the segments you’ve hiked, and see how far you’ve come.',
     stack: ['Expo', 'React Native', 'TypeScript', 'Google Maps', 'SQLite', 'EAS'],
     link: { href: 'https://play.google.com/store/apps/details?id=com.horbinskistudios.esker', text: 'Get it on Google Play' },
     icon: '/esker/icon.webp',

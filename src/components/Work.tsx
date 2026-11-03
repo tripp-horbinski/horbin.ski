@@ -63,7 +63,7 @@ const CONTACT = [
   {
     label: 'AWS certifications',
     href: CREDLY,
-    text: 'Every AWS certification, on Credly',
+    text: 'AWS Golden Jacket, earned 2023, on Credly',
     // A medal on its ribbon
     icon: (
       <svg {...ICON} viewBox="0 0 20 20" fill="currentColor">
@@ -226,6 +226,7 @@ export default function Work() {
                 <p className="cv-what">
                   {r.title}, <span>{r.org}</span>
                 </p>
+                {r.stage && <p className="cv-phase">{r.stage}</p>}
                 {r.phases?.map((p) => (
                   <p key={p.label} className="cv-phase">
                     {p.label} &middot; {p.dates}
