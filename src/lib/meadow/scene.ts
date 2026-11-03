@@ -4,7 +4,6 @@
 // drawn by hand. Everything is built once as Path2D and filled per frame with
 // the current palette.
 
-import type { FeatureId } from './features'
 import { TERRAIN } from './terrain'
 import type { Facet } from './terrain-types'
 
@@ -72,12 +71,6 @@ export interface FacetShape {
   n?: number[]
   tone?: number
   haze: number
-}
-
-export interface SlabShape {
-  id: FeatureId
-  path: Path2D
-  top: Pt
 }
 
 export interface TreeBand {
@@ -175,9 +168,7 @@ export const nearTrail = (x: number, y: number) => TRAIL_EDGES.some((p) => inPol
 
 export interface Scene {
   mountain: Path2D
-  ridge: Path2D
   facets: FacetShape[]
-  slabs: SlabShape[]
   // Trees on the mountain, by the forest group they stand in
   trees: TreeBand[]
   // Farthest first, so nearer groves draw over them
@@ -189,7 +180,6 @@ export interface Scene {
   meadowNear: Path2D
   verge: Path2D
   trail: Path2D
-  trailHit: Path2D
   stones: Path2D
 }
 
@@ -199,11 +189,8 @@ export function buildScene(): Scene {
   const skyPts: Pt[] = []
   for (let x = X0; x <= X1; x += TERRAIN.step) skyPts.push([x, ridgeY(x)])
   const mountain = polyPath([...skyPts, [X1, 560], [X0, 560]])
-  const ridge = new Path2D()
-  skyPts.forEach(([x, y], i) => (i ? ridge.lineTo(x, y) : ridge.moveTo(x, y)))
 
   const facets = TERRAIN.facets.map(({ d, ...f }) => ({ ...f, path: new Path2D(d) }))
-  const slabs = TERRAIN.slabs.map((sl) => ({ id: sl.id, path: new Path2D(sl.d), top: [sl.top[0], sl.top[1]] as Pt }))
 
   // Pines from the lidar render, sized for their distance; about a third in shadow
   const trees: TreeBand[] = TERRAIN.groups.map(() => ({ dark: new Path2D(), lit: new Path2D() }))
@@ -256,16 +243,13 @@ export function buildScene(): Scene {
   polyPath(ribbon(widen(TRAIL_SPUR, 18)), verge)
   const trail = new Path2D()
   TRAIL_POLYS.forEach((p) => polyPath(p, trail))
-  const trailHit = new Path2D()
-  polyPath(ribbon(widen(TRAIL_MAIN, 30)), trailHit)
-  polyPath(ribbon(widen(TRAIL_SPUR, 24)), trailHit)
   const stones = new Path2D()
   stones.ellipse(966, 604, 7, 4.5, -0.1, 0, Math.PI * 2)
   stones.moveTo(1061, 650)
   stones.ellipse(1056, 650, 4, 2.5, 0, 0, Math.PI * 2)
 
   return {
-    mountain, ridge, facets, slabs, trees, woods, woodTrees, hillHit, meadowFar, meadowMid,
-    meadowNear, verge, trail, trailHit, stones,
+    mountain, facets, trees, woods, woodTrees, hillHit, meadowFar, meadowMid,
+    meadowNear, verge, trail, stones,
   }
 }

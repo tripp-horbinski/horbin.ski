@@ -1,5 +1,5 @@
 // The trail marker post at the edge of the meadow, drawn in reference-frame
-// units. Its colors are multiplied by the light so it darkens at dusk.
+// units. Its colors are multiplied by the light.
 
 import { lit } from './palette'
 

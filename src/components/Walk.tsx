@@ -104,7 +104,7 @@ export default function Walk({ labels, children }: { labels: string[]; children:
       window.clearTimeout(settleTimer)
       settleTimer = window.setTimeout(settle, SETTLE_MS)
     }
-    // A link to the numbers, from the chevron or the trail, walks to the first stop
+    // A link to the numbers, from the chevron, walks to the first stop
     const onClick = (e: MouseEvent) => {
       const stop = (e.target as Element).closest<HTMLElement>('[data-stop]')
       if (stop) return go(Number(stop.dataset.stop))
@@ -113,7 +113,6 @@ export default function Walk({ labels, children }: { labels: string[]; children:
         go(0)
       }
     }
-    const onWalkTo = () => go(0)
     // Tabbing to something on a sign brings that sign into view
     const onFocus = (e: FocusEvent) => {
       const stop = (e.target as Element).closest('.walk-stop')
@@ -124,7 +123,6 @@ export default function Walk({ labels, children }: { labels: string[]; children:
     if (window.location.hash === '#numbers') go(0, 'instant')
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', layout)
-    window.addEventListener('walk-to', onWalkTo)
     window.addEventListener('pointerdown', onHold)
     window.addEventListener('pointerup', onRelease)
     window.addEventListener('pointercancel', onRelease)
@@ -143,7 +141,6 @@ export default function Walk({ labels, children }: { labels: string[]; children:
       window.removeEventListener('touchend', onRelease)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', layout)
-      window.removeEventListener('walk-to', onWalkTo)
       still.removeEventListener('change', layout)
       document.removeEventListener('click', onClick)
       track.removeEventListener('focusin', onFocus)

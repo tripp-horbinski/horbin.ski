@@ -9,10 +9,9 @@
 
 import proj4 from 'proj4'
 import sharp from 'sharp'
-import { getPosition } from 'suncalc'
-import { CACHE, CAMERA, DAY, FRAME, UTC_OFFSET, UTM } from './config.mjs'
+import { CACHE, CAMERA, DAY, FRAME, UTM } from './config.mjs'
 import { emitModule } from './emit.mjs'
-import { horizonProfile, loadTerrain, makeCamera, renderFrame } from './terrain.mjs'
+import { loadTerrain, makeCamera, renderFrame } from './terrain.mjs'
 import { rng } from './random.mjs'
 
 const SCALE = 2
@@ -408,32 +407,13 @@ for (let c = 0; c < W; c += 3 * SCALE) {
 }
 console.log(`${trees.length / 4} trees`)
 
-const rockMask = new Uint8Array(W * H)
-for (let i = 0; i < W * H; i++) rockMask[i] = kinds[i] === KIND.rock ? 1 : 0
-
 const [lon, lat] = proj4(UTM, 'EPSG:4326', [CAMERA.E, CAMERA.N])
 
-// When the sun actually reaches the meadow and when the ridge to the west cuts
-// it off, from the lidar horizon around the camera
-const horizon = horizonProfile(terrain, CAMERA.E, CAMERA.N, CAMERA.eye, 0, 360, 0.25)
-const ridgeAt = (bearing) => (horizon.el[Math.round(bearing / 0.25) % horizon.el.length] * 180) / Math.PI
-const sunAt = (hour) => getPosition(new Date(Date.parse(DAY) + (hour - UTC_OFFSET) * 3600e3), lat, lon)
-const clear = (hour) => {
-  const p = sunAt(hour)
-  return p.altitude > ridgeAt(p.azimuth)
-}
-let rise = 4
-while (!clear(rise)) rise += 1 / 120
-let shade = 20
-while (!clear(shade)) shade -= 1 / 120
-const sunlit = [+rise.toFixed(3), +shade.toFixed(3)]
-console.log(`sun on the meadow ${sunlit.join(' to ')} (${DAY})`)
 await emitModule(new URL('../../src/lib/meadow/terrain.ts', import.meta.url).pathname, {
   source: 'USGS 3DEP lidar and NAIP imagery (public domain)',
   frame: { width: W, height: H, x0: FRAME.x0, y0: 0, scale: SCALE },
   skyline: [...frame.skyline],
   facets,
-  rock: rockMask,
   trees,
   groups: land.centers,
   ground,
@@ -441,7 +421,6 @@ await emitModule(new URL('../../src/lib/meadow/terrain.ts', import.meta.url).pat
   meadow,
   woods,
   day: DAY,
-  sunlit,
   camera: { lat: +lat.toFixed(5), lon: +lon.toFixed(5), heading: CAMERA.heading, pitch: CAMERA.pitch, roll: CAMERA.roll, f: CAMERA.f, cx: CAMERA.cx, cy: CAMERA.cy },
 })
 

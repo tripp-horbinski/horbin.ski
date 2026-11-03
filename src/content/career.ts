@@ -33,7 +33,7 @@ export type Role = {
   phases?: Phase[]
 }
 
-const LOOKING_FOR = 'Senior/Staff roles, platform or full stack'
+const LOOKING_FOR = 'Senior roles, platform or full stack'
 const BASED_IN = 'Milwaukee, open to remote, Boulder or San Francisco'
 
 export const PROFILE = {
@@ -160,6 +160,8 @@ export type Work = {
   org: string
   dates: string
   impact: Impact[]
+  // Its story in the same short steps, read at a glance, in place of the summary and detail
+  story?: { job: string; did: string; result: string }
   summary: string
   detail: string
   stack: string[]
@@ -176,6 +178,11 @@ export const WORK: Work[] = [
       { value: '27', label: 'repositories touched in the move to pro.gofundme.com, under millions of daily transactions' },
       { value: '4', label: 'product areas I led through the move' },
     ],
+    story: {
+      job: 'Move GoFundMe Pro from classy.org to pro.gofundme.com, across 27 repositories, under millions of daily transactions.',
+      did: 'A senior staff engineer brought me on as the platform’s subject-matter expert. I led Campaign Studio, live events, the Pro Services backend and the developer docs through the move, on a dual-domain setup that let us roll out behind flags and roll back fast.',
+      result: 'A rollback restored service for an enterprise customer’s weekend live event, without compromising the migration timeline.',
+    },
     summary:
       'A senior staff engineer brought me on as the platform’s subject-matter expert, and I led four of its product areas through the move from classy.org: Campaign Studio and the rendering engine for new campaigns, the live events platform, the Pro Services backend that call centers use on behalf of enterprise nonprofits, and the developer documentation site.',
     detail:
@@ -189,6 +196,11 @@ export const WORK: Work[] = [
     org: 'GoFundMe',
     dates: '2025',
     impact: [{ value: '~2M', label: 'annual receipts each January, with no incidents in 2026' }],
+    story: {
+      job: 'About 2 million annual summary receipts go out each January, and they came from a Lambda workload that timed out and retried.',
+      did: 'I redesigned them as an ECS Fargate task on the primary API, and won buy-in from the architecture decision makers.',
+      result: 'The January 2026 run had no issues or incidents. Donors can now request receipts on demand, nonprofit admins can send them on donors’ behalf, and there are year-to-date summaries.',
+    },
     summary:
       'About 2 million annual summary receipts go out each January, and they came from a Lambda workload that timed out and retried. I redesigned them as an ECS Fargate task on the primary API, and won buy-in from the architecture decision makers.',
     detail:
@@ -270,7 +282,6 @@ export const CERTIFICATIONS = [
     name: 'AWS Golden Jacket',
     issuer: 'Amazon Web Services',
     date: 'Dec 2023',
-    month: '2023-12',
     note: 'All 12 AWS certifications, the last of them earned in December 2023. The gold jacket is how AWS marks it.',
     href: CREDLY,
     // For the numbers on the walk. Twelve, though

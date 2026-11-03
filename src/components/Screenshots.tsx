@@ -28,9 +28,8 @@ export default function Screenshots({ name, shots }: { name: string; shots: Shot
   const slide = (by: number) => {
     const r = row.current!
     const width = r.firstElementChild!.getBoundingClientRect().width + parseFloat(getComputedStyle(r).columnGap)
-    const last = shots.length - Math.round((r.clientWidth + parseFloat(getComputedStyle(r).columnGap)) / width)
     const at = Math.round(r.scrollLeft / width) + by
-    r.scrollTo({ left: (at < 0 ? last : at > last ? 0 : at) * width })
+    r.scrollTo({ left: ((at + shots.length) % shots.length) * width })
   }
 
   return (
@@ -45,12 +44,12 @@ export default function Screenshots({ name, shots }: { name: string; shots: Shot
             </li>
           ))}
         </ul>
-        <button type="button" className="shot-button shots-prev" aria-label="Previous screenshots" onClick={() => slide(-1)}>
+        <button type="button" className="shot-button shots-prev" aria-label="Previous screenshot" onClick={() => slide(-1)}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" />
           </svg>
         </button>
-        <button type="button" className="shot-button shots-next" aria-label="More screenshots" onClick={() => slide(1)}>
+        <button type="button" className="shot-button shots-next" aria-label="Next screenshot" onClick={() => slide(1)}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 5l7 7-7 7" />
           </svg>

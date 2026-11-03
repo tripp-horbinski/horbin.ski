@@ -1,7 +1,7 @@
 // Tripp at the 2024 Milwaukee Lakefront Marathon, screen prints traced from
 // his race photos by scripts/meadow/runner.mjs (after the finish) and
 // runner-bridge.mjs (crossing the Hoan Bridge). Each ink is multiplied by the
-// light so the figures can stand in the meadow at any hour.
+// light so the figures sit in the meadow's afternoon.
 
 import { lit } from './palette'
 import { RUNNER_ART } from './runner-art'

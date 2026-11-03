@@ -5,22 +5,16 @@ import { CREDLY, EMAIL, GITHUB, LINKEDIN, RESUME_PDF } from '@/lib/site'
 import Screenshots from './Screenshots'
 import Walk from './Walk'
 
-// A project's years, short: 2018–21, or 2025
-const years = (dates: string) => {
-  const [first, last] = [dates.match(/\d{4}/)![0], dates.slice(-4)]
-  return first === last ? first : `${first}–${last.slice(2)}`
-}
-
-// The two chapters on the walk, each number with where and when
-// it's from and where to see more: its project below, or for the Golden
+// The two chapters on the walk, each number with where it's from and where
+// to see more: its project below, or for the Golden
 // Jacket's, Credly
 const STORY = CHAPTERS.map((c) => ({
   ...c,
   numbers: c.numbers.map(([id, value]) => {
     const w = WORK.find((p) => p.id === id)
-    if (w) return { ...w.impact.find((n) => n.value === value)!, href: `#${id}`, from: `${w.org} · ${years(w.dates)}` }
+    if (w) return { ...w.impact.find((n) => n.value === value)!, href: `#${id}`, from: w.org }
     const cert = CERTIFICATIONS.find((p) => p.id === id)!
-    return { ...cert.impact.find((n) => n.value === value)!, href: cert.href, from: `${cert.name} · ${cert.month.slice(0, 4)}` }
+    return { ...cert.impact.find((n) => n.value === value)!, href: cert.href, from: cert.name }
   }),
 }))
 
@@ -105,15 +99,14 @@ function Chapter({ c }: { c: (typeof STORY)[number] }) {
   )
 }
 
-function ProjectCard({ p, className }: { p: (typeof PROJECTS)[number]; className: string }) {
+function ProjectCard({ p }: { p: (typeof PROJECTS)[number] }) {
   return (
-    <article className={className}>
+    <article className="project walk-sign">
+      <h2 className="page-label">Side project</h2>
       <div className="project-head">
         {p.icon && <Image className="project-icon" src={p.icon} width={128} height={128} sizes="56px" alt="" />}
         <div>
-          <p className="project-kind">
-            {p.kind} &middot; {p.year}
-          </p>
+          <p className="project-kind">{p.kind}</p>
           <h3>{p.name}</h3>
         </div>
       </div>
@@ -131,11 +124,11 @@ function ProjectCard({ p, className }: { p: (typeof PROJECTS)[number]; className
 
 // The walk's signs over the meadow: about him, the two chapters of his career
 // and Esker. Then the page under them: the projects behind the numbers, where
-// he's worked, what else he builds on his own time, and how to reach him
+// he's worked, and how to reach him
 export default function Work() {
   return (
     <>
-      <Walk labels={['About', 'Platform', 'Product', 'Esker']}>
+      <Walk labels={['About', 'Platform', 'Product', 'Side project']}>
         <section id="numbers" className="walk-stop" aria-labelledby="numbers-title">
           <div className="walk-sign walk-intro">
             <h2 id="numbers-title" className="page-label">
@@ -170,8 +163,8 @@ export default function Work() {
           </div>
         </div>
         <div className="walk-stop">
-          {PROJECTS.filter((p) => p.shots).map((p) => (
-            <ProjectCard key={p.id} p={p} className="project walk-sign" />
+          {PROJECTS.map((p) => (
+            <ProjectCard key={p.id} p={p} />
           ))}
         </div>
       </Walk>
@@ -203,8 +196,27 @@ export default function Work() {
               </div>
               <div className="work-body">
                 <h3>{w.title}</h3>
-                <p>{w.summary}</p>
-                <p>{w.detail}</p>
+                {w.story ? (
+                  <dl className="work-story">
+                    <div>
+                      <dt>The job</dt>
+                      <dd>{w.story.job}</dd>
+                    </div>
+                    <div>
+                      <dt>What I did</dt>
+                      <dd>{w.story.did}</dd>
+                    </div>
+                    <div>
+                      <dt>How it went</dt>
+                      <dd>{w.story.result}</dd>
+                    </div>
+                  </dl>
+                ) : (
+                  <>
+                    <p>{w.summary}</p>
+                    <p>{w.detail}</p>
+                  </>
+                )}
                 <p className="work-stack">{w.stack.join(' · ')}</p>
               </div>
             </article>
@@ -259,20 +271,6 @@ export default function Work() {
           <a href={RESUME_PDF} className="meadow-sign" download>
             Download PDF
           </a>
-        </div>
-      </section>
-
-      <section id="projects" className="page-section" aria-labelledby="projects-title">
-        <header className="page-head">
-          <h2 id="projects-title" className="page-label">
-            On my own time
-          </h2>
-          <p className="page-lead">Things I&apos;ve built because I love building them.</p>
-        </header>
-        <div className="projects">
-          {PROJECTS.filter((p) => !p.shots).map((p) => (
-            <ProjectCard key={p.id} p={p} className="project" />
-          ))}
         </div>
       </section>
 
