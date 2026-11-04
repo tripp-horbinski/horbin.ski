@@ -70,7 +70,7 @@ export const PROFILE = {
     { label: 'Email', href: `mailto:${EMAIL}`, text: EMAIL },
     { label: 'LinkedIn', href: LINKEDIN, text: 'in/tripp-horbinski' },
     { label: 'GitHub', href: GITHUB, text: 'github.com/tripp-horbinski' },
-    { label: 'Web', href: 'https://tripp.horbin.ski/', text: 'tripp.horbin.ski' },
+    { label: 'Web', href: 'https://tripp.horbin.ski/', text: 'https://tripp.horbin.ski' },
   ],
 }
 
